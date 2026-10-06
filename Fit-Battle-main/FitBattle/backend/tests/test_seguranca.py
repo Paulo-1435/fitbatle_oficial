@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from app import criar_app
 from auth import gerar_token
 from database import db
-from services.service import resetar_limitador_login
+from services import resetar_limitador_login
 from tests.apoio import criar_views_de_ranking
 
 SENHA = "senhaforte123"

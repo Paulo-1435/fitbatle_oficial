@@ -1,7 +1,9 @@
 import io
 import os
+import re
 import shutil
 import tempfile
+import time
 import unittest
 from unittest import mock
 
@@ -85,7 +87,7 @@ class TestCorridaCadastroEmail(BaseTeste):
             "nome": "Primeiro", "email": email, "idade": 25, "senha": SENHA,
             "aceite_termos": True, "consentimentos": {},
         }
-        with mock.patch("services.service.UsuarioRepository.buscar_por_email", return_value=None):
+        with mock.patch("services.usuario.UsuarioRepository.buscar_por_email", return_value=None):
             primeira = self.cli.post("/api/usuarios", json=corpo)
             segunda = self.cli.post("/api/usuarios", json=dict(corpo, nome="Segundo"))
 
@@ -103,7 +105,7 @@ class TestCorridaCurtida(BaseTeste):
         )
         id_postagem = postagem.get_json()["postagem"]["id"]
 
-        with mock.patch("services.service.CurtidaRepository.buscar", return_value=None):
+        with mock.patch("services.feed.CurtidaRepository.buscar", return_value=None):
             primeira = self.cli.post(
                 f"/api/feed/postagem/{id_postagem}/curtir", headers=self.auth(token)
             )
@@ -163,6 +165,87 @@ class TestLimpezaDeImagens(BaseTeste):
         exclusao = self.cli.delete(f"/api/usuarios/{usuario['id']}", headers=self.auth(token))
         self.assertEqual(exclusao.status_code, 200)
         self.assertFalse(os.path.exists(os.path.join(self.pasta_uploads, nome_arquivo)))
+
+
+class TestNomeDeArquivoDeImagem(BaseTeste):
+
+    def setUp(self):
+        super().setUp()
+        self.pasta_uploads = tempfile.mkdtemp()
+        self.app.config["UPLOAD_FOLDER"] = self.pasta_uploads
+
+    def tearDown(self):
+        shutil.rmtree(self.pasta_uploads, ignore_errors=True)
+
+    def _enviar_foto_de_perfil(self, usuario, token, nome_arquivo="avatar.png", conteudo=b"fake-imagem"):
+        resposta = self.cli.post(
+            f"/api/usuarios/{usuario['id']}/foto",
+            data={"foto": (io.BytesIO(conteudo), nome_arquivo)},
+            content_type="multipart/form-data",
+            headers=self.auth(token),
+        )
+        self.assertEqual(resposta.status_code, 200, resposta.get_data(as_text=True))
+        return resposta.get_json()["usuario"]["foto"]
+
+    def _enviar_postagem_com_foto(self, token, nome_arquivo="post.png", conteudo=b"fake-imagem"):
+        resposta = self.cli.post(
+            "/api/postagens",
+            data={"texto": "Treino com foto", "foto": (io.BytesIO(conteudo), nome_arquivo)},
+            content_type="multipart/form-data",
+            headers=self.auth(token),
+        )
+        self.assertEqual(resposta.status_code, 201, resposta.get_data(as_text=True))
+        return resposta.get_json()["postagem"]["foto"]
+
+    def test_foto_de_perfil_gera_nome_com_prefixo_usuario_e_id(self):
+        usuario, token = self.criar_usuario_logado("Ana Nome")
+        caminho = self._enviar_foto_de_perfil(usuario, token)
+        padrao = r"^/uploads/usuario_" + str(usuario["id"]) + r"_\d+\.png$"
+        self.assertRegex(caminho, padrao)
+
+    def test_foto_de_postagem_gera_nome_com_prefixo_postagem_e_id(self):
+        usuario, token = self.criar_usuario_logado("Bia Nome")
+        caminho = self._enviar_postagem_com_foto(token)
+        padrao = r"^/uploads/postagem_" + str(usuario["id"]) + r"_\d+\.png$"
+        self.assertRegex(caminho, padrao)
+
+    def test_extensao_jpeg_e_normalizada_para_jpg_no_perfil(self):
+        usuario, token = self.criar_usuario_logado("Cris Jpeg")
+        caminho = self._enviar_foto_de_perfil(usuario, token, nome_arquivo="foto.jpeg")
+        self.assertTrue(caminho.endswith(".jpg"))
+        self.assertFalse(caminho.endswith(".jpeg"))
+
+    def test_extensao_jpeg_e_normalizada_para_jpg_na_postagem(self):
+        _, token = self.criar_usuario_logado("Davi Jpeg")
+        caminho = self._enviar_postagem_com_foto(token, nome_arquivo="post.jpeg")
+        self.assertTrue(caminho.endswith(".jpg"))
+        self.assertFalse(caminho.endswith(".jpeg"))
+
+    def test_nova_foto_de_perfil_substitui_a_anterior(self):
+        usuario, token = self.criar_usuario_logado("Elis Troca")
+        caminho_antigo = self._enviar_foto_de_perfil(usuario, token)
+        nome_antigo = os.path.basename(caminho_antigo)
+        self.assertTrue(os.path.exists(os.path.join(self.pasta_uploads, nome_antigo)))
+
+        time.sleep(1.1)
+        caminho_novo = self._enviar_foto_de_perfil(usuario, token, nome_arquivo="novo.png")
+        nome_novo = os.path.basename(caminho_novo)
+
+        self.assertNotEqual(nome_antigo, nome_novo)
+        self.assertFalse(os.path.exists(os.path.join(self.pasta_uploads, nome_antigo)))
+        self.assertTrue(os.path.exists(os.path.join(self.pasta_uploads, nome_novo)))
+
+    def test_foto_de_postagem_nao_apaga_postagens_anteriores(self):
+        usuario, token = self.criar_usuario_logado("Fabio Mantem")
+        caminho_1 = self._enviar_postagem_com_foto(token, nome_arquivo="um.png")
+        time.sleep(1.1)
+        caminho_2 = self._enviar_postagem_com_foto(token, nome_arquivo="dois.png")
+
+        nome_1 = os.path.basename(caminho_1)
+        nome_2 = os.path.basename(caminho_2)
+        self.assertNotEqual(nome_1, nome_2)
+        self.assertTrue(os.path.exists(os.path.join(self.pasta_uploads, nome_1)))
+        self.assertTrue(os.path.exists(os.path.join(self.pasta_uploads, nome_2)))
 
 
 class TestLimiteDeTentativasDeLogin(BaseTeste):

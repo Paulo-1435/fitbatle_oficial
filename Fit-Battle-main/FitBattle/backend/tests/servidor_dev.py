@@ -10,7 +10,7 @@ os.environ.setdefault("DB_URI", "sqlite:///" + CAMINHO_BANCO)
 from app import criar_app
 from database import db
 from models.model import Usuario
-from services.service import AtividadeService, ComentarioService, CurtidaService, UsuarioService
+from services import AtividadeService, ComentarioService, CurtidaService, UsuarioService
 from tests.apoio import criar_views_de_ranking
 
 SENHA = "senhaforte123"

@@ -1,7 +1,7 @@
 from flask import current_app, g, jsonify, request
 
 from auth import gerar_token
-from services.service import (
+from services import (
     AtividadeService,
     ComentarioService,
     ConsentimentoService,
