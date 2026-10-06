@@ -180,8 +180,3 @@ async function convidar(botao) {
   }
 }
 
-function esc(s) {
-  const div = document.createElement('div');
-  div.textContent = s == null ? '' : s;
-  return div.innerHTML;
-}

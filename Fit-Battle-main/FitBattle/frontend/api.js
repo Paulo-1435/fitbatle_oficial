@@ -102,3 +102,9 @@ async function atualizarSessaoPelaApi() {
   atualizarUsuarioDaSessao(dados.usuario);
   return dados.usuario;
 }
+
+function esc(s) {
+  const div = document.createElement('div');
+  div.textContent = s == null ? '' : s;
+  return div.innerHTML;
+}

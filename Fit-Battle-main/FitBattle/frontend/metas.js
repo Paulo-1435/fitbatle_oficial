@@ -163,8 +163,3 @@ function formatarNumero(n) {
   return Number(n).toString().replace('.', ',');
 }
 
-function esc(s) {
-  const div = document.createElement('div');
-  div.textContent = s == null ? '' : s;
-  return div.innerHTML;
-}

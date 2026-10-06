@@ -186,8 +186,3 @@ async function responderConvite(botao, aceito) {
   }
 }
 
-function esc(s) {
-  const div = document.createElement('div');
-  div.textContent = s == null ? '' : s;
-  return div.innerHTML;
-}

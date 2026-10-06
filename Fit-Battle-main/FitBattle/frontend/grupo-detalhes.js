@@ -140,8 +140,3 @@ function formatarMesAno(iso) {
   return data.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
 }
 
-function esc(s) {
-  const div = document.createElement('div');
-  div.textContent = s == null ? '' : s;
-  return div.innerHTML;
-}

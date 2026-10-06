@@ -127,8 +127,3 @@ function mostrarToast(mensagem) {
   mostrarToast._timer = setTimeout(function () { t.classList.remove('mostrar'); }, 2600);
 }
 
-function esc(s) {
-  const div = document.createElement('div');
-  div.textContent = s;
-  return div.innerHTML;
-}
