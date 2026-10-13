@@ -1,4 +1,5 @@
 from sqlalchemy import func, text
+from sqlalchemy.exc import IntegrityError
 
 from database import db
 from models.model import (
@@ -83,7 +84,11 @@ class UsuarioRepository:
             responsavel_autorizado_em=dados.get("responsavel_autorizado_em"),
         )
         db.session.add(usuario)
-        db.session.commit()
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            return None
         return usuario
 
     @staticmethod
@@ -232,7 +237,11 @@ class CurtidaRepository:
     def curtir(id_usuario, tipo_alvo, id_alvo):
         curtida = Curtida(id_usuario=id_usuario, tipo_alvo=tipo_alvo, id_alvo=id_alvo)
         db.session.add(curtida)
-        db.session.commit()
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            return None
         return curtida
 
     @staticmethod
@@ -502,7 +511,11 @@ class ConviteRepository:
     def criar(id_grupo, id_remetente, id_destinatario):
         convite = Convite(id_grupo=id_grupo, id_remetente=id_remetente, id_destinatario=id_destinatario)
         db.session.add(convite)
-        db.session.commit()
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            return None
         return convite
 
     @staticmethod

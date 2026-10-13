@@ -1,8 +1,8 @@
 from datetime import date, datetime
 
-from models.model import _iso_utc
 from repositories.repository import AtividadeRepository, MetaRepository
-from services.comum import ErroValidacao, _agora
+from services.comum import ErroValidacao
+from utils import agora, iso_utc
 
 
 class MetaService:
@@ -149,7 +149,7 @@ class MetaService:
 
         if meta.status == "em_andamento" and objetivo > 0 and atual >= objetivo:
             meta.status = "concluida"
-            meta.concluida_em = _agora()
+            meta.concluida_em = agora()
             MetaRepository.salvar(meta)
 
         percentual = 0
@@ -203,7 +203,7 @@ class MetaService:
                 "sessao": indice,
                 "carga_kg": carga,
                 "repeticoes": atividade.repeticoes,
-                "data_registro": _iso_utc(atividade.data_registro),
+                "data_registro": iso_utc(atividade.data_registro),
                 "rotulo": rotulo,
             })
             anterior = carga

@@ -1,6 +1,3 @@
-from sqlalchemy.exc import IntegrityError
-
-from database import db
 from repositories.repository import (
     AtividadeRepository,
     ComentarioRepository,
@@ -160,10 +157,7 @@ class CurtidaService:
             CurtidaRepository.descurtir(existente)
             curti = False
         else:
-            try:
-                CurtidaRepository.curtir(id_usuario, tipo_alvo, id_alvo)
-            except IntegrityError:
-                db.session.rollback()
+            CurtidaRepository.curtir(id_usuario, tipo_alvo, id_alvo)
             curti = True
 
         return {"curti": curti, "curtidas": CurtidaRepository.contar(tipo_alvo, id_alvo)}

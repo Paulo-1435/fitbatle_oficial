@@ -1,28 +1,5 @@
-from datetime import date, datetime, timezone
-
 from database import db
-
-
-def _agora():
-    return datetime.now(timezone.utc)
-
-
-def _iso_utc(valor):
-    if valor is None:
-        return None
-    if valor.tzinfo is None:
-        valor = valor.replace(tzinfo=timezone.utc)
-    return valor.isoformat()
-
-
-def calcular_idade(data_nascimento, idade_legada=None, hoje=None):
-    if data_nascimento is None:
-        return idade_legada
-    hoje = hoje or date.today()
-    idade = hoje.year - data_nascimento.year
-    if (hoje.month, hoje.day) < (data_nascimento.month, data_nascimento.day):
-        idade -= 1
-    return idade
+from utils import agora, calcular_idade, iso_utc
 
 
 class Usuario(db.Model):
@@ -46,7 +23,7 @@ class Usuario(db.Model):
     nivel = db.Column(db.String(20), nullable=False, default="iniciante")
     xp = db.Column(db.Integer, nullable=False, default=0)
     perfil_publico = db.Column(db.Boolean, nullable=False, default=True)
-    criado_em = db.Column(db.DateTime, nullable=False, default=_agora)
+    criado_em = db.Column(db.DateTime, nullable=False, default=agora)
 
     atividades = db.relationship(
         "Atividade",
@@ -78,7 +55,7 @@ class Usuario(db.Model):
             "nivel": self.nivel,
             "xp": self.xp,
             "perfil_publico": self.perfil_publico,
-            "criado_em": _iso_utc(self.criado_em),
+            "criado_em": iso_utc(self.criado_em),
         }
 
     def to_publico(self):
@@ -91,7 +68,7 @@ class Usuario(db.Model):
             "descricao": self.descricao,
             "nivel": self.nivel,
             "xp": self.xp,
-            "criado_em": _iso_utc(self.criado_em),
+            "criado_em": iso_utc(self.criado_em),
         }
 
 
@@ -112,7 +89,7 @@ class Atividade(db.Model):
     carga_kg = db.Column(db.Numeric(6, 2))
     repeticoes = db.Column(db.Integer)
     pontuacao = db.Column(db.Integer, nullable=False, default=0)
-    data_registro = db.Column(db.DateTime, nullable=False, default=_agora)
+    data_registro = db.Column(db.DateTime, nullable=False, default=agora)
 
     def to_dict(self):
         return {
@@ -126,7 +103,7 @@ class Atividade(db.Model):
             "carga_kg": float(self.carga_kg) if self.carga_kg is not None else None,
             "repeticoes": self.repeticoes,
             "pontuacao": self.pontuacao,
-            "data_registro": _iso_utc(self.data_registro),
+            "data_registro": iso_utc(self.data_registro),
         }
 
 
@@ -141,7 +118,7 @@ class Postagem(db.Model):
     )
     texto = db.Column(db.String(1000), nullable=False)
     foto = db.Column(db.String(255))
-    data_registro = db.Column(db.DateTime, nullable=False, default=_agora)
+    data_registro = db.Column(db.DateTime, nullable=False, default=agora)
 
     def to_dict(self):
         return {
@@ -149,7 +126,7 @@ class Postagem(db.Model):
             "id_usuario": self.id_usuario,
             "texto": self.texto,
             "foto": self.foto,
-            "data_registro": _iso_utc(self.data_registro),
+            "data_registro": iso_utc(self.data_registro),
         }
 
 
@@ -167,7 +144,7 @@ class Curtida(db.Model):
     )
     tipo_alvo = db.Column(db.String(20), nullable=False)
     id_alvo = db.Column(db.Integer, nullable=False)
-    data_registro = db.Column(db.DateTime, nullable=False, default=_agora)
+    data_registro = db.Column(db.DateTime, nullable=False, default=agora)
 
 
 class Comentario(db.Model):
@@ -182,14 +159,14 @@ class Comentario(db.Model):
     tipo_alvo = db.Column(db.String(20), nullable=False)
     id_alvo = db.Column(db.Integer, nullable=False)
     texto = db.Column(db.String(500), nullable=False)
-    data_registro = db.Column(db.DateTime, nullable=False, default=_agora)
+    data_registro = db.Column(db.DateTime, nullable=False, default=agora)
 
     def to_dict(self):
         return {
             "id": self.id_comentario,
             "id_usuario": self.id_usuario,
             "texto": self.texto,
-            "data_registro": _iso_utc(self.data_registro),
+            "data_registro": iso_utc(self.data_registro),
         }
 
 
@@ -206,7 +183,7 @@ class Grupo(db.Model):
         db.ForeignKey("usuario.id_usuario", ondelete="CASCADE"),
         nullable=False,
     )
-    data_criacao = db.Column(db.DateTime, nullable=False, default=_agora)
+    data_criacao = db.Column(db.DateTime, nullable=False, default=agora)
 
     def to_dict(self):
         return {
@@ -214,7 +191,7 @@ class Grupo(db.Model):
             "nome": self.nome,
             "descricao": self.descricao,
             "id_criador": self.id_criador,
-            "data_criacao": _iso_utc(self.data_criacao),
+            "data_criacao": iso_utc(self.data_criacao),
         }
 
 
@@ -232,7 +209,7 @@ class GrupoMembro(db.Model):
         primary_key=True,
     )
     papel = db.Column(db.String(10), nullable=False, default="membro")
-    entrou_em = db.Column(db.DateTime, nullable=False, default=_agora)
+    entrou_em = db.Column(db.DateTime, nullable=False, default=agora)
 
 
 class Convite(db.Model):
@@ -258,7 +235,7 @@ class Convite(db.Model):
         nullable=False,
     )
     status = db.Column(db.String(10), nullable=False, default="pendente")
-    data_envio = db.Column(db.DateTime, nullable=False, default=_agora)
+    data_envio = db.Column(db.DateTime, nullable=False, default=agora)
     data_resposta = db.Column(db.DateTime)
 
 
@@ -299,7 +276,7 @@ class Consentimento(db.Model):
     descricao = db.Column(db.String(200), nullable=False)
     obrigatorio = db.Column(db.Boolean, nullable=False, default=False)
     aceito = db.Column(db.Boolean, nullable=False, default=True)
-    data_registro = db.Column(db.DateTime, nullable=False, default=_agora)
+    data_registro = db.Column(db.DateTime, nullable=False, default=agora)
     data_atualizacao = db.Column(db.DateTime)
 
     def to_dict(self):
@@ -308,6 +285,6 @@ class Consentimento(db.Model):
             "descricao": self.descricao,
             "obrigatorio": self.obrigatorio,
             "aceito": self.aceito,
-            "data_registro": _iso_utc(self.data_registro),
-            "data_atualizacao": _iso_utc(self.data_atualizacao),
+            "data_registro": iso_utc(self.data_registro),
+            "data_atualizacao": iso_utc(self.data_atualizacao),
         }

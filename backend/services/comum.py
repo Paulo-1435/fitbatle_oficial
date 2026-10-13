@@ -1,12 +1,7 @@
 import os
 import time
-from datetime import datetime, timezone
 
 EXTENSOES_FOTO = {"png", "jpg", "jpeg", "webp"}
-
-
-def _agora():
-    return datetime.now(timezone.utc)
 
 
 class ErroValidacao(Exception):

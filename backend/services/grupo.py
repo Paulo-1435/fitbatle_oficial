@@ -1,13 +1,10 @@
 import secrets
 import string
 
-from sqlalchemy.exc import IntegrityError
-
-from database import db
-from models.model import _iso_utc
 from repositories.repository import ConviteRepository, GrupoRepository, RankingRepository
-from services.comum import ErroValidacao, _agora
+from services.comum import ErroValidacao
 from services.usuario import UsuarioService
+from utils import agora, iso_utc
 
 CODIGO_CONVITE_ALFABETO = string.ascii_uppercase + string.digits
 
@@ -176,11 +173,10 @@ class GrupoService:
         destinatario = UsuarioService.buscar(id_destinatario)
         if GrupoRepository.papel_do_membro(id_grupo, destinatario.id_usuario) is not None:
             raise ErroValidacao("Esse usuário já é membro do grupo.", status=409)
-        try:
-            return ConviteRepository.criar(id_grupo, id_remetente, destinatario.id_usuario)
-        except IntegrityError:
-            db.session.rollback()
+        convite = ConviteRepository.criar(id_grupo, id_remetente, destinatario.id_usuario)
+        if convite is None:
             raise ErroValidacao("Já existe um convite pendente para esse usuário.", status=409)
+        return convite
 
 
 class ConviteService:
@@ -198,7 +194,7 @@ class ConviteService:
                     "membros": GrupoRepository.contar_membros(grupo.id_grupo),
                 },
                 "remetente": {"id": remetente.id_usuario, "nome": remetente.nome},
-                "data_envio": _iso_utc(convite.data_envio),
+                "data_envio": iso_utc(convite.data_envio),
             })
         return {
             "pendentes": pendentes,
@@ -219,7 +215,7 @@ class ConviteService:
             raise ErroValidacao("Informe o campo 'aceito' (true ou false).")
 
         convite.status = "aceito" if aceito else "recusado"
-        convite.data_resposta = _agora()
+        convite.data_resposta = agora()
         ConviteRepository.salvar(convite)
 
         if aceito and GrupoRepository.papel_do_membro(convite.id_grupo, id_usuario) is None:

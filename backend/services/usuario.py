@@ -4,13 +4,11 @@ import threading
 import time
 from datetime import date, datetime
 
-from sqlalchemy.exc import IntegrityError
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from database import db
-from models.model import calcular_idade
 from repositories.repository import PostagemRepository, UsuarioRepository
-from services.comum import ErroValidacao, _agora, salvar_imagem
+from services.comum import ErroValidacao, salvar_imagem
+from utils import agora, calcular_idade
 
 EMAIL_REGEX = r"^[^\s@]+@[^\s@]+\.[^\s@]+$"
 
@@ -95,10 +93,8 @@ class UsuarioService:
         limpos["perfil_publico"] = bool(consentimentos.get("ranking_publico", True))
 
         limpos["senha"] = generate_password_hash(limpos["senha"])
-        try:
-            usuario = UsuarioRepository.criar(limpos)
-        except IntegrityError:
-            db.session.rollback()
+        usuario = UsuarioRepository.criar(limpos)
+        if usuario is None:
             raise ErroValidacao("E-mail já cadastrado.", status=409)
         ConsentimentoService.registrar_iniciais(usuario.id_usuario, consentimentos)
         return usuario
@@ -297,5 +293,5 @@ class UsuarioService:
         return {
             "responsavel_nome": nome,
             "responsavel_email": email,
-            "responsavel_autorizado_em": _agora(),
+            "responsavel_autorizado_em": agora(),
         }

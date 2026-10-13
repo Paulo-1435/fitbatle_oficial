@@ -1,6 +1,7 @@
 from repositories.repository import ConsentimentoRepository, UsuarioRepository
-from services.comum import ErroValidacao, _agora
+from services.comum import ErroValidacao
 from services.usuario import UsuarioService
+from utils import agora
 
 CONSENTIMENTOS_OBRIGATORIOS = {
     "conta_autenticacao": "Criar, autenticar e manter a minha conta",
@@ -66,7 +67,7 @@ class ConsentimentoService:
             raise ErroValidacao("Consentimento não encontrado.", status=404)
 
         registro.aceito = bool(aceito)
-        registro.data_atualizacao = _agora()
+        registro.data_atualizacao = agora()
         ConsentimentoRepository.salvar(registro)
 
         if chave == "ranking_publico":
