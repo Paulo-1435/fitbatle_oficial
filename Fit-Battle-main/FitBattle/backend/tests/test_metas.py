@@ -1,5 +1,8 @@
 import unittest
+from datetime import date
 
+from models.model import Meta
+from services.meta import MetaService
 from tests.test_seguranca import BaseTeste
 
 
@@ -174,6 +177,33 @@ class TestAcessoAMeta(BaseMeta):
         minhas = self.cli.get("/api/metas", headers=self.auth(self.token_ana)).get_json()
         self.assertEqual(len(minhas), 1)
         self.assertEqual(minhas[0]["titulo"], "Atingir 150 kg no Supino Reto")
+
+
+class TestMetaLegadaSemCamposNovos(BaseMeta):
+
+    def test_progresso_de_meta_legada_nao_quebra(self):
+        meta = Meta(
+            id_usuario=self.ana["id"],
+            descricao="Meta anterior à migração",
+            tipo="curto_prazo",
+            tipo_metrica=None,
+            exercicio=None,
+            valor_objetivo=None,
+            valor_partida=None,
+            data_inicio=date(2026, 1, 1),
+            data_final=None,
+            status="em_andamento",
+            concluida_em=None,
+        )
+
+        resultado = MetaService._com_progresso(meta)
+
+        self.assertIsNone(resultado["tipo_metrica"])
+        self.assertIsNone(resultado["valor_objetivo"])
+        self.assertIsNone(resultado["valor_atual"])
+        self.assertIsNone(resultado["percentual"])
+        self.assertEqual(resultado["status"], "em_andamento")
+        self.assertEqual(resultado["titulo"], "Meta anterior à migração")
 
 
 if __name__ == "__main__":

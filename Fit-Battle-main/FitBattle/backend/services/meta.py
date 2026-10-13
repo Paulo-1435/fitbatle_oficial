@@ -124,6 +124,25 @@ class MetaService:
 
     @staticmethod
     def _com_progresso(meta):
+        if meta.valor_objetivo is None:
+            return {
+                "id": meta.id_meta,
+                "titulo": meta.descricao,
+                "tipo": meta.tipo,
+                "tipo_metrica": None,
+                "exercicio": None,
+                "valor_objetivo": None,
+                "valor_partida": None,
+                "valor_atual": None,
+                "faltam": None,
+                "percentual": None,
+                "status": meta.status,
+                "data_inicio": meta.data_inicio.isoformat(),
+                "data_final": meta.data_final.isoformat() if meta.data_final else None,
+                "dias_restantes": (meta.data_final - date.today()).days if meta.data_final else None,
+                "concluida_em": meta.concluida_em.isoformat() if meta.concluida_em else None,
+            }
+
         atual = MetaService._valor_atual(meta)
         objetivo = float(meta.valor_objetivo)
         partida = float(meta.valor_partida) if meta.valor_partida is not None else 0.0
