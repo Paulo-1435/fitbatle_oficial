@@ -1,6 +1,7 @@
 import os
 import sys
 import unittest
+from datetime import date
 from unittest import mock
 
 os.environ["DB_URI"] = "sqlite:///:memory:"
@@ -13,8 +14,17 @@ from services import resetar_limitador_login
 from tests.apoio import criar_views_de_ranking
 
 SENHA = "senhaforte123"
-CAMPOS_PRIVADOS = {"email", "idade", "peso", "altura", "responsavel"}
+CAMPOS_PRIVADOS = {"email", "idade", "data_nascimento", "peso", "altura", "responsavel"}
 CAMPOS_PUBLICOS = {"id", "nome", "cidade", "estado", "foto", "descricao", "nivel", "xp", "criado_em"}
+
+
+def data_nascimento_para_idade(idade):
+    hoje = date.today()
+    try:
+        nascimento = hoje.replace(year=hoje.year - idade)
+    except ValueError:
+        nascimento = hoje.replace(year=hoje.year - idade, month=3, day=1)
+    return nascimento.isoformat()
 
 
 class BaseTeste(unittest.TestCase):
@@ -31,7 +41,7 @@ class BaseTeste(unittest.TestCase):
         corpo = {
             "nome": nome,
             "email": email,
-            "idade": idade,
+            "data_nascimento": data_nascimento_para_idade(idade),
             "senha": SENHA,
             "aceite_termos": True,
             "consentimentos": consentimentos or {},

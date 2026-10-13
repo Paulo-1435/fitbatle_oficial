@@ -9,7 +9,7 @@ import unittest
 from unittest import mock
 
 from services.usuario import _LimitadorLogin
-from tests.test_seguranca import SENHA, BaseTeste
+from tests.test_seguranca import SENHA, BaseTeste, data_nascimento_para_idade
 
 
 class TestErrosEmJson(BaseTeste):
@@ -86,7 +86,7 @@ class TestCorridaCadastroEmail(BaseTeste):
     def test_cadastro_concorrente_do_mesmo_email_nao_gera_500(self):
         email = "corrida@teste.com"
         corpo = {
-            "nome": "Primeiro", "email": email, "idade": 25, "senha": SENHA,
+            "nome": "Primeiro", "email": email, "data_nascimento": data_nascimento_para_idade(25), "senha": SENHA,
             "aceite_termos": True, "consentimentos": {},
         }
         with mock.patch("services.usuario.UsuarioRepository.buscar_por_email", return_value=None):

@@ -22,8 +22,9 @@ def _escapar_like(termo):
 
 
 _CAMPOS_EDITAVEIS = (
-    "nome", "email", "idade", "peso", "altura",
+    "nome", "email", "data_nascimento", "peso", "altura",
     "cidade", "estado", "foto", "descricao",
+    "responsavel_nome", "responsavel_email", "responsavel_autorizado_em",
 )
 
 
@@ -72,7 +73,7 @@ class UsuarioRepository:
             nome=dados["nome"],
             email=dados["email"],
             senha=dados["senha"],
-            idade=dados.get("idade"),
+            data_nascimento=dados.get("data_nascimento"),
             cidade=dados.get("cidade"),
             estado=dados.get("estado"),
             descricao=dados.get("descricao"),

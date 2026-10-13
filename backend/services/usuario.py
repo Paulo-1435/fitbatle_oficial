@@ -2,11 +2,13 @@ import os
 import re
 import threading
 import time
+from datetime import date, datetime
 
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from database import db
+from models.model import calcular_idade
 from repositories.repository import PostagemRepository, UsuarioRepository
 from services.comum import ErroValidacao, _agora, salvar_imagem
 
@@ -14,6 +16,7 @@ EMAIL_REGEX = r"^[^\s@]+@[^\s@]+\.[^\s@]+$"
 
 IDADE_MINIMA_CADASTRO = 13
 IDADE_MAIORIDADE = 18
+IDADE_MAXIMA_PLAUSIVEL = 120
 
 
 class _LimitadorLogin:
@@ -81,7 +84,9 @@ class UsuarioService:
                 "É necessário ler e aceitar o Termo de Uso e o Termo de Consentimento."
             )
 
-        limpos.update(UsuarioService._validar_faixa_etaria(limpos["idade"], dados))
+        nascimento, idade = UsuarioService._validar_data_nascimento(dados.get("data_nascimento"))
+        limpos["data_nascimento"] = nascimento
+        limpos.update(UsuarioService._validar_faixa_etaria(idade, dados))
 
         if UsuarioRepository.buscar_por_email(limpos["email"]):
             raise ErroValidacao("E-mail já cadastrado.", status=409)
@@ -159,8 +164,10 @@ class UsuarioService:
                 raise ErroValidacao("A senha deve ter no mínimo 8 caracteres.")
             dados["senha"] = generate_password_hash(dados["senha"])
 
-        if dados.get("idade") is not None:
-            dados["idade"] = UsuarioService._validar_idade(dados["idade"])
+        if dados.get("data_nascimento"):
+            nascimento, idade = UsuarioService._validar_data_nascimento(dados["data_nascimento"])
+            dados["data_nascimento"] = nascimento
+            dados.update(UsuarioService._validar_faixa_etaria(idade, dados))
 
         if dados.get("peso") not in (None, ""):
             dados["peso"] = UsuarioService._validar_numero(dados["peso"], "peso", 20, 400)
@@ -224,31 +231,32 @@ class UsuarioService:
         if senha_obrigatoria and len(senha) < 8:
             raise ErroValidacao("A senha deve ter no mínimo 8 caracteres.")
 
-        idade = dados.get("idade")
-        if idade is not None and idade != "":
-            idade = UsuarioService._validar_idade(idade)
-        else:
-            idade = None
-
         return {
             "nome": nome,
             "email": email,
             "senha": senha,
-            "idade": idade,
             "cidade": (dados.get("cidade") or None),
             "estado": (dados.get("estado") or None),
             "descricao": (dados.get("descricao") or None),
         }
 
     @staticmethod
-    def _validar_idade(valor):
+    def _validar_data_nascimento(valor):
+        if not valor:
+            raise ErroValidacao("Informe a data de nascimento.")
         try:
-            idade = int(valor)
+            nascimento = datetime.strptime(valor, "%Y-%m-%d").date()
         except (TypeError, ValueError):
-            raise ErroValidacao("Idade inválida.")
-        if idade < 1 or idade > 120:
-            raise ErroValidacao("Idade inválida.")
-        return idade
+            raise ErroValidacao("Data de nascimento inválida. Use o formato AAAA-MM-DD.")
+
+        hoje = date.today()
+        if nascimento > hoje:
+            raise ErroValidacao("A data de nascimento não pode ser no futuro.")
+
+        idade = calcular_idade(nascimento, hoje=hoje)
+        if idade > IDADE_MAXIMA_PLAUSIVEL:
+            raise ErroValidacao("Data de nascimento inválida.")
+        return nascimento, idade
 
     @staticmethod
     def _validar_numero(valor, nome, minimo, maximo):
@@ -267,7 +275,7 @@ class UsuarioService:
 
         if idade < IDADE_MINIMA_CADASTRO:
             raise ErroValidacao(
-                "O cadastro não é permitido para menores de 13 anos (art. 14 da LGPD)."
+                "Não é permitido ter menos de 13 anos na plataforma (art. 14 da LGPD)."
             )
 
         if idade >= IDADE_MAIORIDADE:
