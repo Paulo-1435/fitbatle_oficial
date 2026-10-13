@@ -3,10 +3,12 @@ import os
 import re
 import shutil
 import tempfile
+import threading
 import time
 import unittest
 from unittest import mock
 
+from services.usuario import _LimitadorLogin
 from tests.test_seguranca import SENHA, BaseTeste
 
 
@@ -264,6 +266,25 @@ class TestLimiteDeTentativasDeLogin(BaseTeste):
         )
         self.assertEqual(bloqueado.status_code, 429)
         self.assertIn("erro", bloqueado.get_json())
+
+    def test_contador_nao_se_corrompe_sob_concorrencia(self):
+        chave = "ataque.concorrente@teste.com"
+        NUM_THREADS = 20
+        barreira = threading.Barrier(NUM_THREADS)
+
+        def falhar():
+            barreira.wait()
+            _LimitadorLogin.registrar_falha(chave)
+
+        threads = [threading.Thread(target=falhar) for _ in range(NUM_THREADS)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+
+        registro = _LimitadorLogin._tentativas[chave]
+        self.assertIsNotNone(registro["bloqueado_ate"])
+        self.assertGreater(registro["bloqueado_ate"], time.time())
 
     def test_login_correto_reseta_o_contador_de_falhas(self):
         usuario = self.cadastrar("Bia Login", email="bia.login@teste.com")
