@@ -1,7 +1,7 @@
 import os
 import sys
 import unittest
-from datetime import date
+from datetime import date, timedelta
 from unittest import mock
 
 os.environ["DB_URI"] = "sqlite:///:memory:"
@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from app import criar_app
 from auth import gerar_token
 from database import db
+from models.model import Usuario
 from services import resetar_limitador_login
 from tests.apoio import criar_views_de_ranking
 
@@ -429,6 +430,113 @@ class TestBuscaRestrita(BaseTeste):
         for i in range(23):
             self.cadastrar(f"Zeca Numero {i:02d}")
         self.assertEqual(len(self.buscar("Zeca").get_json()), 20)
+
+
+class TestDataDeNascimento(BaseTeste):
+
+    def _cadastrar_com_data(self, nome, data_nascimento, email=None, responsavel=None, autorizacao=None):
+        email = email or nome.lower().replace(" ", ".") + "@teste.com"
+        corpo = {
+            "nome": nome,
+            "email": email,
+            "data_nascimento": data_nascimento,
+            "senha": SENHA,
+            "aceite_termos": True,
+            "consentimentos": {},
+        }
+        if responsavel is not None:
+            corpo["responsavel"] = responsavel
+        if autorizacao is not None:
+            corpo["autorizacao_responsavel"] = autorizacao
+        return self.cli.post("/api/usuarios", json=corpo)
+
+    def test_vespera_do_13o_aniversario_ainda_bloqueia(self):
+        hoje = date.today()
+        nascimento = hoje.replace(year=hoje.year - 13) + timedelta(days=1)
+        resposta = self._cadastrar_com_data("Quase Treze", nascimento.isoformat())
+        self.assertEqual(resposta.status_code, 400)
+        self.assertIn("13 anos", resposta.get_json()["erro"])
+
+    def test_dia_do_13o_aniversario_libera_o_cadastro_com_responsavel(self):
+        hoje = date.today()
+        nascimento = hoje.replace(year=hoje.year - 13)
+
+        sem_responsavel = self._cadastrar_com_data("Treze Hoje", nascimento.isoformat())
+        self.assertEqual(sem_responsavel.status_code, 400)
+
+        responsavel = {"nome": "Resp Legal", "email": "resp.trezehoje@teste.com"}
+        com_responsavel = self._cadastrar_com_data(
+            "Treze Hoje Ok", nascimento.isoformat(),
+            email="trezehoje.ok@teste.com", responsavel=responsavel, autorizacao=True,
+        )
+        self.assertEqual(com_responsavel.status_code, 201)
+        self.assertEqual(com_responsavel.get_json()["usuario"]["idade"], 13)
+
+    def test_vespera_do_18o_aniversario_ainda_exige_responsavel(self):
+        hoje = date.today()
+        nascimento = hoje.replace(year=hoje.year - 18) + timedelta(days=1)
+
+        sem_responsavel = self._cadastrar_com_data("Quase Dezoito", nascimento.isoformat())
+        self.assertEqual(sem_responsavel.status_code, 400)
+
+        responsavel = {"nome": "Resp Legal", "email": "resp.quasedezoito@teste.com"}
+        com_responsavel = self._cadastrar_com_data(
+            "Quase Dezoito Ok", nascimento.isoformat(),
+            email="quasedezoito.ok@teste.com", responsavel=responsavel, autorizacao=True,
+        )
+        self.assertEqual(com_responsavel.status_code, 201)
+        self.assertEqual(com_responsavel.get_json()["usuario"]["idade"], 17)
+
+    def test_dia_do_18o_aniversario_nao_exige_responsavel(self):
+        hoje = date.today()
+        nascimento = hoje.replace(year=hoje.year - 18)
+        resposta = self._cadastrar_com_data("Dezoito Hoje", nascimento.isoformat())
+        self.assertEqual(resposta.status_code, 201)
+        self.assertEqual(resposta.get_json()["usuario"]["idade"], 18)
+
+    def test_nascido_em_29_de_fevereiro(self):
+        resposta = self._cadastrar_com_data("Bissexto", "2000-02-29")
+        self.assertEqual(resposta.status_code, 201)
+        self.assertGreaterEqual(resposta.get_json()["usuario"]["idade"], 18)
+
+    def test_data_futura_e_rejeitada(self):
+        amanha = (date.today() + timedelta(days=1)).isoformat()
+        resposta = self._cadastrar_com_data("Futuro", amanha)
+        self.assertEqual(resposta.status_code, 400)
+        self.assertIn("futuro", resposta.get_json()["erro"])
+
+    def test_formato_invalido_e_rejeitado(self):
+        for valor in ["15/05/2000", "2000-13-40", "não é data", "", None]:
+            resposta = self._cadastrar_com_data("Formato Invalido", valor, email=f"fmt{valor}@teste.com")
+            self.assertEqual(resposta.status_code, 400, valor)
+
+    def test_conta_antiga_so_com_idade_continua_funcionando(self):
+        usuario, token = self.criar_usuario_logado("Conta Antiga")
+        with self.app.app_context():
+            registro = db.session.get(Usuario, usuario["id"])
+            registro.data_nascimento = None
+            registro.idade = 40
+            db.session.commit()
+
+        resposta = self.cli.get("/api/eu", headers=self.auth(token))
+        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(resposta.get_json()["usuario"]["idade"], 40)
+        self.assertIsNone(resposta.get_json()["usuario"]["data_nascimento"])
+
+    def test_data_de_nascimento_nao_aparece_para_outro_usuario(self):
+        dono, token_dono = self.criar_usuario_logado("Dono Data")
+        _, token_outro = self.criar_usuario_logado("Outro Data")
+
+        perfil = self.cli.get(f"/api/usuarios/{dono['id']}", headers=self.auth(token_outro))
+        self.assertEqual(perfil.status_code, 200)
+        self.assertNotIn("data_nascimento", perfil.get_json())
+        self.assertNotIn("idade", perfil.get_json())
+
+        busca = self.cli.get("/api/usuarios/busca?nome=Dono+Data", headers=self.auth(token_outro))
+        self.assertEqual(busca.status_code, 200)
+        for resultado in busca.get_json():
+            self.assertNotIn("data_nascimento", resultado)
+            self.assertNotIn("idade", resultado)
 
 
 if __name__ == "__main__":
