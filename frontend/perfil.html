@@ -207,13 +207,31 @@
             </div>
             <div class="campo-linha">
                 <div class="campo">
-                    <label for="editIdade">Idade</label>
-                    <input type="number" id="editIdade" min="1" max="120">
+                    <label for="editDataNascimento">Data de nascimento</label>
+                    <input type="date" id="editDataNascimento">
+                    <span class="campo-auxiliar" id="editIdadeAtual"></span>
                 </div>
                 <div class="campo">
                     <label for="editCidade">Cidade</label>
                     <input type="text" id="editCidade" placeholder="Cidade, UF">
                 </div>
+            </div>
+            <div class="bloco-responsavel-perfil" id="editResponsavelBox" hidden>
+                <p class="aviso-responsavel-perfil">Menor de 18 anos: é necessária a autorização do responsável legal (art. 14 da LGPD).</p>
+                <div class="campo-linha">
+                    <div class="campo">
+                        <label for="editResponsavelNome">Nome do responsável legal</label>
+                        <input type="text" id="editResponsavelNome" placeholder="Nome completo do responsável">
+                    </div>
+                    <div class="campo">
+                        <label for="editResponsavelEmail">E-mail do responsável legal</label>
+                        <input type="email" id="editResponsavelEmail" placeholder="email@responsavel.com">
+                    </div>
+                </div>
+                <label class="check-responsavel-perfil">
+                    <input type="checkbox" id="editAutorizacaoResponsavel">
+                    <span>Sou o responsável legal por este(a) adolescente e autorizo a manutenção da conta.</span>
+                </label>
             </div>
             <div class="campo-linha">
                 <div class="campo">

@@ -24,6 +24,36 @@ const NOME_TIPO = {
 let usuarioLogado = null;
 let fotoSelecionada = null;
 
+const IDADE_MINIMA_EDICAO = 13;
+const IDADE_MAIORIDADE_EDICAO = 18;
+
+function dataDeHoje() {
+  const hoje = new Date();
+  const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+  const dia = String(hoje.getDate()).padStart(2, '0');
+  return hoje.getFullYear() + '-' + mes + '-' + dia;
+}
+
+function calcularIdade(dataStr) {
+  if (!dataStr) return null;
+  const [ano, mes, dia] = dataStr.split('-').map(Number);
+  const hoje = new Date();
+  let idade = hoje.getFullYear() - ano;
+  const aniversarioJaPassou =
+    hoje.getMonth() + 1 > mes || (hoje.getMonth() + 1 === mes && hoje.getDate() >= dia);
+  if (!aniversarioJaPassou) idade--;
+  return idade;
+}
+
+function atualizarResponsavelPerfil() {
+  const dataNascimento = document.getElementById('editDataNascimento');
+  const idadeCalculada = calcularIdade(dataNascimento.value);
+  const dica = document.getElementById('editIdadeAtual');
+  dica.textContent = idadeCalculada != null ? 'Idade: ' + idadeCalculada + ' anos' : '';
+  const menor = idadeCalculada != null && idadeCalculada >= IDADE_MINIMA_EDICAO && idadeCalculada < IDADE_MAIORIDADE_EDICAO;
+  document.getElementById('editResponsavelBox').hidden = !menor;
+}
+
 document.addEventListener('DOMContentLoaded', function () {
   usuarioLogado = exigirLogin();
   if (!usuarioLogado) return;
@@ -234,6 +264,8 @@ function configurarModais() {
   ligar('btnEditarPerfil', 'click', abrirEditarPerfil);
   ligar('btnEditarPerfilMenu', 'click', abrirEditarPerfil);
   ligar('closePerfil', 'click', function () { fecharOverlay('overlayPerfil'); });
+  document.getElementById('editDataNascimento').max = dataDeHoje();
+  ligar('editDataNascimento', 'input', atualizarResponsavelPerfil);
 
   ligar('fotoBtn', 'click', function () { document.getElementById('fotoInput').click(); });
   ligar('fotoInput', 'change', function () {
@@ -323,15 +355,24 @@ function configurarModais() {
     const erro = document.getElementById('erroPerfil');
     erro.textContent = '';
 
+    const dataNascimento = document.getElementById('editDataNascimento').value || null;
     const corpo = {
       nome: document.getElementById('editNome').value.trim(),
       email: document.getElementById('editEmail').value.trim(),
       descricao: document.getElementById('editBio').value.trim(),
-      idade: document.getElementById('editIdade').value || null,
+      data_nascimento: dataNascimento,
       cidade: document.getElementById('editCidade').value.trim() || null,
       peso: document.getElementById('editPeso').value || null,
       altura: document.getElementById('editAltura').value || null
     };
+
+    if (dataNascimento && !document.getElementById('editResponsavelBox').hidden) {
+      corpo.responsavel = {
+        nome: document.getElementById('editResponsavelNome').value.trim(),
+        email: document.getElementById('editResponsavelEmail').value.trim()
+      };
+      corpo.autorizacao_responsavel = document.getElementById('editAutorizacaoResponsavel').checked;
+    }
 
     try {
       const resposta = await api(`/usuarios/${usuarioLogado.id}`, {
@@ -377,7 +418,11 @@ function abrirEditarPerfil() {
   document.getElementById('editNome').value = u.nome || '';
   document.getElementById('editEmail').value = u.email || '';
   document.getElementById('editBio').value = u.descricao || '';
-  document.getElementById('editIdade').value = u.idade != null ? u.idade : '';
+  document.getElementById('editDataNascimento').value = u.data_nascimento || '';
+  document.getElementById('editResponsavelNome').value = '';
+  document.getElementById('editResponsavelEmail').value = '';
+  document.getElementById('editAutorizacaoResponsavel').checked = false;
+  atualizarResponsavelPerfil();
   document.getElementById('editCidade').value = u.cidade || '';
   document.getElementById('editPeso').value = u.peso != null ? u.peso : '';
   document.getElementById('editAltura').value = u.altura != null ? u.altura : '';
