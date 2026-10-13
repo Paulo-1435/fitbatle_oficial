@@ -15,6 +15,16 @@ from tests.apoio import criar_views_de_ranking
 
 SENHA = "senhaforte123"
 
+
+def data_nascimento_para_idade(idade):
+    from datetime import date
+    hoje = date.today()
+    try:
+        nascimento = hoje.replace(year=hoje.year - idade)
+    except ValueError:
+        nascimento = hoje.replace(year=hoje.year - idade, month=3, day=1)
+    return nascimento.isoformat()
+
 USUARIOS = [
     ("Paulo Susu", "paulo@fitbattle.dev", 28, "Belo Horizonte", "MG"),
     ("Lu Quimica", "lu@fitbattle.dev", 26, "Belo Horizonte", "MG"),
@@ -55,7 +65,8 @@ def popular():
     ids = {}
     for nome, email, idade, cidade, estado in USUARIOS:
         usuario = UsuarioService.cadastrar({
-            "nome": nome, "email": email, "idade": idade, "senha": SENHA,
+            "nome": nome, "email": email,
+            "data_nascimento": data_nascimento_para_idade(idade), "senha": SENHA,
             "aceite_termos": True, "consentimentos": {},
         })
         usuario.cidade = cidade
