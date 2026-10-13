@@ -67,7 +67,7 @@ def criar_app():
     def servir_upload(nome):
         return send_from_directory(app.config["UPLOAD_FOLDER"], nome)
 
-    servir_frontend = os.path.isdir(PASTA_FRONTEND)
+    servir_frontend = os.environ.get("SERVIR_FRONTEND") == "1" and os.path.isdir(PASTA_FRONTEND)
 
     if servir_frontend:
         @app.get("/")

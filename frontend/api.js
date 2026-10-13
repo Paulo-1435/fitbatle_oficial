@@ -1,8 +1,10 @@
 const HOST_API = window.location.hostname || 'localhost';
 const PORTAS_FRONTEND_DEV = new Set(['5500', '5501']);
-const API_URL = PORTAS_FRONTEND_DEV.has(window.location.port)
-  ? 'http://' + HOST_API + ':5000/api'
-  : window.location.origin + '/api';
+const API_URL = window.FITBATTLE_API_URL
+  ? window.FITBATTLE_API_URL
+  : (PORTAS_FRONTEND_DEV.has(window.location.port)
+    ? 'http://' + HOST_API + ':5000/api'
+    : window.location.origin + '/api');
 const ORIGEM_API = API_URL.replace(/\/api\/?$/, '');
 const CHAVE_SESSAO = 'fitbattle_sessao';
 const CHAVE_SESSAO_ANTIGA = 'fitbattle_usuario';
