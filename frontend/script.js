@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const form = document.getElementById('registerForm');
   const nome = document.getElementById('usuario');
   const email = document.getElementById('email');
-  const idade = document.getElementById('idade');
+  const dataNascimento = document.getElementById('dataNascimento');
   const senha = document.getElementById('senha');
   const aceitePagina = document.getElementById('aceitePagina');
   const mensagem = document.getElementById('errorMessage');
@@ -36,12 +36,32 @@ document.addEventListener('DOMContentLoaded', function () {
     if (campo) campo.focus();
   }
 
+  function dataDeHoje() {
+    const hoje = new Date();
+    const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+    const dia = String(hoje.getDate()).padStart(2, '0');
+    return hoje.getFullYear() + '-' + mes + '-' + dia;
+  }
+
+  function calcularIdade(dataStr) {
+    if (!dataStr) return null;
+    const [ano, mes, dia] = dataStr.split('-').map(Number);
+    const hoje = new Date();
+    let idade = hoje.getFullYear() - ano;
+    const aniversarioJaPassou =
+      hoje.getMonth() + 1 > mes || (hoje.getMonth() + 1 === mes && hoje.getDate() >= dia);
+    if (!aniversarioJaPassou) idade--;
+    return idade;
+  }
+
+  dataNascimento.max = dataDeHoje();
+
   function atualizarResponsavel() {
-    const valor = Number(idade.value);
-    const menor = idade.value !== '' && valor >= IDADE_MINIMA && valor < IDADE_MAIORIDADE;
+    const idadeCalculada = calcularIdade(dataNascimento.value);
+    const menor = idadeCalculada !== null && idadeCalculada >= IDADE_MINIMA && idadeCalculada < IDADE_MAIORIDADE;
     responsavelBox.hidden = !menor;
   }
-  idade.addEventListener('input', atualizarResponsavel);
+  dataNascimento.addEventListener('input', atualizarResponsavel);
   atualizarResponsavel();
 
   function abrirModal() {
@@ -107,12 +127,18 @@ document.addEventListener('DOMContentLoaded', function () {
       return erro('Por favor, informe um e-mail válido.', email);
     }
 
-    const idadeNum = Number(idade.value);
-    if (!idade.value || idadeNum < 1 || idadeNum > 120) {
-      return erro('Informe uma idade válida (1 a 120).', idade);
+    if (!dataNascimento.value) {
+      return erro('Informe sua data de nascimento.', dataNascimento);
+    }
+    if (dataNascimento.value > dataDeHoje()) {
+      return erro('A data de nascimento não pode ser no futuro.', dataNascimento);
+    }
+    const idadeNum = calcularIdade(dataNascimento.value);
+    if (idadeNum > 120) {
+      return erro('Data de nascimento inválida.', dataNascimento);
     }
     if (idadeNum < IDADE_MINIMA) {
-      return erro('O cadastro não é permitido para menores de 13 anos (art. 14 da LGPD).', idade);
+      return erro('O cadastro não é permitido para menores de 13 anos (art. 14 da LGPD).', dataNascimento);
     }
 
     let responsavel = null;
@@ -139,7 +165,7 @@ document.addEventListener('DOMContentLoaded', function () {
     dadosPendentes = {
       nome: nome.value.trim(),
       email: email.value.trim(),
-      idade: idadeNum,
+      data_nascimento: dataNascimento.value,
       senha: senha.value,
       responsavel: responsavel
     };
@@ -170,7 +196,7 @@ document.addEventListener('DOMContentLoaded', function () {
         body: JSON.stringify({
           nome: dadosPendentes.nome,
           email: dadosPendentes.email,
-          idade: dadosPendentes.idade,
+          data_nascimento: dadosPendentes.data_nascimento,
           senha: dadosPendentes.senha,
           aceite_termos: true,
           consentimentos: consentimentos,
