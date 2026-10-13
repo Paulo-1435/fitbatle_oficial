@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 from database import db
 
@@ -15,6 +15,16 @@ def _iso_utc(valor):
     return valor.isoformat()
 
 
+def calcular_idade(data_nascimento, idade_legada=None, hoje=None):
+    if data_nascimento is None:
+        return idade_legada
+    hoje = hoje or date.today()
+    idade = hoje.year - data_nascimento.year
+    if (hoje.month, hoje.day) < (data_nascimento.month, data_nascimento.day):
+        idade -= 1
+    return idade
+
+
 class Usuario(db.Model):
     __tablename__ = "usuario"
 
@@ -23,6 +33,7 @@ class Usuario(db.Model):
     email = db.Column(db.String(150), unique=True, nullable=False)
     senha = db.Column(db.String(255), nullable=False)
     idade = db.Column(db.SmallInteger)
+    data_nascimento = db.Column(db.Date)
     peso = db.Column(db.Numeric(5, 2))
     altura = db.Column(db.Numeric(3, 2))
     cidade = db.Column(db.String(100))
@@ -56,7 +67,8 @@ class Usuario(db.Model):
             "id": self.id_usuario,
             "nome": self.nome,
             "email": self.email,
-            "idade": self.idade,
+            "idade": calcular_idade(self.data_nascimento, self.idade),
+            "data_nascimento": self.data_nascimento.isoformat() if self.data_nascimento else None,
             "peso": float(self.peso) if self.peso is not None else None,
             "altura": float(self.altura) if self.altura is not None else None,
             "cidade": self.cidade,

@@ -10,6 +10,7 @@ CREATE TABLE usuario (
     email          VARCHAR(150)  NOT NULL UNIQUE,
     senha          VARCHAR(255)  NOT NULL,
     idade          TINYINT UNSIGNED,
+    data_nascimento DATE,
     peso           DECIMAL(5,2),
     altura         DECIMAL(3,2),
     cidade         VARCHAR(100),
