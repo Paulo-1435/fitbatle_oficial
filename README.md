@@ -13,7 +13,7 @@ schema não significa que a funcionalidade esteja implementada.
 
 | RF | Descrição | Status |
 |---|---|---|
-| RF01 | Cadastro (nome, idade, e-mail, senha) | Implementado |
+| RF01 | Cadastro (nome, data de nascimento, e-mail, senha) | Implementado |
 | RF02 | Login e autenticação | Implementado, com token assinado |
 | RF03 | Perfil (visualizar/editar, foto, nível, bio) | Implementado |
 | RF04 | Registrar atividade (tipo, tempo, distância, carga/repetições) | Implementado |
@@ -34,6 +34,30 @@ schema não significa que a funcionalidade esteja implementada.
 | RF19 | Busca de perfis ou grupos | Parcial — busca de perfis implementada e restrita a campos públicos; não existe busca de grupos (entra-se em um grupo só por código/link de convite, RF07) |
 | RF20 | Compartilhar conquistas/recordes em redes sociais | Parcial — só copia um texto pronto para a área de transferência; a tabela `compartilhamento` do SQL não é usada, e não existe conceito de medalha no sistema |
 
+## Arquitetura em camadas
+
+Fluxo de uma requisição: **routers → controller → service → repository → model → MySQL**.
+Cada seta só anda num sentido: `controllers/` importa só `services/` (e utilitários
+como `auth.py`); `services/` nunca importa `database` nem `models` diretamente, só
+`repositories/` e `utils.py`; só `repositories/` toca `database`/`models`. Essa regra
+é verificada por `backend/tests/test_arquitetura.py`, que analisa os imports de cada
+arquivo (não só roda os testes — lê o código-fonte) e falha se alguma camada importar
+o que não devia.
+
+| Caso de uso | Controller | Service | Repository |
+|---|---|---|---|
+| Cadastro | `UsuarioController.cadastrar` | `UsuarioService.cadastrar` | `UsuarioRepository.criar` |
+| Login | `UsuarioController.login` | `UsuarioService.autenticar` | `UsuarioRepository.buscar_por_email` |
+| Registrar treino | `AtividadeController.registrar` | `AtividadeService.registrar` | `AtividadeRepository.criar` |
+| Ranking global | `RankingController.ranking_global` | `RankingService.global_` | `RankingRepository.global_` |
+| Ranking regional | `RankingController.ranking_regional` | `RankingService.regional` | `RankingRepository.regional` |
+| Ranking por exercício | `RankingController.ranking_por_exercicio` | `RankingService.por_exercicio` | `RankingRepository.por_exercicio` |
+| Grupos | `GrupoController.criar` | `GrupoService.criar` | `GrupoRepository.criar` |
+| Convites | `ConviteController.responder` | `ConviteService.responder` | `ConviteRepository.buscar_por_id` |
+| Metas | `MetaController.criar` | `MetaService.criar` | `MetaRepository.criar` |
+| Feed | `FeedController.listar` | `FeedService.listar` | `AtividadeRepository.listar_publicas` + `PostagemRepository.listar_publicas` |
+| Consentimentos | `ConsentimentoController.atualizar` | `ConsentimentoService.atualizar` | `ConsentimentoRepository.buscar` |
+
 ## Estrutura
 
 ```
@@ -44,11 +68,13 @@ schema não significa que a funcionalidade esteja implementada.
 │   ├── app.py                  # cria e sobe a aplicação Flask
 │   ├── auth.py                 # token (itsdangerous), decorator protegido()
 │   ├── database.py             # instância do SQLAlchemy (objeto db)
+│   ├── utils.py                # agora(), iso_utc(), calcular_idade() — usados por models e services
 │   ├── gunicorn.conf.py        # workers = 1 (ver seção "gunicorn" abaixo)
 │   ├── requirements.txt
 │   ├── database/
-│   │   ├── create_database.sql    # schema completo, para instalação nova
-│   │   └── migracao_meta.sql      # atualiza um banco existente (ver "Atualizando o banco")
+│   │   ├── create_database.sql           # schema completo, para instalação nova
+│   │   ├── migracao_meta.sql             # atualiza um banco existente (ver "Atualizando o banco")
+│   │   └── migracao_data_nascimento.sql  # idem, para a coluna data_nascimento
 │   ├── routers/
 │   │   └── routers.py          # mapeia as URLs para os Controllers
 │   ├── controllers/
@@ -70,12 +96,14 @@ schema não significa que a funcionalidade esteja implementada.
 │   └── tests/
 │       ├── apoio.py             # recria as views de ranking em SQLite para os testes
 │       ├── servidor_dev.py      # API com SQLite populado de dados de exemplo
+│       ├── test_arquitetura.py  # análise estática das regras de camada acima
 │       ├── test_seguranca.py
 │       ├── test_robustez.py
 │       ├── test_grupos.py
 │       ├── test_metas.py
 │       └── test_ranking.py
 └── frontend/
+    ├── config.js                                         # window.FITBATTLE_API_URL (ver "Como rodar")
     ├── login.html / login.js, index.html / script.js   # login e cadastro
     ├── perfil.html / perfil.js                          # perfil, treinos, foto
     ├── feed.html / feed.js                               # feed social
@@ -88,8 +116,6 @@ schema não significa que a funcionalidade esteja implementada.
     │                                                      # não referenciadas pelo app (perfil-A/B/C.html)
     └── api.js, shell.js, auth-comum.js, tokens.css, ...  # compartilhados entre as páginas
 ```
-
-Fluxo de uma requisição: **routers → controller → service → repository → model → MySQL**.
 
 ## Como rodar
 
@@ -110,9 +136,9 @@ root). Essa senha é só um exemplo para desenvolvimento local; troque-a (e
 configure `DB_PASSWORD` com o novo valor) em qualquer ambiente compartilhado
 ou de produção.
 
-Se você já tem um banco `fitbattle` de antes da feature de Metas (RF15) e
-quer **manter os dados**, não rode `create_database.sql` de novo — veja
-"Atualizando o banco" abaixo.
+Se você já tem um banco `fitbattle` de antes da feature de Metas (RF15) ou
+de antes da coluna `data_nascimento` e quer **manter os dados**, não rode
+`create_database.sql` de novo — veja "Atualizando o banco" abaixo.
 
 ### 2. Backend
 
@@ -137,14 +163,41 @@ anteriores, usado pelos testes com SQLite), `SECRET_KEY`, `FLASK_DEBUG`
 `CORS_EXTRA_ORIGENS` (origens extras separadas por vírgula, além de
 localhost/127.0.0.1/IPs de rede local, já liberados por padrão).
 
-### 3. Frontend
+### 3. Frontend — em 2 servidores (padrão)
 
-A própria API já serve o frontend: com o backend rodando, abra
-`http://localhost:5000/` no navegador (ela serve os arquivos da pasta
-`frontend/`, que precisa continuar como pasta irmã de `backend/`). Também é
-possível abrir `frontend/login.html` direto no navegador ou com Live Server;
-nesse caso o `frontend/api.js` detecta a porta de desenvolvimento e aponta
-para `http://localhost:5000/api` sozinho.
+API e frontend são dois servidores separados por padrão. Com a API já rodando
+na porta 5000 (passo 2), sirva a pasta `frontend/` com qualquer servidor de
+arquivos estático:
+
+```bash
+cd frontend
+python -m http.server 5500
+```
+
+(ou a extensão Live Server do VS Code, na mesma porta 5500 ou 5501). Abra
+`http://localhost:5500/login.html` — o `frontend/api.js` detecta a porta de
+desenvolvimento e aponta sozinho para `http://localhost:5000/api`.
+
+### 3b. Hospedando os dois juntos em um único serviço (opcional)
+
+Para hospedagem simplificada (ex.: um link único para demonstração), a própria
+API pode servir os arquivos do frontend. Defina `SERVIR_FRONTEND=1` no
+ambiente antes de subir a API: `http://localhost:5000/` passa a servir
+`frontend/login.html` e o resto da pasta `frontend/` (que precisa continuar
+como pasta irmã de `backend/`). **Sem essa variável (padrão), a API só
+responde `/api`, `/uploads` e `/healthz`** — a separação cliente-servidor fica
+explícita mesmo quando os dois rodam na mesma máquina. A alternativa a
+`SERVIR_FRONTEND=1` é sempre publicar frontend e API como dois serviços de
+verdade (por exemplo, frontend num host de arquivos estáticos e a API no
+Render) — veja o próximo item.
+
+### 3c. Frontend publicado num domínio diferente da API
+
+Edite `frontend/config.js` e defina `window.FITBATTLE_API_URL` com a URL
+completa da API (ex.: `'https://minha-api.onrender.com/api'`). Deixado em
+branco (padrão de fábrica), o `api.js` usa a detecção automática de porta
+acima. Esse arquivo é carregado antes de `api.js` em toda página que faz
+chamadas à API.
 
 ### 4. Rodar com dados de exemplo (sem MySQL)
 
@@ -164,34 +217,41 @@ cd backend
 python -m unittest discover -s tests -t .
 ```
 
-111 testes atualmente, cobrindo autenticação/LGPD, robustez (uploads, limite
-de login, concorrência), grupos/convites, metas e rankings.
+123 testes atualmente, cobrindo autenticação/LGPD (incluindo as fronteiras de
+13 e 18 anos), robustez (uploads, limite de login, concorrência),
+grupos/convites, metas, rankings e a análise estática das camadas.
 
 ## Atualizando o banco
 
 Duas situações bem diferentes — escolha a certa antes de rodar qualquer
 coisa:
 
-**Você tem um banco `fitbattle` de antes da feature de Metas e quer manter
-os dados** (usuários, treinos, etc.) → rode a migração:
+**Você tem um banco `fitbattle` de antes da feature de Metas e/ou da troca de
+idade por data de nascimento, e quer manter os dados** (usuários, treinos,
+etc.) → rode as migrações que se aplicarem:
 
 ```bash
 mysql -u root -p fitbattle < backend/database/migracao_meta.sql
+mysql -u root -p fitbattle < backend/database/migracao_data_nascimento.sql
 ```
 
-Ela faz só um `ALTER TABLE meta` (adiciona as colunas novas, remove a antiga
-`progresso`) e preserva todas as linhas existentes. **Rode esse script uma
-única vez** — MySQL não aceita `ADD COLUMN`/`DROP COLUMN IF [NOT] EXISTS`,
-então rodar de novo falha na linha do `DROP COLUMN` (coluna já removida).
+Cada uma faz só um `ALTER TABLE` (a de metas adiciona as colunas novas e
+remove a antiga `progresso`; a de data de nascimento só adiciona a coluna
+`data_nascimento`) e preserva todas as linhas existentes. **Rode cada script
+uma única vez** — MySQL não aceita `ADD COLUMN`/`DROP COLUMN IF [NOT]
+EXISTS`, então rodar de novo falha (coluna já existe/já removida).
 
-Qualquer meta criada antes da migração fica com `tipo_metrica` e
+Qualquer meta criada antes da migração de metas fica com `tipo_metrica` e
 `valor_objetivo` nulos — não dá para inventar esses valores a partir do
 dado antigo (`progresso` era só um número de 0 a 100, sem o objetivo real
 por trás). A API não quebra por isso: `GET /api/metas` e
 `GET /api/metas/<id>` devolvem essas metas com `tipo_metrica`,
 `valor_objetivo`, `valor_atual` e `percentual` como `null` em vez de erro
 500, mas o progresso delas simplesmente não é calculável — é uma limitação
-conhecida, não um bug pendente.
+conhecida, não um bug pendente. Da mesma forma, uma conta criada antes da
+migração de data de nascimento fica com `data_nascimento` nulo e continua
+usando a antiga coluna `idade` como base para o cálculo de idade
+(`utils.calcular_idade`).
 
 **Você está num ambiente de desenvolvimento e topa perder todos os dados**
 → `DROP DATABASE fitbattle;` e rode `create_database.sql` de novo do zero.
@@ -229,7 +289,7 @@ puro.
 | GET | `/api/eu` | Dados completos do próprio usuário logado | Logado | RF03 |
 | GET | `/api/usuarios/busca?nome=` | Busca restrita por nome (só campos públicos) | Logado | RF19 |
 | GET | `/api/usuarios/<id>` | Perfil (próprio: completo; de outro: público) | Logado | RF03, RF19 |
-| PUT | `/api/usuarios/<id>` | Atualiza o perfil | Dono | RF03 |
+| PUT | `/api/usuarios/<id>` | Atualiza o perfil; se incluir `data_nascimento`, reaplica as mesmas regras de idade do cadastro | Dono | RF03 |
 | DELETE | `/api/usuarios/<id>` | Exclui a conta (e as fotos associadas) | Dono | — |
 | POST | `/api/usuarios/<id>/foto` | Envia a foto de perfil (multipart, campo `foto`) | Dono | RF03 |
 | POST | `/api/usuarios/<id>/atividades` | Registra um treino; calcula pontuação e XP/nível | Dono | RF04, RF12, RF13 |
@@ -292,13 +352,22 @@ completo dos dois termos está em `frontend/termos.html`.
 
 ### Faixa etária (art. 14 da LGPD)
 
-`UsuarioService._validar_faixa_etaria` aplica no cadastro:
+O cadastro recebe `data_nascimento` (`AAAA-MM-DD`), não mais uma idade
+digitada — a idade é sempre calculada na hora (`utils.calcular_idade`) a
+partir dela, nunca gravada para contas novas. `UsuarioService._validar_faixa_etaria`
+aplica, a partir dessa idade calculada:
 
-- **< 13 anos:** cadastro recusado (400).
+- **< 13 anos:** cadastro (ou edição) recusado (400).
 - **13 a 17 anos:** obrigatório `responsavel` (`nome`, `email`) e
   `autorizacao_responsavel = true`. Os dados ficam em
   `usuario.responsavel_nome` / `responsavel_email` / `responsavel_autorizado_em`.
 - **>= 18 anos:** fluxo normal.
+
+Essa mesma validação roda de novo em `PUT /api/usuarios/<id>` sempre que o
+corpo inclui `data_nascimento` — editar a data de nascimento no perfil
+passa pelas mesmas regras, incluindo exigir o responsável se a nova data
+cair em 13-17 anos. Contas criadas antes dessa coluna existir (`data_nascimento`
+nulo) continuam usando a antiga coluna `idade` como base do cálculo.
 
 Por decisão do projeto, menores de 18 **participam** dos rankings e da busca
 (a autorização do responsável, dada no cadastro, cobre isso).
