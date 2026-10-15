@@ -233,11 +233,34 @@ class TestDonoDoRecurso(BaseTeste):
         self.assertEqual(ler.status_code, 403)
         self.assertEqual(alterar.status_code, 403)
 
-    def test_outro_usuario_nao_ve_ranking_pessoal_alheio(self):
+    def test_outro_usuario_ve_ranking_de_perfil_publico(self):
         resposta = self.cli.get(
             f"/api/usuarios/{self.ana['id']}/ranking", headers=self.auth(self.token_bia)
         )
-        self.assertEqual(resposta.status_code, 403)
+        self.assertEqual(resposta.status_code, 200)
+        self.assertIn("global", resposta.get_json())
+
+    def test_outro_usuario_nao_ve_ranking_de_perfil_privado(self):
+        self.cli.put(
+            f"/api/usuarios/{self.ana['id']}/consentimentos/ranking_publico",
+            json={"aceito": False},
+            headers=self.auth(self.token_ana),
+        )
+        resposta = self.cli.get(
+            f"/api/usuarios/{self.ana['id']}/ranking", headers=self.auth(self.token_bia)
+        )
+        self.assertEqual(resposta.status_code, 404)
+
+    def test_dono_ve_o_proprio_ranking_mesmo_com_perfil_privado(self):
+        self.cli.put(
+            f"/api/usuarios/{self.ana['id']}/consentimentos/ranking_publico",
+            json={"aceito": False},
+            headers=self.auth(self.token_ana),
+        )
+        resposta = self.cli.get(
+            f"/api/usuarios/{self.ana['id']}/ranking", headers=self.auth(self.token_ana)
+        )
+        self.assertEqual(resposta.status_code, 200)
 
     def test_dono_edita_e_exclui_o_proprio_recurso(self):
         alvo = f"/api/usuarios/{self.ana['id']}"
@@ -350,12 +373,20 @@ class TestExposicaoDeDados(BaseTeste):
             self.assertSemDadosDoResponsavel(resposta.get_data(as_text=True))
 
     def test_perfil_alheio_devolve_so_campos_publicos(self):
-        resposta = self.cli.get(f"/api/usuarios/{self.jovem['id']}", headers=self.auth(self.token_ana))
+        resposta = self.cli.get(f"/api/usuarios/{self.ana['id']}", headers=self.auth(self.token_jovem))
         corpo = resposta.get_json()
         self.assertEqual(resposta.status_code, 200)
         self.assertEqual(set(corpo), CAMPOS_PUBLICOS)
-        self.assertEqual(corpo["nome"], "Davi Menor")
-        self.assertSemDadosDoResponsavel(resposta.get_data(as_text=True))
+        self.assertEqual(corpo["nome"], "Ana Silva")
+
+    def test_menor_de_idade_nao_aparece_no_perfil_publico_para_outro_usuario(self):
+        resposta = self.cli.get(f"/api/usuarios/{self.jovem['id']}", headers=self.auth(self.token_ana))
+        self.assertEqual(resposta.status_code, 404)
+
+    def test_menor_de_idade_ve_o_proprio_perfil_normalmente(self):
+        resposta = self.cli.get(f"/api/usuarios/{self.jovem['id']}", headers=self.auth(self.token_jovem))
+        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(resposta.get_json()["nome"], "Davi Menor")
 
     def test_perfil_proprio_devolve_campos_privados_do_usuario(self):
         resposta = self.cli.get(f"/api/usuarios/{self.ana['id']}", headers=self.auth(self.token_ana))
@@ -430,6 +461,43 @@ class TestBuscaRestrita(BaseTeste):
         for i in range(23):
             self.cadastrar(f"Zeca Numero {i:02d}")
         self.assertEqual(len(self.buscar("Zeca").get_json()), 20)
+
+    def test_busca_por_cidade(self):
+        usuario = self.cadastrar("Carlos Cidade")
+        self.cli.put(
+            f"/api/usuarios/{usuario['id']}", json={"cidade": "Uberlandia"},
+            headers=self.auth(self.entrar(usuario["email"])),
+        )
+        nomes = {u["nome"] for u in self.buscar("Uberlandia").get_json()}
+        self.assertEqual(nomes, {"Carlos Cidade"})
+
+    def test_quem_revogou_ranking_publico_nao_aparece_em_lugar_nenhum(self):
+        usuario, token = self.criar_usuario_logado("Revogado Depois")
+        presente = {u["nome"] for u in self.buscar("Revogado").get_json()}
+        self.assertEqual(presente, {"Revogado Depois"})
+
+        self.cli.put(
+            f"/api/usuarios/{usuario['id']}/consentimentos/ranking_publico",
+            json={"aceito": False}, headers=self.auth(token),
+        )
+
+        self.assertEqual(self.buscar("Revogado").get_json(), [])
+        perfil = self.cli.get(f"/api/usuarios/{usuario['id']}", headers=self.auth(self.token))
+        self.assertEqual(perfil.status_code, 404)
+        ranking = self.cli.get(f"/api/usuarios/{usuario['id']}/ranking", headers=self.auth(self.token))
+        self.assertEqual(ranking.status_code, 404)
+
+    def test_menor_de_idade_nao_aparece_na_busca(self):
+        self.cadastrar(
+            "Jovem Busca", idade=15,
+            responsavel={"nome": "Resp Legal", "email": "resp.jovembusca@teste.com"},
+        )
+        self.assertEqual(self.buscar("Jovem Busca").get_json(), [])
+
+    def test_perfil_alheio_nao_tem_email_idade_data_nascimento_peso_nem_altura(self):
+        resultado = self.buscar("Pedro").get_json()[0]
+        for campo in ("email", "idade", "data_nascimento", "peso", "altura", "responsavel"):
+            self.assertNotIn(campo, resultado)
 
 
 class TestDataDeNascimento(BaseTeste):

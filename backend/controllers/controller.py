@@ -261,7 +261,7 @@ class RankingController:
     @staticmethod
     def resumo_usuario(id_usuario):
         try:
-            return jsonify(RankingService.resumo_usuario(id_usuario))
+            return jsonify(RankingService.resumo_usuario(id_usuario, _id_logado()))
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status
 

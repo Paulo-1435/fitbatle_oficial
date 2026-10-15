@@ -120,9 +120,10 @@ class UsuarioService:
             raise ErroValidacao(
                 f"Digite ao menos {UsuarioService.BUSCA_MINIMO_CARACTERES} letras para buscar."
             )
-        return UsuarioRepository.buscar_publicos(
+        resultados = UsuarioRepository.buscar_publicos(
             termo, id_solicitante, UsuarioService.BUSCA_LIMITE
         )
+        return [u for u in resultados if UsuarioService._e_maior_de_idade(u)]
 
     @staticmethod
     def buscar(id_usuario):
@@ -134,9 +135,15 @@ class UsuarioService:
     @staticmethod
     def buscar_visivel(id_usuario, id_solicitante):
         usuario = UsuarioService.buscar(id_usuario)
-        if usuario.id_usuario != id_solicitante and not usuario.perfil_publico:
-            raise ErroValidacao("Usuário não encontrado.", status=404)
+        if usuario.id_usuario != id_solicitante:
+            if not usuario.perfil_publico or not UsuarioService._e_maior_de_idade(usuario):
+                raise ErroValidacao("Usuário não encontrado.", status=404)
         return usuario
+
+    @staticmethod
+    def _e_maior_de_idade(usuario):
+        idade = calcular_idade(usuario.data_nascimento, usuario.idade)
+        return idade is None or idade >= IDADE_MAIORIDADE
 
     @staticmethod
     def atualizar(id_usuario, dados):

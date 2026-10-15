@@ -30,8 +30,8 @@ class RankingService:
         return RankingRepository.por_exercicio(titulo, cidade, RankingService._limite(limite))
 
     @staticmethod
-    def resumo_usuario(id_usuario):
-        UsuarioService.buscar(id_usuario)
+    def resumo_usuario(id_usuario, id_solicitante):
+        UsuarioService.buscar_visivel(id_usuario, id_solicitante)
         return {
             "global": RankingRepository.minha_posicao_global(id_usuario),
             "regional": RankingRepository.minha_posicao_regional(id_usuario),

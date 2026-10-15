@@ -54,7 +54,10 @@ class UsuarioRepository:
             .filter(
                 Usuario.perfil_publico.is_(True),
                 Usuario.id_usuario != id_excluido,
-                Usuario.nome.like(padrao, escape="\\"),
+                db.or_(
+                    Usuario.nome.like(padrao, escape="\\"),
+                    Usuario.cidade.like(padrao, escape="\\"),
+                ),
             )
             .order_by(Usuario.nome)
             .limit(limite)

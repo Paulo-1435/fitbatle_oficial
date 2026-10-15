@@ -66,7 +66,7 @@ rota("/ranking/global", "ranking_global", RankingController.ranking_global, ["GE
 rota("/ranking/regional", "ranking_regional", RankingController.ranking_regional, ["GET"], LOGADO)
 rota("/ranking/exercicio", "ranking_por_exercicio", RankingController.ranking_por_exercicio, ["GET"], LOGADO)
 rota("/usuarios/<int:id_usuario>/ranking", "usuario_ranking",
-     RankingController.resumo_usuario, ["GET"], DONO)
+     RankingController.resumo_usuario, ["GET"], LOGADO)
 
 rota("/usuarios/<int:id_usuario>/consentimentos", "consentimento_listar",
      ConsentimentoController.listar, ["GET"], DONO)

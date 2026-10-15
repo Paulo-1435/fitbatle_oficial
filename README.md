@@ -26,7 +26,7 @@ schema não significa que a funcionalidade esteja implementada.
 - RF13 — Atribuição automática de nível/categoria por XP (cinco categorias)
 - RF15 — Criar/gerenciar metas pessoais (curto/longo prazo)
 - RF17 — Acompanhar status de metas ativas (só metas; a parte de desafios está em "Em breve")
-- RF19 — Busca de perfis, restrita a campos públicos (busca de grupos está em "Em breve")
+- RF19 — Busca de perfis (nome ou cidade, restrita a campos públicos, nunca menores de idade) e busca de grupos (entre os grupos dos quais o usuário já é membro, com entrada por código de convite na mesma tela)
 - RF20 — Compartilhar treino registrado, recorde pessoal e meta concluída em redes sociais externas (Web Share API, WhatsApp, X, Telegram ou copiar texto), condicionado ao consentimento "compartilhamento" e registrado na tabela `compartilhamento` (medalhas não existem, continuam em "Em breve")
 
 ### Em breve
@@ -35,7 +35,6 @@ schema não significa que a funcionalidade esteja implementada.
 - RF16 — Participar de desafios sazonais (`frontend/desafio.html` é só uma prévia visual, sem chamada à API)
 - RF17 (desafios) — Acompanhar status de desafios ativos, depende do RF16
 - RF18 — Notificações push ou e-mail (a tabela `notificacao` existe no SQL, sem rota nem serviço de envio)
-- RF19 (grupos) — Busca de grupos (hoje só se entra por código/link de convite, RF07)
 - RF20 (medalhas) — Medalhas de conquistas; não existe esse conceito em nenhuma tabela do sistema
 
 ## Arquitetura em camadas
@@ -52,6 +51,7 @@ o que não devia.
 |---|---|---|---|
 | Cadastro | `UsuarioController.cadastrar` | `UsuarioService.cadastrar` | `UsuarioRepository.criar` |
 | Login | `UsuarioController.login` | `UsuarioService.autenticar` | `UsuarioRepository.buscar_por_email` |
+| Busca de perfis | `UsuarioController.busca` | `UsuarioService.buscar_por_termo` | `UsuarioRepository.buscar_publicos` |
 | Registrar treino | `AtividadeController.registrar` | `AtividadeService.registrar` | `AtividadeRepository.criar` |
 | Ranking global | `RankingController.ranking_global` | `RankingService.global_` | `RankingRepository.global_` |
 | Ranking regional | `RankingController.ranking_regional` | `RankingService.regional` | `RankingRepository.regional` |
@@ -65,6 +65,11 @@ o que não devia.
 | Comentário | `ComentarioController.criar` | `ComentarioService.criar` | `ComentarioRepository.criar` |
 | Consentimentos | `ConsentimentoController.atualizar` | `ConsentimentoService.atualizar` | `ConsentimentoRepository.buscar` |
 | Compartilhamento | `CompartilhamentoController.registrar` | `CompartilhamentoService.registrar` | `CompartilhamentoRepository.criar` |
+
+Busca de grupos (RF19) não tem linha própria porque não criou nenhum
+método novo: `frontend/busca.js` reaproveita o `GET /api/grupos`
+(mesmo `GrupoController.listar_meus` → `GrupoService.listar_meus` já
+usado em `grupo.html`) e filtra pelo nome só no navegador.
 
 ## Estrutura
 
@@ -118,6 +123,8 @@ o que não devia.
 └── frontend/
     ├── config.js                                         # window.FITBATTLE_API_URL (ver "Como rodar")
     ├── compartilhar.js                                   # menu de compartilhamento (RF20), compartilhado
+    ├── busca.html / busca.js / busca.css                # busca de perfis e de grupos (RF19)
+    ├── perfil-publico.html / perfil-publico.js / .css    # perfil de outro usuário, só leitura (RF19)
     ├── login.html / login.js, index.html / script.js   # login e cadastro
     ├── perfil.html / perfil.js                          # perfil, treinos, foto
     ├── feed.html / feed.js                               # feed social
@@ -195,9 +202,10 @@ cd backend
 python -m unittest discover -s tests -t .
 ```
 
-136 testes atualmente, cobrindo autenticação/LGPD (incluindo as fronteiras de
+144 testes atualmente, cobrindo autenticação/LGPD (incluindo as fronteiras de
 13 e 18 anos), robustez (uploads, limite de login, concorrência),
-grupos/convites, metas, compartilhamento, rankings e a análise estática das
+grupos/convites, metas, compartilhamento, busca restrita (nome, cidade,
+menores de idade, perfil revogado), rankings e a análise estática das
 camadas.
 
 ## Como rodar em 2 servidores
@@ -302,8 +310,8 @@ puro.
 | POST | `/api/login` | Autentica (email, senha); bloqueia após tentativas demais | Público | RF02 |
 | GET | `/api/estatisticas` | Total de usuários e média de XP | Público | RF14 (parcial) |
 | GET | `/api/eu` | Dados completos do próprio usuário logado | Logado | RF03 |
-| GET | `/api/usuarios/busca?nome=` | Busca restrita por nome (só campos públicos) | Logado | RF19 |
-| GET | `/api/usuarios/<id>` | Perfil (próprio: completo; de outro: público) | Logado | RF03, RF19 |
+| GET | `/api/usuarios/busca?nome=` | Busca restrita por nome ou cidade (parâmetro `nome` tratado como termo geral), só perfis públicos, com `busca_perfil` aceito e maiores de 18 | Logado | RF19 |
+| GET | `/api/usuarios/<id>` | Perfil (próprio: completo; de outro: público, se visível — mesmo 404 para perfil privado, inexistente ou de menor de idade) | Logado | RF03, RF19 |
 | PUT | `/api/usuarios/<id>` | Atualiza o perfil; se incluir `data_nascimento`, reaplica as mesmas regras de idade do cadastro | Dono | RF03 |
 | DELETE | `/api/usuarios/<id>` | Exclui a conta (e as fotos associadas) | Dono | — |
 | POST | `/api/usuarios/<id>/foto` | Envia a foto de perfil (multipart, campo `foto`) | Dono | RF03 |
@@ -319,7 +327,7 @@ puro.
 | GET | `/api/ranking/global` | Ranking de todos por XP | Logado | RF11 |
 | GET | `/api/ranking/regional?cidade=` | Ranking por cidade | Logado | RF10 |
 | GET | `/api/ranking/exercicio?titulo=` | Ranking por carga num exercício específico | Logado | — |
-| GET | `/api/usuarios/<id>/ranking` | Posição do usuário nos rankings global/regional | Dono | RF10, RF11 |
+| GET | `/api/usuarios/<id>/ranking` | Posição do usuário nos rankings global/regional (própria, ou de outro perfil visível — mesma regra do `GET /api/usuarios/<id>`) | Logado | RF10, RF11, RF19 |
 | GET | `/api/usuarios/<id>/consentimentos` | Lista os consentimentos LGPD | Dono | — |
 | PUT | `/api/usuarios/<id>/consentimentos/<chave>` | Revoga/reativa um consentimento opcional | Dono | — |
 | POST / GET | `/api/grupos` | Criar grupo / listar meus grupos | Logado | RF06 |
