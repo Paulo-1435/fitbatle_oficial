@@ -4,6 +4,7 @@ from auth import protegido
 from controllers.controller import (
     AtividadeController,
     ComentarioController,
+    CompartilhamentoController,
     ConsentimentoController,
     ConviteController,
     CurtidaController,
@@ -93,3 +94,5 @@ rota("/metas", "meta_listar", MetaController.listar, ["GET"], LOGADO)
 rota("/metas/<int:id_meta>", "meta_detalhe", MetaController.detalhe, ["GET"], LOGADO)
 rota("/metas/<int:id_meta>", "meta_atualizar", MetaController.atualizar, ["PUT"], LOGADO)
 rota("/metas/<int:id_meta>", "meta_excluir", MetaController.excluir, ["DELETE"], LOGADO)
+
+rota("/compartilhamentos", "compartilhamento_registrar", CompartilhamentoController.registrar, ["POST"], LOGADO)

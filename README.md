@@ -27,7 +27,7 @@ schema não significa que a funcionalidade esteja implementada.
 - RF15 — Criar/gerenciar metas pessoais (curto/longo prazo)
 - RF17 — Acompanhar status de metas ativas (só metas; a parte de desafios está em "Em breve")
 - RF19 — Busca de perfis, restrita a campos públicos (busca de grupos está em "Em breve")
-- RF20 — Compartilhar treino copiando um texto pronto para a área de transferência (postar de verdade em redes sociais está em "Em breve")
+- RF20 — Compartilhar treino registrado, recorde pessoal e meta concluída em redes sociais externas (Web Share API, WhatsApp, X, Telegram ou copiar texto), condicionado ao consentimento "compartilhamento" e registrado na tabela `compartilhamento` (medalhas não existem, continuam em "Em breve")
 
 ### Em breve
 
@@ -36,7 +36,7 @@ schema não significa que a funcionalidade esteja implementada.
 - RF17 (desafios) — Acompanhar status de desafios ativos, depende do RF16
 - RF18 — Notificações push ou e-mail (a tabela `notificacao` existe no SQL, sem rota nem serviço de envio)
 - RF19 (grupos) — Busca de grupos (hoje só se entra por código/link de convite, RF07)
-- RF20 (redes sociais) — Postar de verdade em redes sociais (a tabela `compartilhamento` do SQL não é usada)
+- RF20 (medalhas) — Medalhas de conquistas; não existe esse conceito em nenhuma tabela do sistema
 
 ## Arquitetura em camadas
 
@@ -64,6 +64,7 @@ o que não devia.
 | Curtida | `CurtidaController.alternar` | `CurtidaService.alternar` | `CurtidaRepository.curtir` |
 | Comentário | `ComentarioController.criar` | `ComentarioService.criar` | `ComentarioRepository.criar` |
 | Consentimentos | `ConsentimentoController.atualizar` | `ConsentimentoService.atualizar` | `ConsentimentoRepository.buscar` |
+| Compartilhamento | `CompartilhamentoController.registrar` | `CompartilhamentoService.registrar` | `CompartilhamentoRepository.criar` |
 
 ## Estrutura
 
@@ -98,7 +99,8 @@ o que não devia.
 │   │   ├── comentario.py        # ComentarioService
 │   │   ├── ranking.py           # RankingService
 │   │   ├── grupo.py             # GrupoService, ConviteService
-│   │   └── meta.py              # MetaService
+│   │   ├── meta.py              # MetaService
+│   │   └── compartilhamento.py  # CompartilhamentoService
 │   ├── repositories/
 │   │   └── repository.py       # único ponto de acesso ao banco
 │   ├── models/
@@ -111,9 +113,11 @@ o que não devia.
 │       ├── test_robustez.py
 │       ├── test_grupos.py
 │       ├── test_metas.py
-│       └── test_ranking.py
+│       ├── test_ranking.py
+│       └── test_compartilhamento.py
 └── frontend/
     ├── config.js                                         # window.FITBATTLE_API_URL (ver "Como rodar")
+    ├── compartilhar.js                                   # menu de compartilhamento (RF20), compartilhado
     ├── login.html / login.js, index.html / script.js   # login e cadastro
     ├── perfil.html / perfil.js                          # perfil, treinos, foto
     ├── feed.html / feed.js                               # feed social
@@ -191,9 +195,10 @@ cd backend
 python -m unittest discover -s tests -t .
 ```
 
-123 testes atualmente, cobrindo autenticação/LGPD (incluindo as fronteiras de
+136 testes atualmente, cobrindo autenticação/LGPD (incluindo as fronteiras de
 13 e 18 anos), robustez (uploads, limite de login, concorrência),
-grupos/convites, metas, rankings e a análise estática das camadas.
+grupos/convites, metas, compartilhamento, rankings e a análise estática das
+camadas.
 
 ## Como rodar em 2 servidores
 
@@ -332,6 +337,7 @@ puro.
 | GET | `/api/metas/<id>` | Detalhe da meta, com histórico de progresso | Logado | RF15, RF17 |
 | PUT | `/api/metas/<id>` | Edita título, valor objetivo ou data final | Logado | RF15 |
 | DELETE | `/api/metas/<id>` | Exclui a meta | Logado | RF15 |
+| POST | `/api/compartilhamentos` | Registra o compartilhamento de uma atividade, recorde ou meta própria, exige o consentimento "compartilhamento" (403 sem ele) | Logado | RF20 |
 | GET | `/uploads/<nome>` | Serve a foto de perfil/postagem salva | Público | RF03 (apoio) |
 | GET | `/healthz` | Health check (status do serviço) | Público | — |
 

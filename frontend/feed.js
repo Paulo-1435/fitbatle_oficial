@@ -165,7 +165,7 @@ function htmlCardFeed(item) {
           <svg class="icone" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
           <span data-contagem="comentarios">${item.comentarios} Comentários</span>
         </button>
-        <button type="button" class="btn btn--fantasma btn--pequeno feed-acao" data-acao="compartilhar" data-texto="${esc(textoCompartilhar)}">
+        <button type="button" class="btn btn--fantasma btn--pequeno feed-acao" data-acao="compartilhar" data-texto="${esc(textoCompartilhar)}" data-tipo="${item.tipo_conteudo}" data-id="${item.id}" data-dono-id="${dono.id || ''}">
           <svg class="icone" viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/><line x1="15.4" y1="6.5" x2="8.6" y2="10.5"/></svg>
           Compartilhar
         </button>
@@ -213,7 +213,18 @@ function ligarAcoesDoFeed() {
     if (botaoComentar) return alternarComentarios(botaoComentar);
 
     const botaoCompartilhar = evento.target.closest('[data-acao="compartilhar"]');
-    if (botaoCompartilhar) return compartilhar(botaoCompartilhar.getAttribute('data-texto'));
+    if (botaoCompartilhar) {
+      const ehPropria = Number(botaoCompartilhar.getAttribute('data-dono-id')) === usuarioLogado.id;
+      const ehAtividade = botaoCompartilhar.getAttribute('data-tipo') === 'atividade';
+      if (ehPropria && ehAtividade) {
+        return abrirCompartilhar({
+          tipoConteudo: 'atividade',
+          idAtividade: botaoCompartilhar.getAttribute('data-id'),
+          texto: botaoCompartilhar.getAttribute('data-texto')
+        });
+      }
+      return compartilhar(botaoCompartilhar.getAttribute('data-texto'));
+    }
   });
 
   lista.addEventListener('submit', function (evento) {

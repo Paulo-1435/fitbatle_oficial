@@ -48,6 +48,16 @@ function renderizar(meta) {
   if (meta.exercicio) tagsHtml.push(`<span class="badge">${esc(meta.exercicio)}</span>`);
   document.getElementById('metaTags').innerHTML = tagsHtml.join('');
 
+  const botaoCompartilhar = document.getElementById('btnCompartilharMeta');
+  botaoCompartilhar.hidden = meta.status !== 'concluida';
+  botaoCompartilhar.onclick = function () {
+    abrirCompartilhar({
+      tipoConteudo: 'meta',
+      idMeta: meta.id,
+      texto: 'Bati minha meta "' + meta.titulo + '" no FitBattle! 🏆 #FitBattle'
+    });
+  };
+
   document.getElementById('metaTitulo').textContent = meta.titulo;
   document.getElementById('metaInfo').textContent =
     'Meta criada em ' + formatarData(meta.data_inicio) +

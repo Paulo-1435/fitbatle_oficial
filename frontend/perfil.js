@@ -175,19 +175,13 @@ function renderizarTreinos(treinos) {
 
   lista.querySelectorAll('[data-compartilhar]').forEach(function (botao) {
     botao.addEventListener('click', function () {
-      compartilhar(botao.getAttribute('data-compartilhar'));
+      abrirCompartilhar({
+        tipoConteudo: 'atividade',
+        idAtividade: botao.getAttribute('data-compartilhar-id'),
+        texto: botao.getAttribute('data-compartilhar')
+      });
     });
   });
-}
-
-function compartilhar(texto) {
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(texto)
-      .then(function () { mostrarToast('Copiado! Agora é só colar onde quiser compartilhar.'); })
-      .catch(function () { mostrarToast('Não foi possível copiar o texto.'); });
-  } else {
-    mostrarToast('Copie: ' + texto);
-  }
 }
 
 function htmlCardTreino(t) {
@@ -215,7 +209,7 @@ function htmlCardTreino(t) {
       <div class="activity-desc">${esc(t.descricao || '')}</div>
       <div class="activity-metrics">${metricas.join('')}</div>
       <div class="card-actions">
-        <button class="action-btn" data-compartilhar="${esc('Registrei um treino de ' + nomeTipo + (t.titulo ? ' (' + t.titulo + ')' : '') + ' no FitBattle! 💪 #FitBattle')}">🔗 Compartilhar</button>
+        <button class="action-btn" data-compartilhar="${esc('Registrei um treino de ' + nomeTipo + (t.titulo ? ' (' + t.titulo + ')' : '') + ' no FitBattle! 💪 #FitBattle')}" data-compartilhar-id="${t.id}">🔗 Compartilhar</button>
         <button class="action-btn excluir" data-excluir="${t.id}">🗑️ Excluir</button>
       </div>
     </div>`;

@@ -5,6 +5,7 @@ from database import db
 from models.model import (
     Atividade,
     Comentario,
+    Compartilhamento,
     Consentimento,
     Convite,
     Curtida,
@@ -581,3 +582,19 @@ class MetaRepository:
     def excluir(meta):
         db.session.delete(meta)
         db.session.commit()
+
+
+class CompartilhamentoRepository:
+
+    @staticmethod
+    def criar(id_usuario, tipo_conteudo, id_atividade, id_meta, rede_social):
+        registro = Compartilhamento(
+            id_usuario=id_usuario,
+            tipo_conteudo=tipo_conteudo,
+            id_atividade=id_atividade,
+            id_meta=id_meta,
+            rede_social=rede_social,
+        )
+        db.session.add(registro)
+        db.session.commit()
+        return registro

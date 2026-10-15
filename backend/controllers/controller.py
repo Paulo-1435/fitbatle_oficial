@@ -4,6 +4,7 @@ from auth import gerar_token
 from services import (
     AtividadeService,
     ComentarioService,
+    CompartilhamentoService,
     ConsentimentoService,
     ConviteService,
     CurtidaService,
@@ -378,6 +379,20 @@ class ConviteController:
         try:
             ConviteService.responder(id_convite, _id_logado(), dados.get("aceito"))
             return jsonify({"mensagem": "Convite respondido.", "id": id_convite})
+        except ErroValidacao as erro:
+            return jsonify({"erro": erro.mensagem}), erro.status
+
+
+class CompartilhamentoController:
+
+    @staticmethod
+    def registrar():
+        try:
+            registro = CompartilhamentoService.registrar(_id_logado(), request.get_json(silent=True))
+            return jsonify({
+                "mensagem": "Compartilhamento registrado.",
+                "compartilhamento": registro.to_dict(),
+            }), 201
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status
 

@@ -253,16 +253,24 @@ function configurarSubmissao() {
         return;
       }
 
-      const textoCompartilhar = 'Registrei ' + formatarNumero(pesoAtual) + 'kg no ' + exercicioSelecionado + ' no FitBattle! 💪 #FitBattle';
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(textoCompartilhar).catch(function () {});
+      botao.hidden = true;
+
+      if (recorde) {
+        const textoRecorde = 'Bati meu recorde pessoal: ' + formatarNumero(pesoAtual) + 'kg no ' + exercicioSelecionado + ' no FitBattle! 🏆 #FitBattle';
+        const botaoRecorde = document.getElementById('btnCompartilharRecorde');
+        botaoRecorde.hidden = false;
+        botaoRecorde.onclick = function () {
+          abrirCompartilhar({
+            tipoConteudo: 'recorde',
+            idAtividade: dados.atividade.id,
+            texto: textoRecorde
+          });
+        };
+        mostrarToast('Treino registrado! +' + dados.pontuacao_ganha + ' xp 🏆 Novo recorde pessoal!');
+        return;
       }
 
-      mostrarToast(
-        'Treino registrado! +' + dados.pontuacao_ganha + ' xp' +
-        (recorde ? ' 🏆 Novo recorde pessoal!' : '') +
-        ' Texto para compartilhar copiado.'
-      );
+      mostrarToast('Treino registrado! +' + dados.pontuacao_ganha + ' xp');
       setTimeout(function () { window.location.href = 'feed.html'; }, 1400);
     } catch (e) {
       erro.textContent = 'Não foi possível conectar à API.';
