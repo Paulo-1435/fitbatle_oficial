@@ -6,6 +6,7 @@ const XP_POR_NIVEL = 250;
 const ITENS_NAVEGACAO = [
   { id: 'feed', rotulo: 'Feed', href: 'feed.html' },
   { id: 'busca', rotulo: 'Buscar', href: 'busca.html' },
+  { id: 'dashboard', rotulo: 'Dashboard', href: 'dashboard.html' },
   { id: 'ranking', rotulo: 'Ranking', href: 'ranking.html' },
   { id: 'registrar', rotulo: 'Registrar Treino', href: 'registrar-treino.html' },
   { id: 'desafios', rotulo: '1v1', href: 'desafio.html' },

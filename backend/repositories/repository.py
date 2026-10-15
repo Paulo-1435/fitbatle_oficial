@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from sqlalchemy import func, text
 from sqlalchemy.exc import IntegrityError
 
@@ -21,6 +23,14 @@ _COLUNAS_RANKING = "id_usuario, nome, cidade, estado, pontuacao_total, posicao"
 
 def _escapar_like(termo):
     return termo.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
+def _para_data(valor):
+    if isinstance(valor, str):
+        return datetime.strptime(valor, "%Y-%m-%d").date()
+    if isinstance(valor, datetime):
+        return valor.date()
+    return valor
 
 
 _CAMPOS_EDITAVEIS = (
@@ -194,6 +204,79 @@ class AtividadeRepository:
             .order_by(Atividade.data_registro.asc())
             .all()
         )
+
+    @staticmethod
+    def pontuacao_por_dia(id_usuario, desde):
+        linhas = (
+            db.session.query(
+                func.date(Atividade.data_registro),
+                func.sum(Atividade.pontuacao),
+            )
+            .filter(Atividade.id_usuario == id_usuario, Atividade.data_registro >= desde)
+            .group_by(func.date(Atividade.data_registro))
+            .all()
+        )
+        return [(_para_data(dia), total) for dia, total in linhas]
+
+    @staticmethod
+    def contagem_por_dia(id_usuario, desde):
+        linhas = (
+            db.session.query(
+                func.date(Atividade.data_registro),
+                func.count(Atividade.id_atividade),
+            )
+            .filter(Atividade.id_usuario == id_usuario, Atividade.data_registro >= desde)
+            .group_by(func.date(Atividade.data_registro))
+            .all()
+        )
+        return [(_para_data(dia), total) for dia, total in linhas]
+
+    @staticmethod
+    def distribuicao_por_tipo(id_usuario):
+        linhas = (
+            db.session.query(Atividade.tipo, func.count(Atividade.id_atividade))
+            .filter(Atividade.id_usuario == id_usuario)
+            .group_by(Atividade.tipo)
+            .all()
+        )
+        return dict(linhas)
+
+    @staticmethod
+    def dias_com_treino(id_usuario):
+        linhas = (
+            db.session.query(func.date(Atividade.data_registro))
+            .filter(Atividade.id_usuario == id_usuario)
+            .distinct()
+            .all()
+        )
+        return [_para_data(linha[0]) for linha in linhas]
+
+    @staticmethod
+    def totais(id_usuario):
+        total_treinos, total_tempo = (
+            db.session.query(
+                func.count(Atividade.id_atividade),
+                func.coalesce(func.sum(Atividade.tempo_min), 0),
+            )
+            .filter(Atividade.id_usuario == id_usuario)
+            .first()
+        )
+        return total_treinos, total_tempo
+
+    @staticmethod
+    def titulos_distintos(id_usuario):
+        linhas = (
+            db.session.query(Atividade.titulo)
+            .filter(
+                Atividade.id_usuario == id_usuario,
+                Atividade.tipo == "musculacao",
+                Atividade.carga_kg.isnot(None),
+            )
+            .distinct()
+            .order_by(Atividade.titulo)
+            .all()
+        )
+        return [linha[0] for linha in linhas if linha[0]]
 
 
 class PostagemRepository:

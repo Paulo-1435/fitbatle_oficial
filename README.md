@@ -24,6 +24,7 @@ schema não significa que a funcionalidade esteja implementada.
 - RF11 — Ranking global
 - RF12 — Cálculo automático de pontuação por atividade
 - RF13 — Atribuição automática de nível/categoria por XP (cinco categorias)
+- RF14 — Dashboard com XP por semana, treinos por semana, distribuição por tipo de treino, evolução da carga máxima por exercício, sequência atual e melhor sequência, e totais (gráficos em SVG/JS puro, sem biblioteca externa); só dados do próprio usuário
 - RF15 — Criar/gerenciar metas pessoais (curto/longo prazo)
 - RF17 — Acompanhar status de metas ativas (só metas; a parte de desafios está em "Em breve")
 - RF19 — Busca de perfis (nome ou cidade, restrita a campos públicos, nunca menores de idade) e busca de grupos (entre os grupos dos quais o usuário já é membro, com entrada por código de convite na mesma tela)
@@ -31,7 +32,6 @@ schema não significa que a funcionalidade esteja implementada.
 
 ### Em breve
 
-- RF14 — Dashboard de estatísticas com gráficos detalhados (`/api/estatisticas` só devolve total de usuários e média de XP)
 - RF16 — Participar de desafios sazonais (`frontend/desafio.html` é só uma prévia visual, sem chamada à API)
 - RF17 (desafios) — Acompanhar status de desafios ativos, depende do RF16
 - RF18 — Notificações push ou e-mail (a tabela `notificacao` existe no SQL, sem rota nem serviço de envio)
@@ -65,6 +65,7 @@ o que não devia.
 | Comentário | `ComentarioController.criar` | `ComentarioService.criar` | `ComentarioRepository.criar` |
 | Consentimentos | `ConsentimentoController.atualizar` | `ConsentimentoService.atualizar` | `ConsentimentoRepository.buscar` |
 | Compartilhamento | `CompartilhamentoController.registrar` | `CompartilhamentoService.registrar` | `CompartilhamentoRepository.criar` |
+| Dashboard | `DashboardController.resumo` | `DashboardService.resumo` | `AtividadeRepository.pontuacao_por_dia` (+ demais agregações) |
 
 Busca de grupos (RF19) não tem linha própria porque não criou nenhum
 método novo: `frontend/busca.js` reaproveita o `GET /api/grupos`
@@ -105,7 +106,8 @@ usado em `grupo.html`) e filtra pelo nome só no navegador.
 │   │   ├── ranking.py           # RankingService
 │   │   ├── grupo.py             # GrupoService, ConviteService
 │   │   ├── meta.py              # MetaService
-│   │   └── compartilhamento.py  # CompartilhamentoService
+│   │   ├── compartilhamento.py  # CompartilhamentoService
+│   │   └── dashboard.py         # DashboardService
 │   ├── repositories/
 │   │   └── repository.py       # único ponto de acesso ao banco
 │   ├── models/
@@ -119,12 +121,14 @@ usado em `grupo.html`) e filtra pelo nome só no navegador.
 │       ├── test_grupos.py
 │       ├── test_metas.py
 │       ├── test_ranking.py
-│       └── test_compartilhamento.py
+│       ├── test_compartilhamento.py
+│       └── test_dashboard.py
 └── frontend/
     ├── config.js                                         # window.FITBATTLE_API_URL (ver "Como rodar")
     ├── compartilhar.js                                   # menu de compartilhamento (RF20), compartilhado
     ├── busca.html / busca.js / busca.css                # busca de perfis e de grupos (RF19)
     ├── perfil-publico.html / perfil-publico.js / .css    # perfil de outro usuário, só leitura (RF19)
+    ├── dashboard.html / dashboard.js / dashboard.css     # gráficos SVG/JS puro, só do próprio usuário (RF14)
     ├── login.html / login.js, index.html / script.js   # login e cadastro
     ├── perfil.html / perfil.js                          # perfil, treinos, foto
     ├── feed.html / feed.js                               # feed social
@@ -202,11 +206,12 @@ cd backend
 python -m unittest discover -s tests -t .
 ```
 
-144 testes atualmente, cobrindo autenticação/LGPD (incluindo as fronteiras de
+151 testes atualmente, cobrindo autenticação/LGPD (incluindo as fronteiras de
 13 e 18 anos), robustez (uploads, limite de login, concorrência),
 grupos/convites, metas, compartilhamento, busca restrita (nome, cidade,
-menores de idade, perfil revogado), rankings e a análise estática das
-camadas.
+menores de idade, perfil revogado), rankings, dashboard (estado vazio,
+totais, sequências, evolução de carga, isolamento entre usuários) e a
+análise estática das camadas.
 
 ## Como rodar em 2 servidores
 
@@ -308,7 +313,8 @@ puro.
 |---|---|---|---|---|
 | POST | `/api/usuarios` | Cadastra usuário (`aceite_termos`, `consentimentos`) | Público | RF01 |
 | POST | `/api/login` | Autentica (email, senha); bloqueia após tentativas demais | Público | RF02 |
-| GET | `/api/estatisticas` | Total de usuários e média de XP | Público | RF14 (parcial) |
+| GET | `/api/estatisticas` | Total de usuários e média de XP, agregado de todos | Público | — |
+| GET | `/api/dashboard?exercicio=` | Dashboard do próprio usuário: XP/treinos por semana (8 semanas), distribuição por tipo, evolução de carga por exercício, sequência atual/melhor, totais | Logado | RF14 |
 | GET | `/api/eu` | Dados completos do próprio usuário logado | Logado | RF03 |
 | GET | `/api/usuarios/busca?nome=` | Busca restrita por nome ou cidade (parâmetro `nome` tratado como termo geral), só perfis públicos, com `busca_perfil` aceito e maiores de 18 | Logado | RF19 |
 | GET | `/api/usuarios/<id>` | Perfil (próprio: completo; de outro: público, se visível — mesmo 404 para perfil privado, inexistente ou de menor de idade) | Logado | RF03, RF19 |

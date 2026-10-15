@@ -8,6 +8,7 @@ from services import (
     ConsentimentoService,
     ConviteService,
     CurtidaService,
+    DashboardService,
     ErroValidacao,
     FeedService,
     GrupoService,
@@ -379,6 +380,17 @@ class ConviteController:
         try:
             ConviteService.responder(id_convite, _id_logado(), dados.get("aceito"))
             return jsonify({"mensagem": "Convite respondido.", "id": id_convite})
+        except ErroValidacao as erro:
+            return jsonify({"erro": erro.mensagem}), erro.status
+
+
+class DashboardController:
+
+    @staticmethod
+    def resumo():
+        try:
+            dados = DashboardService.resumo(_id_logado(), request.args.get("exercicio"))
+            return jsonify(dados)
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status
 

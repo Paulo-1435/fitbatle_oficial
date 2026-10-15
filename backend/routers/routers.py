@@ -8,6 +8,7 @@ from controllers.controller import (
     ConsentimentoController,
     ConviteController,
     CurtidaController,
+    DashboardController,
     FeedController,
     GrupoController,
     MetaController,
@@ -96,3 +97,5 @@ rota("/metas/<int:id_meta>", "meta_atualizar", MetaController.atualizar, ["PUT"]
 rota("/metas/<int:id_meta>", "meta_excluir", MetaController.excluir, ["DELETE"], LOGADO)
 
 rota("/compartilhamentos", "compartilhamento_registrar", CompartilhamentoController.registrar, ["POST"], LOGADO)
+
+rota("/dashboard", "dashboard_resumo", DashboardController.resumo, ["GET"], LOGADO)
