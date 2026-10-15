@@ -5,34 +5,38 @@ Bernardo Nardelli, Cauã Gomes, João Paulo Costa, João Pedro Braga, Miguel Ass
 Plataforma gamificada de treinos. Este repositório contém a API (Flask) e o
 frontend web.
 
-## Status do desenvolvimento (RF01 a RF20)
+## Casos de uso implementados
 
 Levantamento conferido contra o código atual (rotas registradas e serviços
 que as implementam), não só contra as tabelas do SQL — uma tabela existir no
 schema não significa que a funcionalidade esteja implementada.
 
-| RF | Descrição | Status |
-|---|---|---|
-| RF01 | Cadastro (nome, data de nascimento, e-mail, senha) | Implementado |
-| RF02 | Login e autenticação | Implementado, com token assinado |
-| RF03 | Perfil (visualizar/editar, foto, nível, bio) | Implementado |
-| RF04 | Registrar atividade (tipo, tempo, distância, carga/repetições) | Implementado |
-| RF05 | Histórico completo de atividades | Implementado |
-| RF06 | Criar grupos privados de competição | Implementado |
-| RF07 | Convidar via link/código ou busca direta | Implementado |
-| RF08 | Aceitar/recusar convites | Implementado |
-| RF09 | Ranking interno do grupo | Implementado |
-| RF10 | Ranking regional (cidade/região) | Implementado |
-| RF11 | Ranking global | Implementado |
-| RF12 | Cálculo automático de pontuação por atividade | Implementado |
-| RF13 | Atribuição automática de nível/categoria por XP | Implementado, cinco categorias |
-| RF14 | Dashboard de estatísticas com gráficos detalhados | Não implementado — `/api/estatisticas` só devolve total de usuários e média de XP, sem gráfico e sem detalhe por usuário |
-| RF15 | Criar/gerenciar metas pessoais (curto/longo prazo) | Implementado |
-| RF16 | Participar de desafios sazonais | Não implementado — `frontend/desafio.html` é só uma prévia visual com dados de exemplo fixos, sem chamada nenhuma à API |
-| RF17 | Acompanhar status de metas/desafios ativos | Parcial — metas sim (`GET /api/metas`, `GET /api/metas/<id>`); desafios não, porque o RF16 não existe |
-| RF18 | Notificações push ou e-mail | Não implementado — a tabela `notificacao` existe no SQL, mas não há rota nem serviço de envio |
-| RF19 | Busca de perfis ou grupos | Parcial — busca de perfis implementada e restrita a campos públicos; não existe busca de grupos (entra-se em um grupo só por código/link de convite, RF07) |
-| RF20 | Compartilhar conquistas/recordes em redes sociais | Parcial — só copia um texto pronto para a área de transferência; a tabela `compartilhamento` do SQL não é usada, e não existe conceito de medalha no sistema |
+- RF01 — Cadastro (nome, data de nascimento, e-mail, senha)
+- RF02 — Login e autenticação, com token assinado
+- RF03 — Perfil (visualizar/editar, foto, nível, bio)
+- RF04 — Registrar atividade (tipo, tempo, distância, carga/repetições)
+- RF05 — Histórico completo de atividades
+- RF06 — Criar grupos privados de competição
+- RF07 — Convidar via link/código ou busca direta
+- RF08 — Aceitar/recusar convites
+- RF09 — Ranking interno do grupo
+- RF10 — Ranking regional (cidade/região)
+- RF11 — Ranking global
+- RF12 — Cálculo automático de pontuação por atividade
+- RF13 — Atribuição automática de nível/categoria por XP (cinco categorias)
+- RF15 — Criar/gerenciar metas pessoais (curto/longo prazo)
+- RF17 — Acompanhar status de metas ativas (só metas; a parte de desafios está em "Em breve")
+- RF19 — Busca de perfis, restrita a campos públicos (busca de grupos está em "Em breve")
+- RF20 — Compartilhar treino copiando um texto pronto para a área de transferência (postar de verdade em redes sociais está em "Em breve")
+
+### Em breve
+
+- RF14 — Dashboard de estatísticas com gráficos detalhados (`/api/estatisticas` só devolve total de usuários e média de XP)
+- RF16 — Participar de desafios sazonais (`frontend/desafio.html` é só uma prévia visual, sem chamada à API)
+- RF17 (desafios) — Acompanhar status de desafios ativos, depende do RF16
+- RF18 — Notificações push ou e-mail (a tabela `notificacao` existe no SQL, sem rota nem serviço de envio)
+- RF19 (grupos) — Busca de grupos (hoje só se entra por código/link de convite, RF07)
+- RF20 (redes sociais) — Postar de verdade em redes sociais (a tabela `compartilhamento` do SQL não é usada)
 
 ## Arquitetura em camadas
 
@@ -55,7 +59,10 @@ o que não devia.
 | Grupos | `GrupoController.criar` | `GrupoService.criar` | `GrupoRepository.criar` |
 | Convites | `ConviteController.responder` | `ConviteService.responder` | `ConviteRepository.buscar_por_id` |
 | Metas | `MetaController.criar` | `MetaService.criar` | `MetaRepository.criar` |
-| Feed | `FeedController.listar` | `FeedService.listar` | `AtividadeRepository.listar_publicas` + `PostagemRepository.listar_publicas` |
+| Feed (listagem) | `FeedController.listar` | `FeedService.listar` | `AtividadeRepository.listar_publicas` + `PostagemRepository.listar_publicas` |
+| Postagem | `PostagemController.criar` | `PostagemService.criar` | `PostagemRepository.criar` |
+| Curtida | `CurtidaController.alternar` | `CurtidaService.alternar` | `CurtidaRepository.curtir` |
+| Comentário | `ComentarioController.criar` | `ComentarioService.criar` | `ComentarioRepository.criar` |
 | Consentimentos | `ConsentimentoController.atualizar` | `ConsentimentoService.atualizar` | `ConsentimentoRepository.buscar` |
 
 ## Estrutura
@@ -166,11 +173,33 @@ anteriores, usado pelos testes com SQLite), `SECRET_KEY`, `FLASK_DEBUG`
 `CORS_EXTRA_ORIGENS` (origens extras separadas por vírgula, além de
 localhost/127.0.0.1/IPs de rede local, já liberados por padrão).
 
-### 3. Frontend — em 2 servidores (padrão)
+### 3. Rodar com dados de exemplo (sem MySQL)
+
+```bash
+cd backend
+python tests/servidor_dev.py
+```
+
+Sobe a API num banco SQLite local (`backend/dev.db`), já populado com ~12
+usuários e treinos de teste, sem precisar de MySQL. Útil para demonstração
+rápida ou para olhar o frontend sem configurar banco nenhum.
+
+### 4. Suíte de testes
+
+```bash
+cd backend
+python -m unittest discover -s tests -t .
+```
+
+123 testes atualmente, cobrindo autenticação/LGPD (incluindo as fronteiras de
+13 e 18 anos), robustez (uploads, limite de login, concorrência),
+grupos/convites, metas, rankings e a análise estática das camadas.
+
+## Como rodar em 2 servidores
 
 API e frontend são dois servidores separados por padrão. Com a API já rodando
-na porta 5000 (passo 2), sirva a pasta `frontend/` com qualquer servidor de
-arquivos estático:
+na porta 5000 (passo 2 de "Como rodar"), sirva a pasta `frontend/` com
+qualquer servidor de arquivos estático:
 
 ```bash
 cd frontend
@@ -181,7 +210,7 @@ python -m http.server 5500
 `http://localhost:5500/login.html` — o `frontend/api.js` detecta a porta de
 desenvolvimento e aponta sozinho para `http://localhost:5000/api`.
 
-### 3b. Hospedando os dois juntos em um único serviço (opcional)
+### Hospedando os dois juntos em um único serviço (opcional)
 
 Para hospedagem simplificada (ex.: um link único para demonstração), a própria
 API pode servir os arquivos do frontend. Defina `SERVIR_FRONTEND=1` no
@@ -194,35 +223,13 @@ explícita mesmo quando os dois rodam na mesma máquina. A alternativa a
 verdade (por exemplo, frontend num host de arquivos estáticos e a API no
 Render) — veja o próximo item.
 
-### 3c. Frontend publicado num domínio diferente da API
+### Frontend publicado num domínio diferente da API
 
 Edite `frontend/config.js` e defina `window.FITBATTLE_API_URL` com a URL
 completa da API (ex.: `'https://minha-api.onrender.com/api'`). Deixado em
 branco (padrão de fábrica), o `api.js` usa a detecção automática de porta
 acima. Esse arquivo é carregado antes de `api.js` em toda página que faz
 chamadas à API.
-
-### 4. Rodar com dados de exemplo (sem MySQL)
-
-```bash
-cd backend
-python tests/servidor_dev.py
-```
-
-Sobe a API num banco SQLite local (`backend/dev.db`), já populado com ~12
-usuários e treinos de teste, sem precisar de MySQL. Útil para demonstração
-rápida ou para olhar o frontend sem configurar banco nenhum.
-
-### 5. Suíte de testes
-
-```bash
-cd backend
-python -m unittest discover -s tests -t .
-```
-
-123 testes atualmente, cobrindo autenticação/LGPD (incluindo as fronteiras de
-13 e 18 anos), robustez (uploads, limite de login, concorrência),
-grupos/convites, metas, rankings e a análise estática das camadas.
 
 ## Atualizando o banco
 
