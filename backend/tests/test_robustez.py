@@ -107,7 +107,7 @@ class TestCorridaCurtida(BaseTeste):
         )
         id_postagem = postagem.get_json()["postagem"]["id"]
 
-        with mock.patch("services.feed.CurtidaRepository.buscar", return_value=None):
+        with mock.patch("services.curtida.CurtidaRepository.buscar", return_value=None):
             primeira = self.cli.post(
                 f"/api/feed/postagem/{id_postagem}/curtir", headers=self.auth(token)
             )

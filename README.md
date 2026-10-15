@@ -85,7 +85,10 @@ o que não devia.
 │   │   ├── usuario.py           # UsuarioService, limitador de tentativas de login
 │   │   ├── privacidade.py       # ConsentimentoService (LGPD)
 │   │   ├── atividade.py         # AtividadeService, cálculo de XP/nível
-│   │   ├── feed.py              # PostagemService, FeedService, Curtida/Comentario
+│   │   ├── postagem.py          # PostagemService
+│   │   ├── feed.py              # FeedService
+│   │   ├── curtida.py           # CurtidaService
+│   │   ├── comentario.py        # ComentarioService
 │   │   ├── ranking.py           # RankingService
 │   │   ├── grupo.py             # GrupoService, ConviteService
 │   │   └── meta.py              # MetaService
