@@ -12,6 +12,7 @@ from controllers.controller import (
     FeedController,
     GrupoController,
     MetaController,
+    NotificacaoController,
     PostagemController,
     RankingController,
     UsuarioController,
@@ -99,3 +100,8 @@ rota("/metas/<int:id_meta>", "meta_excluir", MetaController.excluir, ["DELETE"],
 rota("/compartilhamentos", "compartilhamento_registrar", CompartilhamentoController.registrar, ["POST"], LOGADO)
 
 rota("/dashboard", "dashboard_resumo", DashboardController.resumo, ["GET"], LOGADO)
+
+rota("/notificacoes", "notificacao_listar", NotificacaoController.listar, ["GET"], LOGADO)
+rota("/notificacoes/contagem", "notificacao_contagem", NotificacaoController.contagem, ["GET"], LOGADO)
+rota("/notificacoes/lidas", "notificacao_marcar_todas_lidas", NotificacaoController.marcar_todas_lidas, ["PUT"], LOGADO)
+rota("/notificacoes/<int:id_notificacao>/lida", "notificacao_marcar_lida", NotificacaoController.marcar_lida, ["PUT"], LOGADO)

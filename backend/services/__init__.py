@@ -11,3 +11,4 @@ from services.grupo import GrupoService, ConviteService
 from services.meta import MetaService
 from services.compartilhamento import CompartilhamentoService
 from services.dashboard import DashboardService
+from services.notificacao import NotificacaoService

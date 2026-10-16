@@ -27,6 +27,7 @@ schema não significa que a funcionalidade esteja implementada.
 - RF14 — Dashboard com XP por semana, treinos por semana, distribuição por tipo de treino, evolução da carga máxima por exercício, sequência atual e melhor sequência, e totais (gráficos em SVG/JS puro, sem biblioteca externa); só dados do próprio usuário
 - RF15 — Criar/gerenciar metas pessoais (curto/longo prazo)
 - RF17 — Acompanhar status de metas ativas (só metas; a parte de desafios está em "Em breve")
+- RF18 — Notificações in-app (sino no header com contador de não lidas, atualizado a cada 60s e pausado com a aba oculta; página `/notificacoes`) para convite recebido/aceito, curtida e comentário recebidos, meta concluída e subida de posição no ranking global — sempre condicionado ao consentimento "notificacoes", nunca autonotificação, sem duplicar ao curtir/descurtir; e-mail opcional por SMTP (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`), tolerante a falha e nunca bloqueando a requisição; push do navegador fora do escopo
 - RF19 — Busca de perfis (nome ou cidade, restrita a campos públicos, nunca menores de idade) e busca de grupos (entre os grupos dos quais o usuário já é membro, com entrada por código de convite na mesma tela)
 - RF20 — Compartilhar treino registrado, recorde pessoal e meta concluída em redes sociais externas (Web Share API, WhatsApp, X, Telegram ou copiar texto), condicionado ao consentimento "compartilhamento" e registrado na tabela `compartilhamento` (medalhas não existem, continuam em "Em breve")
 
@@ -34,7 +35,6 @@ schema não significa que a funcionalidade esteja implementada.
 
 - RF16 — Participar de desafios sazonais (`frontend/desafio.html` é só uma prévia visual, sem chamada à API)
 - RF17 (desafios) — Acompanhar status de desafios ativos, depende do RF16
-- RF18 — Notificações push ou e-mail (a tabela `notificacao` existe no SQL, sem rota nem serviço de envio)
 - RF20 (medalhas) — Medalhas de conquistas; não existe esse conceito em nenhuma tabela do sistema
 
 ## Arquitetura em camadas
@@ -66,6 +66,7 @@ o que não devia.
 | Consentimentos | `ConsentimentoController.atualizar` | `ConsentimentoService.atualizar` | `ConsentimentoRepository.buscar` |
 | Compartilhamento | `CompartilhamentoController.registrar` | `CompartilhamentoService.registrar` | `CompartilhamentoRepository.criar` |
 | Dashboard | `DashboardController.resumo` | `DashboardService.resumo` | `AtividadeRepository.pontuacao_por_dia` (+ demais agregações) |
+| Notificações | `NotificacaoController.listar` | `NotificacaoService.listar` | `NotificacaoRepository.listar_do_usuario` |
 
 Busca de grupos (RF19) não tem linha própria porque não criou nenhum
 método novo: `frontend/busca.js` reaproveita o `GET /api/grupos`
@@ -88,7 +89,8 @@ usado em `grupo.html`) e filtra pelo nome só no navegador.
 │   ├── database/
 │   │   ├── create_database.sql           # schema completo, para instalação nova
 │   │   ├── migracao_meta.sql             # atualiza um banco existente (ver "Atualizando o banco")
-│   │   └── migracao_data_nascimento.sql  # idem, para a coluna data_nascimento
+│   │   ├── migracao_data_nascimento.sql  # idem, para a coluna data_nascimento
+│   │   └── migracao_notificacao_alvo.sql # idem, para as colunas tipo_alvo/id_alvo de notificacao
 │   ├── routers/
 │   │   └── routers.py          # mapeia as URLs para os Controllers
 │   ├── controllers/
@@ -107,7 +109,8 @@ usado em `grupo.html`) e filtra pelo nome só no navegador.
 │   │   ├── grupo.py             # GrupoService, ConviteService
 │   │   ├── meta.py              # MetaService
 │   │   ├── compartilhamento.py  # CompartilhamentoService
-│   │   └── dashboard.py         # DashboardService
+│   │   ├── dashboard.py         # DashboardService
+│   │   └── notificacao.py       # NotificacaoService, e-mail opcional por SMTP
 │   ├── repositories/
 │   │   └── repository.py       # único ponto de acesso ao banco
 │   ├── models/
@@ -122,13 +125,15 @@ usado em `grupo.html`) e filtra pelo nome só no navegador.
 │       ├── test_metas.py
 │       ├── test_ranking.py
 │       ├── test_compartilhamento.py
-│       └── test_dashboard.py
+│       ├── test_dashboard.py
+│       └── test_notificacao.py
 └── frontend/
     ├── config.js                                         # window.FITBATTLE_API_URL (ver "Como rodar")
     ├── compartilhar.js                                   # menu de compartilhamento (RF20), compartilhado
     ├── busca.html / busca.js / busca.css                # busca de perfis e de grupos (RF19)
     ├── perfil-publico.html / perfil-publico.js / .css    # perfil de outro usuário, só leitura (RF19)
     ├── dashboard.html / dashboard.js / dashboard.css     # gráficos SVG/JS puro, só do próprio usuário (RF14)
+    ├── notificacoes.html / notificacoes.js / .css        # lista completa, sino no header é em shell.js (RF18)
     ├── login.html / login.js, index.html / script.js   # login e cadastro
     ├── perfil.html / perfil.js                          # perfil, treinos, foto
     ├── feed.html / feed.js                               # feed social
@@ -186,7 +191,10 @@ Variáveis de ambiente aceitas (todas opcionais, já vêm com padrão):
 anteriores, usado pelos testes com SQLite), `SECRET_KEY`, `FLASK_DEBUG`
 (desligado por padrão; defina como `1` só em desenvolvimento),
 `CORS_EXTRA_ORIGENS` (origens extras separadas por vírgula, além de
-localhost/127.0.0.1/IPs de rede local, já liberados por padrão).
+localhost/127.0.0.1/IPs de rede local, já liberados por padrão),
+`SMTP_HOST`/`SMTP_PORT`/`SMTP_USER`/`SMTP_PASSWORD`/`SMTP_FROM` (envio de
+e-mail para as notificações do RF18; sem `SMTP_HOST` definido, as
+notificações continuam só in-app).
 
 ### 3. Rodar com dados de exemplo (sem MySQL)
 
@@ -254,13 +262,14 @@ chamadas à API.
 Duas situações bem diferentes — escolha a certa antes de rodar qualquer
 coisa:
 
-**Você tem um banco `fitbattle` de antes da feature de Metas e/ou da troca de
-idade por data de nascimento, e quer manter os dados** (usuários, treinos,
-etc.) → rode as migrações que se aplicarem:
+**Você tem um banco `fitbattle` de antes da feature de Metas, da troca de
+idade por data de nascimento e/ou das notificações, e quer manter os dados**
+(usuários, treinos, etc.) → rode as migrações que se aplicarem:
 
 ```bash
 mysql -u root -p fitbattle < backend/database/migracao_meta.sql
 mysql -u root -p fitbattle < backend/database/migracao_data_nascimento.sql
+mysql -u root -p fitbattle < backend/database/migracao_notificacao_alvo.sql
 ```
 
 Cada uma faz só um `ALTER TABLE` (a de metas adiciona as colunas novas e
@@ -352,6 +361,10 @@ puro.
 | PUT | `/api/metas/<id>` | Edita título, valor objetivo ou data final | Logado | RF15 |
 | DELETE | `/api/metas/<id>` | Exclui a meta | Logado | RF15 |
 | POST | `/api/compartilhamentos` | Registra o compartilhamento de uma atividade, recorde ou meta própria, exige o consentimento "compartilhamento" (403 sem ele) | Logado | RF20 |
+| GET | `/api/notificacoes` | Lista as notificações do próprio usuário (mais recentes primeiro) | Logado | RF18 |
+| GET | `/api/notificacoes/contagem` | Quantidade de notificações não lidas | Logado | RF18 |
+| PUT | `/api/notificacoes/lidas` | Marca todas as notificações do usuário como lidas | Logado | RF18 |
+| PUT | `/api/notificacoes/<id>/lida` | Marca uma notificação como lida | Dono | RF18 |
 | GET | `/uploads/<nome>` | Serve a foto de perfil/postagem salva | Público | RF03 (apoio) |
 | GET | `/healthz` | Health check (status do serviço) | Público | — |
 

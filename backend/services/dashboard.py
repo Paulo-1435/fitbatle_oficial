@@ -1,7 +1,8 @@
-from datetime import date, timedelta
+from datetime import timedelta
 
 from repositories.repository import AtividadeRepository
 from services.usuario import UsuarioService
+from utils import agora
 
 SEMANAS_JANELA = 8
 
@@ -11,7 +12,7 @@ class DashboardService:
     @staticmethod
     def resumo(id_usuario, exercicio=None):
         usuario = UsuarioService.buscar(id_usuario)
-        hoje = date.today()
+        hoje = agora().date()
 
         semanas = DashboardService._semanas(hoje)
         inicio_janela = semanas[0]

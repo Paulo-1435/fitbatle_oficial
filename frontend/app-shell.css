@@ -258,6 +258,58 @@ body[data-pagina] > main {
   font-size: var(--texto-sm);
 }
 
+.notificacoes__contador {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--cor-perigo);
+  color: #fff;
+  font-size: 10px;
+  line-height: 16px;
+  text-align: center;
+}
+
+.notificacoes__corpo {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.notificacoes__item {
+  display: block;
+  width: 100%;
+  padding: var(--esp-2) var(--esp-3);
+  border: 0;
+  background: transparent;
+  color: var(--cor-texto);
+  text-align: left;
+  font-size: var(--texto-sm);
+  border-bottom: 1px solid var(--cor-borda-suave);
+}
+
+.notificacoes__item:hover {
+  background: var(--cor-superficie-2);
+}
+
+.notificacoes__item--nao-lida {
+  font-weight: var(--peso-forte);
+}
+
+.notificacoes__marcar-todas {
+  display: block;
+  width: 100%;
+  padding: var(--esp-2) var(--esp-3);
+  border: 0;
+  border-top: 1px solid var(--cor-borda);
+  background: transparent;
+  color: var(--cor-destaque);
+  font-size: var(--texto-sm);
+  text-align: center;
+}
+
 .usuario-atual {
   display: flex;
   align-items: center;

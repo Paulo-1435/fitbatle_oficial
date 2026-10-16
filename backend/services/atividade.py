@@ -2,9 +2,11 @@ from repositories.repository import (
     AtividadeRepository,
     ComentarioRepository,
     CurtidaRepository,
+    RankingRepository,
     UsuarioRepository,
 )
 from services.comum import ErroValidacao
+from services.notificacao import NotificacaoService
 from services.usuario import UsuarioService
 
 FAIXAS_NIVEL = [
@@ -40,6 +42,8 @@ class AtividadeService:
         usuario = UsuarioService.buscar(id_usuario)
         limpos = AtividadeService._validar(dados)
 
+        posicao_antes = RankingRepository.minha_posicao_global(id_usuario)
+
         limpos["pontuacao"] = AtividadeService.calcular_pontuacao(limpos)
         atividade = AtividadeRepository.criar(id_usuario, limpos)
 
@@ -47,7 +51,21 @@ class AtividadeService:
         usuario.nivel = nivel_por_xp(usuario.xp)
         UsuarioRepository.salvar(usuario)
 
+        AtividadeService._notificar_subida_no_ranking(id_usuario, posicao_antes)
+
         return atividade, usuario
+
+    @staticmethod
+    def _notificar_subida_no_ranking(id_usuario, posicao_antes):
+        posicao_depois = RankingRepository.minha_posicao_global(id_usuario)
+        if not posicao_antes or not posicao_depois:
+            return
+        if posicao_depois["posicao"] < posicao_antes["posicao"]:
+            NotificacaoService.gerar(
+                id_usuario,
+                "subida_ranking",
+                f"Você subiu para a posição #{posicao_depois['posicao']} no ranking global!",
+            )
 
     @staticmethod
     def historico(id_usuario):

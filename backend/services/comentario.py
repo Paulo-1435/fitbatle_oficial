@@ -1,6 +1,7 @@
 from repositories.repository import ComentarioRepository, UsuarioRepository
 from services.comum import ErroValidacao
 from services.feed import FeedService
+from services.notificacao import NotificacaoService
 from services.usuario import UsuarioService
 
 
@@ -29,8 +30,8 @@ class ComentarioService:
     def criar(id_usuario, tipo_alvo, id_alvo, texto):
         if id_usuario is None:
             raise ErroValidacao("Informe o usuário.", status=401)
-        UsuarioService.buscar(id_usuario)
-        FeedService.buscar_alvo(tipo_alvo, id_alvo)
+        autor = UsuarioService.buscar(id_usuario)
+        alvo = FeedService.buscar_alvo(tipo_alvo, id_alvo)
 
         texto = (texto or "").strip()
         if not texto:
@@ -40,7 +41,19 @@ class ComentarioService:
                 f"O comentário pode ter no máximo {ComentarioService.TEXTO_MAX} caracteres."
             )
 
-        return ComentarioRepository.criar(id_usuario, tipo_alvo, id_alvo, texto)
+        comentario = ComentarioRepository.criar(id_usuario, tipo_alvo, id_alvo, texto)
+
+        if alvo.id_usuario != id_usuario:
+            rotulo = "treino" if tipo_alvo == "atividade" else "postagem"
+            NotificacaoService.gerar(
+                alvo.id_usuario,
+                "comentario",
+                f"{autor.nome} comentou no seu {rotulo}.",
+                tipo_alvo=tipo_alvo,
+                id_alvo=id_alvo,
+            )
+
+        return comentario
 
     @staticmethod
     def excluir(id_usuario, id_comentario):

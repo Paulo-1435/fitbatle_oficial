@@ -3,6 +3,7 @@ import string
 
 from repositories.repository import ConviteRepository, GrupoRepository, RankingRepository
 from services.comum import ErroValidacao
+from services.notificacao import NotificacaoService
 from services.usuario import UsuarioService
 from utils import agora, iso_utc
 
@@ -176,6 +177,15 @@ class GrupoService:
         convite = ConviteRepository.criar(id_grupo, id_remetente, destinatario.id_usuario)
         if convite is None:
             raise ErroValidacao("Já existe um convite pendente para esse usuário.", status=409)
+
+        grupo = GrupoService.buscar(id_grupo)
+        NotificacaoService.gerar(
+            destinatario.id_usuario,
+            "convite_recebido",
+            f"Você recebeu um convite para o grupo {grupo.nome}.",
+            tipo_alvo="convite",
+            id_alvo=convite.id_convite,
+        )
         return convite
 
 
@@ -220,5 +230,15 @@ class ConviteService:
 
         if aceito and GrupoRepository.papel_do_membro(convite.id_grupo, id_usuario) is None:
             GrupoRepository.adicionar_membro(convite.id_grupo, id_usuario, "membro")
+
+        if aceito:
+            destinatario = UsuarioService.buscar(id_usuario)
+            NotificacaoService.gerar(
+                convite.id_remetente,
+                "convite_aceito",
+                f"{destinatario.nome} aceitou seu convite para o grupo.",
+                tipo_alvo="convite",
+                id_alvo=convite.id_convite,
+            )
 
         return convite

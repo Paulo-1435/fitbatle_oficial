@@ -215,6 +215,13 @@ function montarNavegacao(paginaAtiva) {
   return criarElemento('nav', { classe: 'nav-principal', id: 'nav-principal', 'aria-label': 'Navegação principal' }, links);
 }
 
+function destinoDaNotificacao(tipoAlvo, idAlvo) {
+  if (tipoAlvo === 'convite') return 'grupo.html#convites';
+  if (tipoAlvo === 'meta') return 'metas-detalhes.html?id=' + idAlvo;
+  if (tipoAlvo === 'atividade' || tipoAlvo === 'postagem') return 'feed.html';
+  return null;
+}
+
 function montarNotificacoes() {
   const botao = criarElemento('button', {
     classe: 'botao-icone',
@@ -224,11 +231,106 @@ function montarNotificacoes() {
     'aria-expanded': 'false',
     html: ICONES.sino
   });
-  const painel = criarElemento('div', { classe: 'menu-flutuante notificacoes__painel', hidden: true }, [
-    criarElemento('p', { classe: 'notificacoes__titulo', texto: 'Notificações' }),
+  const contador = criarElemento('span', { classe: 'notificacoes__contador', hidden: true });
+  botao.appendChild(contador);
+
+  const corpo = criarElemento('div', { classe: 'notificacoes__corpo' }, [
     criarElemento('p', { classe: 'notificacoes__vazio', texto: 'Você não tem notificações no momento.' })
   ]);
+  const marcarTodas = criarElemento('button', {
+    classe: 'notificacoes__marcar-todas', type: 'button', texto: 'Marcar todas como lidas'
+  });
+  const verTodas = criarElemento('a', {
+    classe: 'notificacoes__marcar-todas', href: 'notificacoes.html', texto: 'Ver todas'
+  });
+  const painel = criarElemento('div', { classe: 'menu-flutuante notificacoes__painel', hidden: true }, [
+    criarElemento('p', { classe: 'notificacoes__titulo', texto: 'Notificações' }),
+    corpo,
+    marcarTodas,
+    verTodas
+  ]);
+
+  function renderizarVazio() {
+    corpo.replaceChildren(criarElemento('p', { classe: 'notificacoes__vazio', texto: 'Você não tem notificações no momento.' }));
+  }
+
+  function renderizarLista(lista) {
+    if (lista.length === 0) return renderizarVazio();
+    const itens = lista.map(function (notificacao) {
+      const item = criarElemento('button', {
+        classe: 'notificacoes__item' + (notificacao.lida ? '' : ' notificacoes__item--nao-lida'),
+        type: 'button'
+      }, [criarElemento('span', { texto: notificacao.mensagem })]);
+      item.addEventListener('click', function () { abrirNotificacao(notificacao); });
+      return item;
+    });
+    corpo.replaceChildren.apply(corpo, itens);
+  }
+
+  async function atualizarContador() {
+    try {
+      const resposta = await api('/notificacoes/contagem');
+      if (!resposta.ok) return;
+      const dados = await resposta.json();
+      if (dados.nao_lidas > 0) {
+        contador.textContent = dados.nao_lidas > 9 ? '9+' : String(dados.nao_lidas);
+        contador.hidden = false;
+      } else {
+        contador.hidden = true;
+      }
+    } catch (erro) {}
+  }
+
+  async function carregarLista() {
+    try {
+      const resposta = await api('/notificacoes');
+      if (!resposta.ok) return;
+      renderizarLista(await resposta.json());
+    } catch (erro) {}
+  }
+
+  async function abrirNotificacao(notificacao) {
+    try {
+      await api('/notificacoes/' + notificacao.id + '/lida', { method: 'PUT' });
+    } catch (erro) {}
+    atualizarContador();
+    const destino = destinoDaNotificacao(notificacao.tipo_alvo, notificacao.id_alvo);
+    if (destino) window.location.href = destino;
+  }
+
+  botao.addEventListener('click', carregarLista);
+  marcarTodas.addEventListener('click', async function (evento) {
+    evento.stopPropagation();
+    try {
+      await api('/notificacoes/lidas', { method: 'PUT' });
+      carregarLista();
+      atualizarContador();
+    } catch (erro) {}
+  });
+
   ligarMenuFlutuante(botao, painel);
+
+  let temporizadorNotificacoes = null;
+  function iniciarPolling() {
+    if (temporizadorNotificacoes) return;
+    temporizadorNotificacoes = setInterval(atualizarContador, 60000);
+  }
+  function pararPolling() {
+    clearInterval(temporizadorNotificacoes);
+    temporizadorNotificacoes = null;
+  }
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) {
+      pararPolling();
+    } else {
+      atualizarContador();
+      iniciarPolling();
+    }
+  });
+
+  atualizarContador();
+  iniciarPolling();
+
   return criarElemento('div', { classe: 'seletor' }, [botao, painel]);
 }
 

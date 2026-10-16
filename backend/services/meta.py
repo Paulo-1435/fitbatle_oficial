@@ -2,6 +2,7 @@ from datetime import date, datetime
 
 from repositories.repository import AtividadeRepository, MetaRepository
 from services.comum import ErroValidacao
+from services.notificacao import NotificacaoService
 from utils import agora, iso_utc
 
 
@@ -151,6 +152,13 @@ class MetaService:
             meta.status = "concluida"
             meta.concluida_em = agora()
             MetaRepository.salvar(meta)
+            NotificacaoService.gerar(
+                meta.id_usuario,
+                "meta_concluida",
+                f"Você concluiu a meta \"{meta.descricao}\"!",
+                tipo_alvo="meta",
+                id_alvo=meta.id_meta,
+            )
 
         percentual = 0
         if objetivo > 0:

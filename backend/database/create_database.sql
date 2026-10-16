@@ -201,6 +201,8 @@ CREATE TABLE notificacao (
     tipo           VARCHAR(60) NOT NULL,
     mensagem       VARCHAR(300) NOT NULL,
     lida           TINYINT(1) NOT NULL DEFAULT 0,
+    tipo_alvo      VARCHAR(20) NULL,
+    id_alvo        INT NULL,
     data_envio     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_notif_usuario
         FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE CASCADE,

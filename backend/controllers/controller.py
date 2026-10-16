@@ -13,6 +13,7 @@ from services import (
     FeedService,
     GrupoService,
     MetaService,
+    NotificacaoService,
     PostagemService,
     RankingService,
     UsuarioService,
@@ -382,6 +383,30 @@ class ConviteController:
             return jsonify({"mensagem": "Convite respondido.", "id": id_convite})
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status
+
+
+class NotificacaoController:
+
+    @staticmethod
+    def listar():
+        return jsonify([n.to_dict() for n in NotificacaoService.listar(_id_logado())])
+
+    @staticmethod
+    def contagem():
+        return jsonify({"nao_lidas": NotificacaoService.contar_nao_lidas(_id_logado())})
+
+    @staticmethod
+    def marcar_lida(id_notificacao):
+        try:
+            NotificacaoService.marcar_lida(id_notificacao, _id_logado())
+            return jsonify({"mensagem": "Notificação marcada como lida.", "id": id_notificacao})
+        except ErroValidacao as erro:
+            return jsonify({"erro": erro.mensagem}), erro.status
+
+    @staticmethod
+    def marcar_todas_lidas():
+        NotificacaoService.marcar_todas_lidas(_id_logado())
+        return jsonify({"mensagem": "Todas as notificações foram marcadas como lidas."})
 
 
 class DashboardController:
