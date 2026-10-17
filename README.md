@@ -50,13 +50,17 @@ o que não devia.
 |---|---|---|---|
 | Cadastro | `UsuarioController.cadastrar` | `UsuarioService.cadastrar` | `UsuarioRepository.criar` |
 | Login | `UsuarioController.login` | `UsuarioService.autenticar` | `UsuarioRepository.buscar_por_email` |
+| Perfil (editar) | `UsuarioController.atualizar` | `UsuarioService.atualizar` | `UsuarioRepository.salvar` |
 | Busca de perfis | `UsuarioController.busca` | `UsuarioService.buscar_por_termo` | `UsuarioRepository.buscar_publicos` |
 | Registrar treino | `AtividadeController.registrar` | `AtividadeService.registrar` | `AtividadeRepository.criar` |
+| Histórico de atividades | `AtividadeController.historico` | `AtividadeService.historico` | `AtividadeRepository.listar_do_usuario` |
 | Ranking global | `RankingController.ranking_global` | `RankingService.global_` | `RankingRepository.global_` |
 | Ranking regional | `RankingController.ranking_regional` | `RankingService.regional` | `RankingRepository.regional` |
 | Ranking por exercício | `RankingController.ranking_por_exercicio` | `RankingService.por_exercicio` | `RankingRepository.por_exercicio` |
+| Ranking interno do grupo | `GrupoController.ranking` | `GrupoService.ranking` | `RankingRepository.grupo` |
 | Grupos | `GrupoController.criar` | `GrupoService.criar` | `GrupoRepository.criar` |
-| Convites | `ConviteController.responder` | `ConviteService.responder` | `ConviteRepository.buscar_por_id` |
+| Convidar para grupo | `GrupoController.convidar` | `GrupoService.convidar` | `ConviteRepository.criar` |
+| Convites (responder) | `ConviteController.responder` | `ConviteService.responder` | `ConviteRepository.buscar_por_id` |
 | Metas | `MetaController.criar` | `MetaService.criar` | `MetaRepository.criar` |
 | Feed (listagem) | `FeedController.listar` | `FeedService.listar` | `AtividadeRepository.listar_publicas` + `PostagemRepository.listar_publicas` |
 | Postagem | `PostagemController.criar` | `PostagemService.criar` | `PostagemRepository.criar` |
@@ -72,6 +76,11 @@ Busca de grupos (RF19) não tem linha própria porque não criou nenhum
 método novo: `frontend/busca.js` reaproveita o `GET /api/grupos`
 (mesmo `GrupoController.listar_meus` → `GrupoService.listar_meus` já
 usado em `grupo.html`) e filtra pelo nome só no navegador.
+
+RF17 (bloco "Em Andamento") também não tem linha própria: é agregação
+pura no frontend (`dashboard.js` e `metas.js`) sobre as respostas já
+existentes de `GET /api/metas` e `GET /api/desafios`, sem nenhuma rota,
+Controller, Service ou Repository novo.
 
 ## Estrutura
 
