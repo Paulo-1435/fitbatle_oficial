@@ -61,6 +61,7 @@ async function carregarMetas() {
     atualizarResumo();
     renderizarAba();
     renderizarRecentes();
+    atualizarEmAndamentoGeral();
   } catch (e) {
     grade.innerHTML = '<p class="estado-vazio">Não foi possível conectar à API.</p>';
   }
@@ -202,6 +203,7 @@ async function carregarDesafios() {
     }
     todosOsDesafios = desafios;
     renderizarDesafios();
+    atualizarEmAndamentoGeral();
   } catch (e) {
     grade.innerHTML = '<p class="estado-vazio">Não foi possível conectar à API.</p>';
   }
@@ -380,5 +382,38 @@ async function enviarFormDesafio(evento) {
   } catch (e) {
     erro.textContent = 'Não foi possível conectar à API.';
   }
+}
+
+function atualizarEmAndamentoGeral() {
+  const container = document.getElementById('listaEmAndamentoGeral');
+  if (!container) return;
+
+  const metasAtivas = todasAsMetas.filter(function (m) { return m.status === 'em_andamento'; });
+  const desafiosInscritos = todosOsDesafios.filter(function (d) { return d.minha_inscricao.status === 'inscrito'; });
+
+  if (metasAtivas.length === 0 && desafiosInscritos.length === 0) {
+    container.innerHTML = '<p class="estado-vazio">Nenhuma meta ou desafio em andamento agora.</p>';
+    return;
+  }
+
+  const itens = metasAtivas.map(function (m) {
+    return { titulo: m.titulo, percentual: m.percentual, link: 'metas-detalhes.html?id=' + m.id, rotulo: 'Meta' };
+  }).concat(desafiosInscritos.map(function (d) {
+    return {
+      titulo: d.nome, percentual: d.minha_inscricao.percentual,
+      link: 'desafio-detalhes.html?id=' + d.id, rotulo: 'Desafio',
+    };
+  }));
+
+  container.innerHTML = itens.map(function (item) {
+    return `<div class="card meta-recente-item">
+      <div class="meta-recente-item__texto">
+        <span class="badge">${esc(item.rotulo)}</span>
+        <span class="meta-recente-item__titulo">${esc(item.titulo)}</span>
+        <span class="meta-recente-item__detalhe">${item.percentual}% concluído</span>
+      </div>
+      <a class="btn btn--secundario btn--pequeno" href="${item.link}">Ver</a>
+    </div>`;
+  }).join('');
 }
 

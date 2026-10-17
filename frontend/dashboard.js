@@ -9,7 +9,49 @@ document.addEventListener('DOMContentLoaded', function () {
   const usuario = exigirLogin();
   if (!usuario) return;
   carregarDashboard();
+  carregarEmAndamentoDashboard();
 });
+
+async function carregarEmAndamentoDashboard() {
+  const container = document.getElementById('listaEmAndamentoDashboard');
+  try {
+    const [respostaMetas, respostaDesafios] = await Promise.all([api('/metas'), api('/desafios')]);
+    const metas = respostaMetas.ok ? await respostaMetas.json() : [];
+    const desafios = respostaDesafios.ok ? await respostaDesafios.json() : [];
+
+    const itens = metas
+      .filter(function (m) { return m.status === 'em_andamento'; })
+      .map(function (m) {
+        return { titulo: m.titulo, percentual: m.percentual, link: 'metas-detalhes.html?id=' + m.id, rotulo: 'Meta' };
+      })
+      .concat(desafios
+        .filter(function (d) { return d.minha_inscricao.status === 'inscrito'; })
+        .map(function (d) {
+          return {
+            titulo: d.nome, percentual: d.minha_inscricao.percentual,
+            link: 'desafio-detalhes.html?id=' + d.id, rotulo: 'Desafio',
+          };
+        }));
+
+    if (itens.length === 0) {
+      container.innerHTML = '<p class="estado-vazio">Nenhuma meta ou desafio em andamento agora.</p>';
+      return;
+    }
+
+    container.innerHTML = itens.map(function (item) {
+      return `<div class="card meta-recente-item">
+        <div class="meta-recente-item__texto">
+          <span class="badge">${esc(item.rotulo)}</span>
+          <span class="meta-recente-item__titulo">${esc(item.titulo)}</span>
+          <span class="meta-recente-item__detalhe">${item.percentual}% concluído</span>
+        </div>
+        <a class="btn btn--secundario btn--pequeno" href="${item.link}">Ver</a>
+      </div>`;
+    }).join('');
+  } catch (e) {
+    container.innerHTML = '<p class="estado-vazio">Não foi possível conectar à API.</p>';
+  }
+}
 
 async function carregarDashboard(exercicio) {
   try {
