@@ -64,6 +64,8 @@ class DesafioService:
         ontem = agora().date() - timedelta(days=1)
         if desafio.data_fim > ontem:
             desafio.data_fim = ontem
+            if desafio.data_inicio > desafio.data_fim:
+                desafio.data_inicio = desafio.data_fim
             DesafioRepository.salvar(desafio)
         return DesafioService._dict_admin(desafio)
 

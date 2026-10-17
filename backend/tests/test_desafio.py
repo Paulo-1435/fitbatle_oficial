@@ -93,6 +93,56 @@ class TestPermissaoDeAdministracao(BaseDesafio):
 
         self.assertEqual(self.listar(self.token_ana), [])
 
+    def test_encerrar_desafio_em_andamento_mantem_data_inicio_anterior_ao_fim(self):
+        hoje = agora().date()
+        desafio = self.criar_desafio(
+            data_inicio=(hoje - timedelta(days=5)).isoformat(),
+            data_fim=(hoje + timedelta(days=5)).isoformat(),
+        )
+
+        resposta = self.cli.put(f"/api/desafios/{desafio['id']}/encerrar", headers=self.auth(self.token_admin))
+        self.assertEqual(resposta.status_code, 200)
+        encerrado = resposta.get_json()["desafio"]
+        self.assertEqual(encerrado["data_fim"], (hoje - timedelta(days=1)).isoformat())
+        self.assertEqual(encerrado["data_inicio"], (hoje - timedelta(days=5)).isoformat())
+        self.assertLessEqual(encerrado["data_inicio"], encerrado["data_fim"])
+
+        resposta = self.cli.put(
+            f"/api/desafios/{desafio['id']}", json={"nome": "Renomeado após encerrar"},
+            headers=self.auth(self.token_admin),
+        )
+        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(resposta.get_json()["desafio"]["nome"], "Renomeado após encerrar")
+
+        detalhe = self.cli.get(f"/api/desafios/{desafio['id']}", headers=self.auth(self.token_ana))
+        self.assertEqual(detalhe.status_code, 200)
+        self.assertEqual(self.listar(self.token_ana), [])
+
+    def test_encerrar_desafio_futuro_nao_deixa_fim_antes_do_inicio(self):
+        hoje = agora().date()
+        desafio = self.criar_desafio(
+            data_inicio=(hoje + timedelta(days=10)).isoformat(),
+            data_fim=(hoje + timedelta(days=20)).isoformat(),
+        )
+
+        resposta = self.cli.put(f"/api/desafios/{desafio['id']}/encerrar", headers=self.auth(self.token_admin))
+        self.assertEqual(resposta.status_code, 200)
+        encerrado = resposta.get_json()["desafio"]
+        self.assertEqual(encerrado["data_fim"], (hoje - timedelta(days=1)).isoformat())
+        self.assertEqual(encerrado["data_inicio"], encerrado["data_fim"])
+
+        resposta = self.cli.put(
+            f"/api/desafios/{desafio['id']}", json={"nome": "Cancelado antes de começar"},
+            headers=self.auth(self.token_admin),
+        )
+        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(resposta.get_json()["desafio"]["nome"], "Cancelado antes de começar")
+
+        detalhe = self.cli.get(f"/api/desafios/{desafio['id']}", headers=self.auth(self.token_ana))
+        self.assertEqual(detalhe.status_code, 200)
+        self.assertEqual(detalhe.get_json()["minha_inscricao"]["percentual"], 0)
+        self.assertEqual(self.listar(self.token_ana), [])
+
 
 class TestListagemEInscricao(BaseDesafio):
 
