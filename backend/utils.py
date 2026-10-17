@@ -1,4 +1,6 @@
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
+
+FUSO_LOCAL = timezone(timedelta(hours=-3))
 
 
 def agora():
@@ -11,6 +13,19 @@ def iso_utc(valor):
     if valor.tzinfo is None:
         valor = valor.replace(tzinfo=timezone.utc)
     return valor.isoformat()
+
+
+def data_local(valor):
+    if valor is None:
+        return None
+    if valor.tzinfo is None:
+        valor = valor.replace(tzinfo=timezone.utc)
+    return valor.astimezone(FUSO_LOCAL).date()
+
+
+def inicio_utc_do_dia_local(dia):
+    meia_noite_local = datetime(dia.year, dia.month, dia.day)
+    return meia_noite_local - FUSO_LOCAL.utcoffset(None)
 
 
 def calcular_idade(data_nascimento, idade_legada=None, hoje=None):

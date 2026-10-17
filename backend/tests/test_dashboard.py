@@ -1,9 +1,10 @@
 import unittest
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 from database import db
 from models.model import Atividade
 from tests.test_seguranca import BaseTeste
+from utils import agora, data_local
 
 
 class BaseDashboard(BaseTeste):
@@ -31,6 +32,9 @@ class BaseDashboard(BaseTeste):
             atividade = db.session.get(Atividade, id_atividade)
             atividade.data_registro = data_registro
             db.session.commit()
+
+    def utc_de_local(self, dia, hora, minuto=0):
+        return datetime(dia.year, dia.month, dia.day, hora, minuto) + timedelta(hours=3)
 
 
 class TestDashboardEstadoVazio(BaseDashboard):
@@ -98,6 +102,33 @@ class TestDashboardComDados(BaseDashboard):
         corpo = self.dashboard(self.token_ana).get_json()
         self.assertEqual(corpo["sequencia_atual"], 1)
         self.assertEqual(corpo["melhor_sequencia"], 3)
+
+    def test_treinos_as_08h_e_22h_em_dias_seguidos_formam_sequencia_de_dois_dias(self):
+        hoje_local = data_local(agora())
+        ontem_local = hoje_local - timedelta(days=1)
+
+        a1 = self.registrar(self.token_ana)
+        self.forcar_data(a1["id"], self.utc_de_local(ontem_local, 8))
+        a2 = self.registrar(self.token_ana)
+        self.forcar_data(a2["id"], self.utc_de_local(hoje_local, 22))
+
+        corpo = self.dashboard(self.token_ana).get_json()
+        self.assertEqual(corpo["sequencia_atual"], 2)
+        self.assertEqual(corpo["melhor_sequencia"], 2)
+
+    def test_treino_as_21h30_locais_conta_no_dia_local_correto(self):
+        hoje_local = data_local(agora())
+        timestamp_utc = self.utc_de_local(hoje_local, 21, 30)
+        self.assertEqual(timestamp_utc.date(), hoje_local + timedelta(days=1))
+        self.assertEqual((timestamp_utc.hour, timestamp_utc.minute), (0, 30))
+
+        atividade = self.registrar(self.token_ana)
+        self.forcar_data(atividade["id"], timestamp_utc)
+
+        corpo = self.dashboard(self.token_ana).get_json()
+        self.assertEqual(corpo["sequencia_atual"], 1)
+        self.assertEqual(corpo["treinos_por_semana"][-1]["quantidade"], 1)
+        self.assertEqual(corpo["xp_por_semana"][-1]["xp"], atividade["pontuacao"])
 
     def test_so_ve_os_proprios_dados(self):
         self.registrar(self.token_ana)

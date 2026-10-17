@@ -2,7 +2,7 @@ from datetime import timedelta
 
 from repositories.repository import AtividadeRepository
 from services.usuario import UsuarioService
-from utils import agora
+from utils import agora, data_local, inicio_utc_do_dia_local
 
 SEMANAS_JANELA = 8
 
@@ -12,13 +12,14 @@ class DashboardService:
     @staticmethod
     def resumo(id_usuario, exercicio=None):
         usuario = UsuarioService.buscar(id_usuario)
-        hoje = agora().date()
+        hoje = data_local(agora())
 
         semanas = DashboardService._semanas(hoje)
         inicio_janela = semanas[0]
 
-        pontos_por_dia = dict(AtividadeRepository.pontuacao_por_dia(id_usuario, inicio_janela))
-        treinos_por_dia = dict(AtividadeRepository.contagem_por_dia(id_usuario, inicio_janela))
+        pontos_por_dia, treinos_por_dia = DashboardService._agrupar_por_dia_local(
+            AtividadeRepository.pontuacoes_desde(id_usuario, inicio_utc_do_dia_local(inicio_janela))
+        )
 
         xp_por_semana = [
             {"inicio": semana.isoformat(), "xp": DashboardService._soma_semana(pontos_por_dia, semana)}
@@ -31,7 +32,7 @@ class DashboardService:
 
         distribuicao_por_tipo = AtividadeRepository.distribuicao_por_tipo(id_usuario)
 
-        dias = AtividadeRepository.dias_com_treino(id_usuario)
+        dias = [data_local(dr) for dr in AtividadeRepository.datas_registro(id_usuario)]
         sequencia_atual, melhor_sequencia = DashboardService._sequencias(dias, hoje)
 
         total_treinos, total_tempo = AtividadeRepository.totais(id_usuario)
@@ -72,6 +73,16 @@ class DashboardService:
             "exercicio_selecionado": exercicio_escolhido,
             "evolucao_carga": evolucao_carga,
         }
+
+    @staticmethod
+    def _agrupar_por_dia_local(linhas):
+        pontos_por_dia = {}
+        treinos_por_dia = {}
+        for data_registro, pontuacao in linhas:
+            dia = data_local(data_registro)
+            pontos_por_dia[dia] = pontos_por_dia.get(dia, 0) + (pontuacao or 0)
+            treinos_por_dia[dia] = treinos_por_dia.get(dia, 0) + 1
+        return pontos_por_dia, treinos_por_dia
 
     @staticmethod
     def _semanas(hoje):
