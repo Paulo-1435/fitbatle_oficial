@@ -9,6 +9,7 @@ from controllers.controller import (
     ConviteController,
     CurtidaController,
     DashboardController,
+    DesafioController,
     FeedController,
     GrupoController,
     MetaController,
@@ -96,6 +97,14 @@ rota("/metas", "meta_listar", MetaController.listar, ["GET"], LOGADO)
 rota("/metas/<int:id_meta>", "meta_detalhe", MetaController.detalhe, ["GET"], LOGADO)
 rota("/metas/<int:id_meta>", "meta_atualizar", MetaController.atualizar, ["PUT"], LOGADO)
 rota("/metas/<int:id_meta>", "meta_excluir", MetaController.excluir, ["DELETE"], LOGADO)
+
+rota("/desafios", "desafio_criar", DesafioController.criar, ["POST"], LOGADO)
+rota("/desafios", "desafio_listar", DesafioController.listar, ["GET"], LOGADO)
+rota("/desafios/<int:id_desafio>", "desafio_detalhe", DesafioController.detalhe, ["GET"], LOGADO)
+rota("/desafios/<int:id_desafio>", "desafio_atualizar", DesafioController.atualizar, ["PUT"], LOGADO)
+rota("/desafios/<int:id_desafio>/encerrar", "desafio_encerrar", DesafioController.encerrar, ["PUT"], LOGADO)
+rota("/desafios/<int:id_desafio>/participar", "desafio_participar", DesafioController.participar, ["POST"], LOGADO)
+rota("/desafios/<int:id_desafio>/participar", "desafio_desistir", DesafioController.desistir, ["DELETE"], LOGADO)
 
 rota("/compartilhamentos", "compartilhamento_registrar", CompartilhamentoController.registrar, ["POST"], LOGADO)
 

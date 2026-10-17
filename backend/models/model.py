@@ -288,6 +288,37 @@ class Notificacao(db.Model):
         }
 
 
+class Desafio(db.Model):
+    __tablename__ = "desafio"
+
+    id_desafio = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    nome = db.Column(db.String(120), nullable=False)
+    descricao = db.Column(db.String(500))
+    exercicio = db.Column(db.String(120))
+    data_inicio = db.Column(db.Date, nullable=False)
+    data_fim = db.Column(db.Date, nullable=False)
+    recompensa_xp = db.Column(db.Integer, nullable=False, default=0)
+    tipo_metrica = db.Column(db.String(12), nullable=False, default="treinos")
+    valor_objetivo = db.Column(db.Numeric(8, 2), nullable=False, default=1)
+
+
+class DesafioUsuario(db.Model):
+    __tablename__ = "desafio_usuario"
+
+    id_desafio = db.Column(
+        db.Integer,
+        db.ForeignKey("desafio.id_desafio", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    id_usuario = db.Column(
+        db.Integer,
+        db.ForeignKey("usuario.id_usuario", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    status = db.Column(db.String(10), nullable=False, default="inscrito")
+    concluido_em = db.Column(db.DateTime)
+
+
 class Compartilhamento(db.Model):
     __tablename__ = "compartilhamento"
 

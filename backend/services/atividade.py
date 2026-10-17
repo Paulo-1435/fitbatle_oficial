@@ -6,6 +6,7 @@ from repositories.repository import (
     UsuarioRepository,
 )
 from services.comum import ErroValidacao
+from services.desafio import DesafioService
 from services.notificacao import NotificacaoService
 from services.usuario import UsuarioService
 
@@ -52,6 +53,7 @@ class AtividadeService:
         UsuarioRepository.salvar(usuario)
 
         AtividadeService._notificar_subida_no_ranking(id_usuario, posicao_antes)
+        DesafioService.avaliar_para_usuario(id_usuario)
 
         return atividade, usuario
 

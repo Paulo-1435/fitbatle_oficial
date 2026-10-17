@@ -26,6 +26,7 @@ schema não significa que a funcionalidade esteja implementada.
 - RF13 — Atribuição automática de nível/categoria por XP (cinco categorias)
 - RF14 — Dashboard com XP por semana, treinos por semana, distribuição por tipo de treino, evolução da carga máxima por exercício, sequência atual e melhor sequência, e totais (gráficos em SVG/JS puro, sem biblioteca externa); só dados do próprio usuário
 - RF15 — Criar/gerenciar metas pessoais (curto/longo prazo)
+- RF16 — Desafios sazonais propostos pela administração (e-mails em `ADMIN_EMAILS`, únicos que criam/editam/encerram desafios); qualquer usuário logado participa ou desiste pela aba "Desafios" dentro de `metas.html`; progresso sempre calculado a partir dos treinos reais no período do desafio (`exercicio: "livre"` conta qualquer treino, senão filtra pelo título); ao atingir o objetivo credita `recompensa_xp` uma única vez (idempotente, avaliado ao registrar treino e também ao ler) e dispara notificação (RF18); cada usuário só vê/mexe na própria inscrição (prévia "1x1" em `desafio.html` continua só visual, "Em breve")
 - RF17 — Acompanhar status de metas ativas (só metas; a parte de desafios está em "Em breve")
 - RF18 — Notificações in-app (sino no header com contador de não lidas, atualizado a cada 60s e pausado com a aba oculta; página `/notificacoes`) para convite recebido/aceito, curtida e comentário recebidos, meta concluída e subida de posição no ranking global — sempre condicionado ao consentimento "notificacoes", nunca autonotificação, sem duplicar ao curtir/descurtir; e-mail opcional por SMTP (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`), tolerante a falha e nunca bloqueando a requisição; push do navegador fora do escopo
 - RF19 — Busca de perfis (nome ou cidade, restrita a campos públicos, nunca menores de idade) e busca de grupos (entre os grupos dos quais o usuário já é membro, com entrada por código de convite na mesma tela)
@@ -33,7 +34,6 @@ schema não significa que a funcionalidade esteja implementada.
 
 ### Em breve
 
-- RF16 — Participar de desafios sazonais (`frontend/desafio.html` é só uma prévia visual, sem chamada à API)
 - RF17 (desafios) — Acompanhar status de desafios ativos, depende do RF16
 - RF20 (medalhas) — Medalhas de conquistas; não existe esse conceito em nenhuma tabela do sistema
 
@@ -67,6 +67,7 @@ o que não devia.
 | Compartilhamento | `CompartilhamentoController.registrar` | `CompartilhamentoService.registrar` | `CompartilhamentoRepository.criar` |
 | Dashboard | `DashboardController.resumo` | `DashboardService.resumo` | `AtividadeRepository.pontuacao_por_dia` (+ demais agregações) |
 | Notificações | `NotificacaoController.listar` | `NotificacaoService.listar` | `NotificacaoRepository.listar_do_usuario` |
+| Desafios | `DesafioController.listar` | `DesafioService.listar_ativos` | `DesafioRepository.listar_ativos` |
 
 Busca de grupos (RF19) não tem linha própria porque não criou nenhum
 método novo: `frontend/busca.js` reaproveita o `GET /api/grupos`
@@ -90,7 +91,8 @@ usado em `grupo.html`) e filtra pelo nome só no navegador.
 │   │   ├── create_database.sql           # schema completo, para instalação nova
 │   │   ├── migracao_meta.sql             # atualiza um banco existente (ver "Atualizando o banco")
 │   │   ├── migracao_data_nascimento.sql  # idem, para a coluna data_nascimento
-│   │   └── migracao_notificacao_alvo.sql # idem, para as colunas tipo_alvo/id_alvo de notificacao
+│   │   ├── migracao_notificacao_alvo.sql # idem, para as colunas tipo_alvo/id_alvo de notificacao
+│   │   └── migracao_desafio_metrica.sql  # idem, para as colunas tipo_metrica/valor_objetivo de desafio
 │   ├── routers/
 │   │   └── routers.py          # mapeia as URLs para os Controllers
 │   ├── controllers/
@@ -110,6 +112,7 @@ usado em `grupo.html`) e filtra pelo nome só no navegador.
 │   │   ├── meta.py              # MetaService
 │   │   ├── compartilhamento.py  # CompartilhamentoService
 │   │   ├── dashboard.py         # DashboardService
+│   │   ├── desafio.py           # DesafioService
 │   │   └── notificacao.py       # NotificacaoService, e-mail opcional por SMTP
 │   ├── repositories/
 │   │   └── repository.py       # único ponto de acesso ao banco
@@ -126,7 +129,8 @@ usado em `grupo.html`) e filtra pelo nome só no navegador.
 │       ├── test_ranking.py
 │       ├── test_compartilhamento.py
 │       ├── test_dashboard.py
-│       └── test_notificacao.py
+│       ├── test_notificacao.py
+│       └── test_desafio.py
 └── frontend/
     ├── config.js                                         # window.FITBATTLE_API_URL (ver "Como rodar")
     ├── compartilhar.js                                   # menu de compartilhamento (RF20), compartilhado
@@ -138,10 +142,11 @@ usado em `grupo.html`) e filtra pelo nome só no navegador.
     ├── perfil.html / perfil.js                          # perfil, treinos, foto
     ├── feed.html / feed.js                               # feed social
     ├── grupo*.html / grupo*.js, entrar-grupo.*           # grupos e convites
-    ├── metas*.html / metas*.js                           # metas pessoais
+    ├── metas*.html / metas*.js                           # metas pessoais; metas.html tem a aba "Desafios" (RF16)
+    ├── desafio-detalhes.html / desafio-detalhes.js       # detalhe de 1 desafio sazonal (RF16)
     ├── ranking.html / ranking.js                         # rankings
     ├── privacidade.html / privacidade.js                 # consentimentos LGPD
-    ├── desafio.html / desafio.js                         # prévia visual, sem API (RF16)
+    ├── desafio.html / desafio.js                         # prévia visual do "1x1", sem API (Em breve)
     ├── mockups/                                          # telas de outro integrante do grupo,
     │                                                      # não referenciadas pelo app (perfil-A/B/C.html)
     └── api.js, shell.js, auth-comum.js, tokens.css, ...  # compartilhados entre as páginas
@@ -194,7 +199,9 @@ anteriores, usado pelos testes com SQLite), `SECRET_KEY`, `FLASK_DEBUG`
 localhost/127.0.0.1/IPs de rede local, já liberados por padrão),
 `SMTP_HOST`/`SMTP_PORT`/`SMTP_USER`/`SMTP_PASSWORD`/`SMTP_FROM` (envio de
 e-mail para as notificações do RF18; sem `SMTP_HOST` definido, as
-notificações continuam só in-app).
+notificações continuam só in-app), `ADMIN_EMAILS` (e-mails separados por
+vírgula com permissão para criar, editar e encerrar desafios sazonais —
+RF16; sem essa variável, nenhum usuário é administrador).
 
 ### 3. Rodar com dados de exemplo (sem MySQL)
 
@@ -263,13 +270,15 @@ Duas situações bem diferentes — escolha a certa antes de rodar qualquer
 coisa:
 
 **Você tem um banco `fitbattle` de antes da feature de Metas, da troca de
-idade por data de nascimento e/ou das notificações, e quer manter os dados**
-(usuários, treinos, etc.) → rode as migrações que se aplicarem:
+idade por data de nascimento, das notificações e/ou dos desafios, e quer
+manter os dados** (usuários, treinos, etc.) → rode as migrações que se
+aplicarem:
 
 ```bash
 mysql -u root -p fitbattle < backend/database/migracao_meta.sql
 mysql -u root -p fitbattle < backend/database/migracao_data_nascimento.sql
 mysql -u root -p fitbattle < backend/database/migracao_notificacao_alvo.sql
+mysql -u root -p fitbattle < backend/database/migracao_desafio_metrica.sql
 ```
 
 Cada uma faz só um `ALTER TABLE` (a de metas adiciona as colunas novas e
@@ -300,8 +309,9 @@ usando a antiga coluna `idade` como base para o cálculo de idade
 
 **Desafio 1x1 (`frontend/desafio.html`) é só uma prévia visual.** O próprio
 HTML avisa isso ("dados de exemplo fixos do design"); o `desafio.js` não faz
-nenhuma chamada à API. Corresponde ao RF16/RF17, que ainda não existem de
-verdade no backend.
+nenhuma chamada à API. Não é o mesmo conceito dos desafios sazonais do RF16
+(esses são reais, veja a aba "Desafios" em `metas.html`); o "1x1" continua
+sem data prevista de implementação.
 
 **A API precisa rodar com exatamente 1 worker do gunicorn em produção.** O
 limitador de tentativas de login (`_LimitadorLogin`, em
@@ -360,6 +370,13 @@ puro.
 | GET | `/api/metas/<id>` | Detalhe da meta, com histórico de progresso | Logado | RF15, RF17 |
 | PUT | `/api/metas/<id>` | Edita título, valor objetivo ou data final | Logado | RF15 |
 | DELETE | `/api/metas/<id>` | Exclui a meta | Logado | RF15 |
+| POST | `/api/desafios` | Cria um desafio sazonal (só administração, e-mail em `ADMIN_EMAILS`) | Logado (admin) | RF16 |
+| GET | `/api/desafios` | Lista desafios ativos (data de fim ainda não passou) com a inscrição do próprio usuário | Logado | RF16 |
+| GET | `/api/desafios/<id>` | Detalhe de um desafio, com a inscrição e o progresso do próprio usuário | Logado | RF16 |
+| PUT | `/api/desafios/<id>` | Edita um desafio (só administração) | Logado (admin) | RF16 |
+| PUT | `/api/desafios/<id>/encerrar` | Encerra um desafio imediatamente (só administração) | Logado (admin) | RF16 |
+| POST | `/api/desafios/<id>/participar` | Inscreve o próprio usuário no desafio | Logado | RF16 |
+| DELETE | `/api/desafios/<id>/participar` | Desiste da própria inscrição no desafio | Logado | RF16 |
 | POST | `/api/compartilhamentos` | Registra o compartilhamento de uma atividade, recorde ou meta própria, exige o consentimento "compartilhamento" (403 sem ele) | Logado | RF20 |
 | GET | `/api/notificacoes` | Lista as notificações do próprio usuário (mais recentes primeiro) | Logado | RF18 |
 | GET | `/api/notificacoes/contagem` | Quantidade de notificações não lidas | Logado | RF18 |

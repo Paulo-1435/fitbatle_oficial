@@ -133,6 +133,22 @@ class UsuarioService:
         return usuario
 
     @staticmethod
+    def eh_admin(usuario):
+        admins = {
+            email.strip().lower()
+            for email in os.environ.get("ADMIN_EMAILS", "").split(",")
+            if email.strip()
+        }
+        return usuario.email.lower() in admins
+
+    @staticmethod
+    def exigir_admin(id_usuario):
+        usuario = UsuarioService.buscar(id_usuario)
+        if not UsuarioService.eh_admin(usuario):
+            raise ErroValidacao("Apenas a administração pode fazer isso.", status=403)
+        return usuario
+
+    @staticmethod
     def buscar_visivel(id_usuario, id_solicitante):
         usuario = UsuarioService.buscar(id_usuario)
         if usuario.id_usuario != id_solicitante:

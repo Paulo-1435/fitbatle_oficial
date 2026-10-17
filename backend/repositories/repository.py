@@ -11,6 +11,8 @@ from models.model import (
     Consentimento,
     Convite,
     Curtida,
+    Desafio,
+    DesafioUsuario,
     Grupo,
     GrupoMembro,
     Meta,
@@ -193,6 +195,30 @@ class AtividadeRepository:
             Atividade.id_usuario == id_usuario,
             Atividade.data_registro >= data_inicio,
         ).count()
+
+    @staticmethod
+    def contar_no_periodo(id_usuario, inicio, fim, titulo_normalizado=None):
+        query = Atividade.query.filter(
+            Atividade.id_usuario == id_usuario,
+            Atividade.data_registro >= inicio,
+            Atividade.data_registro < fim,
+        )
+        if titulo_normalizado:
+            query = query.filter(func.lower(Atividade.titulo) == titulo_normalizado)
+        return query.count()
+
+    @staticmethod
+    def maior_carga_no_periodo(id_usuario, inicio, fim, titulo_normalizado=None):
+        query = db.session.query(func.max(Atividade.carga_kg)).filter(
+            Atividade.id_usuario == id_usuario,
+            Atividade.tipo == "musculacao",
+            Atividade.data_registro >= inicio,
+            Atividade.data_registro < fim,
+        )
+        if titulo_normalizado:
+            query = query.filter(func.lower(Atividade.titulo) == titulo_normalizado)
+        resultado = query.scalar()
+        return float(resultado) if resultado is not None else None
 
     @staticmethod
     def listar_do_usuario_por_titulo(id_usuario, titulo_normalizado):
@@ -669,6 +695,62 @@ class MetaRepository:
     def excluir(meta):
         db.session.delete(meta)
         db.session.commit()
+
+
+class DesafioRepository:
+
+    @staticmethod
+    def criar(dados):
+        desafio = Desafio(**dados)
+        db.session.add(desafio)
+        db.session.commit()
+        return desafio
+
+    @staticmethod
+    def buscar_por_id(id_desafio):
+        return db.session.get(Desafio, id_desafio)
+
+    @staticmethod
+    def listar_ativos(hoje):
+        return (
+            Desafio.query.filter(Desafio.data_fim >= hoje)
+            .order_by(Desafio.data_inicio.asc())
+            .all()
+        )
+
+    @staticmethod
+    def listar_todos():
+        return Desafio.query.order_by(Desafio.data_inicio.desc()).all()
+
+    @staticmethod
+    def salvar(desafio):
+        db.session.add(desafio)
+        db.session.commit()
+        return desafio
+
+
+class DesafioUsuarioRepository:
+
+    @staticmethod
+    def buscar(id_desafio, id_usuario):
+        return db.session.get(DesafioUsuario, (id_desafio, id_usuario))
+
+    @staticmethod
+    def inscrever(id_desafio, id_usuario):
+        inscricao = DesafioUsuario(id_desafio=id_desafio, id_usuario=id_usuario, status="inscrito")
+        db.session.add(inscricao)
+        db.session.commit()
+        return inscricao
+
+    @staticmethod
+    def salvar(inscricao):
+        db.session.add(inscricao)
+        db.session.commit()
+        return inscricao
+
+    @staticmethod
+    def listar_do_usuario(id_usuario):
+        return DesafioUsuario.query.filter_by(id_usuario=id_usuario).all()
 
 
 class CompartilhamentoRepository:

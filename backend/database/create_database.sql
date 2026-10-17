@@ -180,7 +180,9 @@ CREATE TABLE desafio (
     exercicio      VARCHAR(120),
     data_inicio    DATE NOT NULL,
     data_fim       DATE NOT NULL,
-    recompensa_xp  INT NOT NULL DEFAULT 0
+    recompensa_xp  INT NOT NULL DEFAULT 0,
+    tipo_metrica   VARCHAR(12) NOT NULL DEFAULT 'treinos',
+    valor_objetivo DECIMAL(8,2) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB;
 
 CREATE TABLE desafio_usuario (

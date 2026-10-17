@@ -9,6 +9,7 @@ from services import (
     ConviteService,
     CurtidaService,
     DashboardService,
+    DesafioService,
     ErroValidacao,
     FeedService,
     GrupoService,
@@ -52,7 +53,9 @@ class UsuarioController:
 
     @staticmethod
     def eu():
-        return jsonify({"usuario": g.usuario_atual.to_dict()})
+        dados = g.usuario_atual.to_dict()
+        dados["admin"] = UsuarioService.eh_admin(g.usuario_atual)
+        return jsonify({"usuario": dados})
 
     @staticmethod
     def busca():
@@ -468,5 +471,59 @@ class MetaController:
         try:
             MetaService.excluir(id_meta, _id_logado())
             return jsonify({"mensagem": "Meta excluída.", "id": id_meta})
+        except ErroValidacao as erro:
+            return jsonify({"erro": erro.mensagem}), erro.status
+
+
+class DesafioController:
+
+    @staticmethod
+    def criar():
+        try:
+            desafio = DesafioService.criar(_id_logado(), request.get_json(silent=True))
+            return jsonify({"mensagem": "Desafio criado!", "desafio": desafio}), 201
+        except ErroValidacao as erro:
+            return jsonify({"erro": erro.mensagem}), erro.status
+
+    @staticmethod
+    def listar():
+        return jsonify(DesafioService.listar_ativos(_id_logado()))
+
+    @staticmethod
+    def detalhe(id_desafio):
+        try:
+            return jsonify(DesafioService.detalhe(id_desafio, _id_logado()))
+        except ErroValidacao as erro:
+            return jsonify({"erro": erro.mensagem}), erro.status
+
+    @staticmethod
+    def atualizar(id_desafio):
+        try:
+            desafio = DesafioService.atualizar(_id_logado(), id_desafio, request.get_json(silent=True))
+            return jsonify({"mensagem": "Desafio atualizado.", "desafio": desafio})
+        except ErroValidacao as erro:
+            return jsonify({"erro": erro.mensagem}), erro.status
+
+    @staticmethod
+    def encerrar(id_desafio):
+        try:
+            desafio = DesafioService.encerrar(_id_logado(), id_desafio)
+            return jsonify({"mensagem": "Desafio encerrado.", "desafio": desafio})
+        except ErroValidacao as erro:
+            return jsonify({"erro": erro.mensagem}), erro.status
+
+    @staticmethod
+    def participar(id_desafio):
+        try:
+            desafio = DesafioService.participar(_id_logado(), id_desafio)
+            return jsonify({"mensagem": "Inscrição confirmada!", "desafio": desafio})
+        except ErroValidacao as erro:
+            return jsonify({"erro": erro.mensagem}), erro.status
+
+    @staticmethod
+    def desistir(id_desafio):
+        try:
+            desafio = DesafioService.desistir(_id_logado(), id_desafio)
+            return jsonify({"mensagem": "Você desistiu do desafio.", "desafio": desafio})
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status

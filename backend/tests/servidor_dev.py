@@ -10,6 +10,7 @@ os.environ.setdefault("DB_URI", "sqlite:///" + CAMINHO_BANCO)
 from app import criar_app
 from database import db
 from models.model import Usuario
+from repositories.repository import DesafioRepository
 from services import AtividadeService, ComentarioService, CurtidaService, UsuarioService
 from tests.apoio import criar_views_de_ranking
 
@@ -86,6 +87,20 @@ def popular():
     ComentarioService.criar(ids["lu@fitbattle.dev"], "atividade", 1, "Bora pra cima.")
     CurtidaService.alternar(ids["lu@fitbattle.dev"], "atividade", 1)
     CurtidaService.alternar(ids["clebim@fitbattle.dev"], "atividade", 1)
+
+    from datetime import date, timedelta
+
+    hoje = date.today()
+    DesafioRepository.criar({
+        "nome": "Desafio de Outubro: 5 treinos",
+        "descricao": "Registre 5 treinos até o fim do período para ganhar XP bônus.",
+        "exercicio": "livre",
+        "tipo_metrica": "treinos",
+        "valor_objetivo": 5,
+        "data_inicio": hoje,
+        "data_fim": hoje + timedelta(days=14),
+        "recompensa_xp": 100,
+    })
 
 
 def preparar():
