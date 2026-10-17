@@ -65,6 +65,10 @@
   align-items: start;
 }
 
+.grupos-grade > * {
+  min-width: 0;
+}
+
 .grupos-lateral {
   display: flex;
   flex-direction: column;

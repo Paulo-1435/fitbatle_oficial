@@ -301,4 +301,13 @@
   .meta-detalhe-cabecalho {
     flex-direction: column;
   }
+
+  .meta-historico-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .meta-historico-item__tags {
+    flex-wrap: wrap;
+  }
 }
