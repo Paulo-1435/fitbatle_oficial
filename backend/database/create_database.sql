@@ -140,22 +140,6 @@ CREATE TABLE convite (
     UNIQUE KEY uq_convite (id_grupo, id_destinatario, status)
 ) ENGINE=InnoDB;
 
-CREATE TABLE ranking (
-    id_ranking     INT AUTO_INCREMENT PRIMARY KEY,
-    id_usuario     INT NOT NULL,
-    escopo         ENUM('global','regional','grupo') NOT NULL,
-    id_grupo       INT NULL,
-    referencia     VARCHAR(100),
-    posicao        INT NOT NULL,
-    pontuacao      INT NOT NULL DEFAULT 0,
-    data_ref       DATE NOT NULL,
-    CONSTRAINT fk_ranking_usuario
-        FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE CASCADE,
-    CONSTRAINT fk_ranking_grupo
-        FOREIGN KEY (id_grupo) REFERENCES grupo(id_grupo) ON DELETE CASCADE,
-    INDEX idx_ranking_escopo (escopo, data_ref, posicao)
-) ENGINE=InnoDB;
-
 CREATE TABLE meta (
     id_meta        INT AUTO_INCREMENT PRIMARY KEY,
     id_usuario     INT NOT NULL,
