@@ -160,6 +160,23 @@ Controller, Service ou Repository novo.
     └── api.js, shell.js, auth-comum.js, tokens.css, ...  # compartilhados entre as páginas
 ```
 
+## Documentação do projeto
+
+![Diagrama de classes do domínio](docs/diagrama_de_classes_dominio.png)
+Diagrama de classes do domínio: as 14 entidades do banco, com PK/FK e os relacionamentos entre elas.
+
+![Arquitetura em camadas](docs/figura_arquitetura.png)
+Arquitetura cliente-servidor: frontend estático e API Flask em camadas (routers → controllers → services → repositories → models → MySQL).
+
+![Estrutura de diretórios do backend](docs/estrutura_de_diretorios.png)
+Estrutura de diretórios do backend, com uma frase sobre o que cada Service faz.
+
+![Fluxograma de entrada de dados — Registrar treino](docs/fluxograma_entrada_registrar_treino.png)
+Fluxograma de entrada de dados: POST /api/usuarios/&lt;id&gt;/atividades, da rota ao banco, passando por desafios, notificações e atualização de XP/nível.
+
+![Fluxograma de recuperação de dados — Consultar ranking global](docs/fluxograma_recuperacao_ranking.png)
+Fluxograma de recuperação de dados: GET /api/ranking/global, da rota até a view `vw_ranking_global`.
+
 ## Como rodar
 
 ### 1. Banco de dados (MySQL 8+) — instalação nova
