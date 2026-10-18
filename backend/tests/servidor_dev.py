@@ -11,7 +11,7 @@ from app import criar_app
 from database import db
 from models.model import Usuario
 from repositories.repository import DesafioRepository
-from services import AtividadeService, CriarComentarioService, CurtidaService, UsuarioService
+from services import AlternarCurtidaService, AtividadeService, CriarComentarioService, UsuarioService
 from tests.apoio import criar_views_de_ranking
 
 SENHA = "senhaforte123"
@@ -85,8 +85,8 @@ def popular():
 
     CriarComentarioService.executar(ids["camila@fitbattle.dev"], "atividade", 1, "Mandou bem demais!")
     CriarComentarioService.executar(ids["lu@fitbattle.dev"], "atividade", 1, "Bora pra cima.")
-    CurtidaService.alternar(ids["lu@fitbattle.dev"], "atividade", 1)
-    CurtidaService.alternar(ids["clebim@fitbattle.dev"], "atividade", 1)
+    AlternarCurtidaService.executar(ids["lu@fitbattle.dev"], "atividade", 1)
+    AlternarCurtidaService.executar(ids["clebim@fitbattle.dev"], "atividade", 1)
 
     from datetime import date, timedelta
 

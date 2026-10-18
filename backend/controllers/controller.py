@@ -2,12 +2,12 @@ from flask import current_app, g, jsonify, request
 
 from auth import gerar_token
 from services import (
+    AlternarCurtidaService,
     AtividadeService,
     ConsentimentoService,
     ContarNotificacoesNaoLidasService,
     ConviteService,
     CriarComentarioService,
-    CurtidaService,
     DashboardService,
     DesafioService,
     ErroValidacao,
@@ -199,7 +199,7 @@ class CurtidaController:
     @staticmethod
     def alternar(tipo_alvo, id_alvo):
         try:
-            resultado = CurtidaService.alternar(_id_logado(), tipo_alvo, id_alvo)
+            resultado = AlternarCurtidaService.executar(_id_logado(), tipo_alvo, id_alvo)
             return jsonify(resultado)
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status

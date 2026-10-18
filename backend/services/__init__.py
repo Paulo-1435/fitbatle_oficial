@@ -4,7 +4,7 @@ from services.privacidade import ConsentimentoService
 from services.atividade import AtividadeService
 from services.postagem import PostagemService
 from services.feed import ListarFeedService
-from services.curtida import CurtidaService
+from services.curtida import AlternarCurtidaService
 from services.comentario import (
     CriarComentarioService,
     ExcluirComentarioService,
