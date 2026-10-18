@@ -15,6 +15,7 @@ from services.usuario.apoio import (
     usuario_eh_admin,
 )
 from services.usuario.limitador_login import _LimitadorLogin
+from services.privacidade.apoio import registrar_consentimentos_iniciais
 from utils import agora, calcular_idade
 
 EMAIL_REGEX = r"^[^\s@]+@[^\s@]+\.[^\s@]+$"
@@ -30,7 +31,6 @@ class UsuarioService:
 
     @staticmethod
     def cadastrar(dados):
-        from services.privacidade import ConsentimentoService
         dados = dados or {}
         limpos = UsuarioService._validar(dados, senha_obrigatoria=True)
 
@@ -53,7 +53,7 @@ class UsuarioService:
         usuario = UsuarioRepository.criar(limpos)
         if usuario is None:
             raise ErroValidacao("E-mail já cadastrado.", status=409)
-        ConsentimentoService.registrar_iniciais(usuario.id_usuario, consentimentos)
+        registrar_consentimentos_iniciais(usuario.id_usuario, consentimentos)
         return usuario
 
     @staticmethod

@@ -4,7 +4,7 @@ from auth import gerar_token
 from services import (
     AlternarCurtidaService,
     AtividadeService,
-    ConsentimentoService,
+    AtualizarConsentimentoService,
     ConsultarDashboardService,
     ConsultarRankingGlobalService,
     ConsultarRankingPorExercicioService,
@@ -20,6 +20,7 @@ from services import (
     ExcluirPostagemService,
     GrupoService,
     ListarComentariosService,
+    ListarConsentimentosService,
     ListarFeedService,
     ListarNotificacoesService,
     MarcarNotificacaoLidaService,
@@ -285,7 +286,7 @@ class ConsentimentoController:
     @staticmethod
     def listar(id_usuario):
         try:
-            registros = ConsentimentoService.listar(id_usuario)
+            registros = ListarConsentimentosService.executar(id_usuario)
             return jsonify([c.to_dict() for c in registros])
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status
@@ -294,7 +295,7 @@ class ConsentimentoController:
     def atualizar(id_usuario, chave):
         dados = request.get_json(silent=True) or {}
         try:
-            registro = ConsentimentoService.atualizar(id_usuario, chave, dados.get("aceito"))
+            registro = AtualizarConsentimentoService.executar(id_usuario, chave, dados.get("aceito"))
             return jsonify({
                 "mensagem": "Consentimento atualizado.",
                 "consentimento": registro.to_dict(),
