@@ -3,15 +3,17 @@ from flask import current_app, g, jsonify, request
 from auth import gerar_token
 from services import (
     AtividadeService,
-    ComentarioService,
     ConsentimentoService,
     ContarNotificacoesNaoLidasService,
     ConviteService,
+    CriarComentarioService,
     CurtidaService,
     DashboardService,
     DesafioService,
     ErroValidacao,
+    ExcluirComentarioService,
     GrupoService,
+    ListarComentariosService,
     ListarFeedService,
     ListarNotificacoesService,
     MarcarNotificacaoLidaService,
@@ -208,7 +210,7 @@ class ComentarioController:
     @staticmethod
     def listar(tipo_alvo, id_alvo):
         try:
-            comentarios = ComentarioService.listar(tipo_alvo, id_alvo)
+            comentarios = ListarComentariosService.executar(tipo_alvo, id_alvo)
             return jsonify(comentarios)
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status
@@ -217,7 +219,7 @@ class ComentarioController:
     def criar(tipo_alvo, id_alvo):
         dados = request.get_json(silent=True) or {}
         try:
-            comentario = ComentarioService.criar(
+            comentario = CriarComentarioService.executar(
                 _id_logado(), tipo_alvo, id_alvo, dados.get("texto")
             )
             resultado = comentario.to_dict()
@@ -232,7 +234,7 @@ class ComentarioController:
     @staticmethod
     def excluir(id_comentario):
         try:
-            ComentarioService.excluir(_id_logado(), id_comentario)
+            ExcluirComentarioService.executar(_id_logado(), id_comentario)
             return jsonify({"mensagem": "Comentário excluído.", "id": id_comentario})
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status

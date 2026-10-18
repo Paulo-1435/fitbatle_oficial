@@ -7,7 +7,6 @@ RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 PENDENTES = [
     "atividade.py",
-    "comentario.py",
     "convite.py",
     "curtida.py",
     "dashboard.py",

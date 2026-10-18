@@ -5,7 +5,11 @@ from services.atividade import AtividadeService
 from services.postagem import PostagemService
 from services.feed import ListarFeedService
 from services.curtida import CurtidaService
-from services.comentario import ComentarioService
+from services.comentario import (
+    CriarComentarioService,
+    ExcluirComentarioService,
+    ListarComentariosService,
+)
 from services.ranking import RankingService
 from services.grupo import GrupoService
 from services.convite import ConviteService
