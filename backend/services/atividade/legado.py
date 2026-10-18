@@ -7,7 +7,7 @@ from repositories.repository import (
 )
 from services.atividade.apoio import buscar_atividade, calcular_pontuacao, nivel_por_xp
 from services.comum import ErroValidacao
-from services.desafio import DesafioService
+from services.desafio import AvaliarDesafiosDoUsuarioService
 from services.notificacao.apoio import gerar_notificacao
 from services.usuario import UsuarioService
 
@@ -38,7 +38,7 @@ class AtividadeService:
         UsuarioRepository.salvar(usuario)
 
         AtividadeService._notificar_subida_no_ranking(id_usuario, posicao_antes)
-        DesafioService.avaliar_para_usuario(id_usuario)
+        AvaliarDesafiosDoUsuarioService.executar(id_usuario)
 
         return atividade, usuario
 

@@ -44,4 +44,13 @@ from services.notificacao import (
     MarcarNotificacaoLidaService,
     MarcarTodasNotificacoesLidasService,
 )
-from services.desafio import DesafioService
+from services.desafio import (
+    AtualizarDesafioService,
+    AvaliarDesafiosDoUsuarioService,
+    ConsultarDesafioService,
+    CriarDesafioService,
+    DesistirDesafioService,
+    EncerrarDesafioService,
+    ListarDesafiosAtivosService,
+    ParticiparDesafioService,
+)

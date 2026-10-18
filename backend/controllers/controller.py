@@ -5,12 +5,14 @@ from services import (
     AlternarCurtidaService,
     AtividadeService,
     AtualizarConsentimentoService,
+    AtualizarDesafioService,
     AtualizarMetaService,
     BuscarPerfisService,
     BuscarUsuariosParaConvidarService,
     ConsultarCodigoConviteService,
     ConsultarDashboardService,
     ConsultarGrupoService,
+    ConsultarDesafioService,
     ConsultarMetaService,
     ConsultarRankingGlobalService,
     ConsultarRankingGrupoService,
@@ -20,10 +22,12 @@ from services import (
     ContarNotificacoesNaoLidasService,
     ConvidarParaGrupoService,
     CriarComentarioService,
+    CriarDesafioService,
     CriarGrupoService,
     CriarMetaService,
     CriarPostagemService,
-    DesafioService,
+    DesistirDesafioService,
+    EncerrarDesafioService,
     EntrarGrupoPorCodigoService,
     ErroValidacao,
     ExcluirComentarioService,
@@ -32,6 +36,7 @@ from services import (
     ListarComentariosService,
     ListarConsentimentosService,
     ListarConvitesRecebidosService,
+    ListarDesafiosAtivosService,
     ListarFeedService,
     ListarMembrosGrupoService,
     ListarMetasService,
@@ -39,6 +44,7 @@ from services import (
     ListarNotificacoesService,
     MarcarNotificacaoLidaService,
     MarcarTodasNotificacoesLidasService,
+    ParticiparDesafioService,
     RegenerarCodigoConviteService,
     RegistrarCompartilhamentoService,
     ResponderConviteService,
@@ -505,26 +511,26 @@ class DesafioController:
     @staticmethod
     def criar():
         try:
-            desafio = DesafioService.criar(_id_logado(), request.get_json(silent=True))
+            desafio = CriarDesafioService.executar(_id_logado(), request.get_json(silent=True))
             return jsonify({"mensagem": "Desafio criado!", "desafio": desafio}), 201
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status
 
     @staticmethod
     def listar():
-        return jsonify(DesafioService.listar_ativos(_id_logado()))
+        return jsonify(ListarDesafiosAtivosService.executar(_id_logado()))
 
     @staticmethod
     def detalhe(id_desafio):
         try:
-            return jsonify(DesafioService.detalhe(id_desafio, _id_logado()))
+            return jsonify(ConsultarDesafioService.executar(id_desafio, _id_logado()))
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status
 
     @staticmethod
     def atualizar(id_desafio):
         try:
-            desafio = DesafioService.atualizar(_id_logado(), id_desafio, request.get_json(silent=True))
+            desafio = AtualizarDesafioService.executar(_id_logado(), id_desafio, request.get_json(silent=True))
             return jsonify({"mensagem": "Desafio atualizado.", "desafio": desafio})
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status
@@ -532,7 +538,7 @@ class DesafioController:
     @staticmethod
     def encerrar(id_desafio):
         try:
-            desafio = DesafioService.encerrar(_id_logado(), id_desafio)
+            desafio = EncerrarDesafioService.executar(_id_logado(), id_desafio)
             return jsonify({"mensagem": "Desafio encerrado.", "desafio": desafio})
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status
@@ -540,7 +546,7 @@ class DesafioController:
     @staticmethod
     def participar(id_desafio):
         try:
-            desafio = DesafioService.participar(_id_logado(), id_desafio)
+            desafio = ParticiparDesafioService.executar(_id_logado(), id_desafio)
             return jsonify({"mensagem": "Inscrição confirmada!", "desafio": desafio})
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status
@@ -548,7 +554,7 @@ class DesafioController:
     @staticmethod
     def desistir(id_desafio):
         try:
-            desafio = DesafioService.desistir(_id_logado(), id_desafio)
+            desafio = DesistirDesafioService.executar(_id_logado(), id_desafio)
             return jsonify({"mensagem": "Você desistiu do desafio.", "desafio": desafio})
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status
