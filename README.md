@@ -116,7 +116,8 @@ Controller, Service ou Repository novo.
 │   │   ├── curtida.py           # CurtidaService
 │   │   ├── comentario.py        # ComentarioService
 │   │   ├── ranking.py           # RankingService
-│   │   ├── grupo.py             # GrupoService, ConviteService
+│   │   ├── grupo.py             # GrupoService
+│   │   ├── convite.py           # ConviteService
 │   │   ├── meta.py              # MetaService
 │   │   ├── compartilhamento.py  # CompartilhamentoService
 │   │   ├── dashboard.py         # DashboardService
