@@ -89,7 +89,7 @@ class TestCorridaCadastroEmail(BaseTeste):
             "nome": "Primeiro", "email": email, "data_nascimento": data_nascimento_para_idade(25), "senha": SENHA,
             "aceite_termos": True, "consentimentos": {},
         }
-        with mock.patch("services.usuario.UsuarioRepository.buscar_por_email", return_value=None):
+        with mock.patch("services.usuario.legado.UsuarioRepository.buscar_por_email", return_value=None):
             primeira = self.cli.post("/api/usuarios", json=corpo)
             segunda = self.cli.post("/api/usuarios", json=dict(corpo, nome="Segundo"))
 

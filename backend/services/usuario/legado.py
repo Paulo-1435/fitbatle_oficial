@@ -1,69 +1,26 @@
 import os
 import re
-import threading
-import time
 from datetime import date, datetime
 
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from repositories.repository import PostagemRepository, UsuarioRepository
 from services.comum import ErroValidacao, salvar_imagem
+from services.usuario.apoio import (
+    IDADE_MAIORIDADE,
+    buscar_usuario,
+    buscar_usuario_visivel,
+    e_maior_de_idade,
+    exigir_admin,
+    usuario_eh_admin,
+)
+from services.usuario.limitador_login import _LimitadorLogin
 from utils import agora, calcular_idade
 
 EMAIL_REGEX = r"^[^\s@]+@[^\s@]+\.[^\s@]+$"
 
 IDADE_MINIMA_CADASTRO = 13
-IDADE_MAIORIDADE = 18
 IDADE_MAXIMA_PLAUSIVEL = 120
-
-
-class _LimitadorLogin:
-
-    MAX_TENTATIVAS = 5
-    JANELA_SEGUNDOS = 15 * 60
-    BLOQUEIO_SEGUNDOS = 15 * 60
-
-    _tentativas = {}
-    _lock = threading.Lock()
-
-    @classmethod
-    def verificar(cls, chave):
-        with cls._lock:
-            registro = cls._tentativas.get(chave)
-            if not registro:
-                return
-            bloqueado_ate = registro.get("bloqueado_ate")
-            if bloqueado_ate and bloqueado_ate > time.time():
-                restante = int(bloqueado_ate - time.time())
-                raise ErroValidacao(
-                    f"Muitas tentativas de login. Tente novamente em {restante} segundos.",
-                    status=429,
-                )
-
-    @classmethod
-    def registrar_falha(cls, chave):
-        with cls._lock:
-            agora = time.time()
-            registro = cls._tentativas.setdefault(chave, {"falhas": [], "bloqueado_ate": None})
-            registro["falhas"] = [t for t in registro["falhas"] if agora - t < cls.JANELA_SEGUNDOS]
-            registro["falhas"].append(agora)
-            if len(registro["falhas"]) >= cls.MAX_TENTATIVAS:
-                registro["bloqueado_ate"] = agora + cls.BLOQUEIO_SEGUNDOS
-                registro["falhas"] = []
-
-    @classmethod
-    def registrar_sucesso(cls, chave):
-        with cls._lock:
-            cls._tentativas.pop(chave, None)
-
-    @classmethod
-    def resetar(cls):
-        with cls._lock:
-            cls._tentativas.clear()
-
-
-def resetar_limitador_login():
-    _LimitadorLogin.resetar()
 
 
 class UsuarioService:
@@ -123,47 +80,27 @@ class UsuarioService:
         resultados = UsuarioRepository.buscar_publicos(
             termo, id_solicitante, UsuarioService.BUSCA_LIMITE
         )
-        return [u for u in resultados if UsuarioService._e_maior_de_idade(u)]
+        return [u for u in resultados if e_maior_de_idade(u)]
 
     @staticmethod
     def buscar(id_usuario):
-        usuario = UsuarioRepository.buscar_por_id(id_usuario)
-        if not usuario:
-            raise ErroValidacao("Usuário não encontrado.", status=404)
-        return usuario
+        return buscar_usuario(id_usuario)
 
     @staticmethod
     def eh_admin(usuario):
-        admins = {
-            email.strip().lower()
-            for email in os.environ.get("ADMIN_EMAILS", "").split(",")
-            if email.strip()
-        }
-        return usuario.email.lower() in admins
+        return usuario_eh_admin(usuario)
 
     @staticmethod
     def exigir_admin(id_usuario):
-        usuario = UsuarioService.buscar(id_usuario)
-        if not UsuarioService.eh_admin(usuario):
-            raise ErroValidacao("Apenas a administração pode fazer isso.", status=403)
-        return usuario
+        return exigir_admin(id_usuario)
 
     @staticmethod
     def buscar_visivel(id_usuario, id_solicitante):
-        usuario = UsuarioService.buscar(id_usuario)
-        if usuario.id_usuario != id_solicitante:
-            if not usuario.perfil_publico or not UsuarioService._e_maior_de_idade(usuario):
-                raise ErroValidacao("Usuário não encontrado.", status=404)
-        return usuario
-
-    @staticmethod
-    def _e_maior_de_idade(usuario):
-        idade = calcular_idade(usuario.data_nascimento, usuario.idade)
-        return idade is None or idade >= IDADE_MAIORIDADE
+        return buscar_usuario_visivel(id_usuario, id_solicitante)
 
     @staticmethod
     def atualizar(id_usuario, dados):
-        usuario = UsuarioService.buscar(id_usuario)
+        usuario = buscar_usuario(id_usuario)
         dados = dict(dados or {})
 
         if dados.get("nome") is not None and len(dados["nome"].strip()) < 3:
@@ -197,7 +134,7 @@ class UsuarioService:
 
     @staticmethod
     def salvar_foto(id_usuario, arquivo, pasta_destino):
-        usuario = UsuarioService.buscar(id_usuario)
+        usuario = buscar_usuario(id_usuario)
 
         if arquivo is None or not arquivo.filename:
             raise ErroValidacao("Nenhuma imagem enviada.")
@@ -209,7 +146,7 @@ class UsuarioService:
 
     @staticmethod
     def excluir(id_usuario, pasta_uploads=None):
-        usuario = UsuarioService.buscar(id_usuario)
+        usuario = buscar_usuario(id_usuario)
 
         caminhos_foto = []
         if usuario.foto:
