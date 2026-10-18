@@ -5,6 +5,7 @@ from services import (
     AtividadeService,
     ComentarioService,
     ConsentimentoService,
+    ContarNotificacoesNaoLidasService,
     ConviteService,
     CurtidaService,
     DashboardService,
@@ -12,8 +13,10 @@ from services import (
     ErroValidacao,
     FeedService,
     GrupoService,
+    ListarNotificacoesService,
+    MarcarNotificacaoLidaService,
+    MarcarTodasNotificacoesLidasService,
     MetaService,
-    NotificacaoService,
     PostagemService,
     RankingService,
     RegistrarCompartilhamentoService,
@@ -392,23 +395,23 @@ class NotificacaoController:
 
     @staticmethod
     def listar():
-        return jsonify([n.to_dict() for n in NotificacaoService.listar(_id_logado())])
+        return jsonify([n.to_dict() for n in ListarNotificacoesService.executar(_id_logado())])
 
     @staticmethod
     def contagem():
-        return jsonify({"nao_lidas": NotificacaoService.contar_nao_lidas(_id_logado())})
+        return jsonify({"nao_lidas": ContarNotificacoesNaoLidasService.executar(_id_logado())})
 
     @staticmethod
     def marcar_lida(id_notificacao):
         try:
-            NotificacaoService.marcar_lida(id_notificacao, _id_logado())
+            MarcarNotificacaoLidaService.executar(id_notificacao, _id_logado())
             return jsonify({"mensagem": "Notificação marcada como lida.", "id": id_notificacao})
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status
 
     @staticmethod
     def marcar_todas_lidas():
-        NotificacaoService.marcar_todas_lidas(_id_logado())
+        MarcarTodasNotificacoesLidasService.executar(_id_logado())
         return jsonify({"mensagem": "Todas as notificações foram marcadas como lidas."})
 
 

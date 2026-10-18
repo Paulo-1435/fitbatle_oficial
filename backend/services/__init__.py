@@ -12,5 +12,10 @@ from services.convite import ConviteService
 from services.meta import MetaService
 from services.compartilhamento import RegistrarCompartilhamentoService
 from services.dashboard import DashboardService
-from services.notificacao import NotificacaoService
+from services.notificacao import (
+    ContarNotificacoesNaoLidasService,
+    ListarNotificacoesService,
+    MarcarNotificacaoLidaService,
+    MarcarTodasNotificacoesLidasService,
+)
 from services.desafio import DesafioService

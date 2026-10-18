@@ -3,7 +3,7 @@ import string
 
 from repositories.repository import ConviteRepository, GrupoRepository, RankingRepository
 from services.comum import ErroValidacao
-from services.notificacao import NotificacaoService
+from services.notificacao.apoio import gerar_notificacao
 from services.usuario import UsuarioService
 
 CODIGO_CONVITE_ALFABETO = string.ascii_uppercase + string.digits
@@ -178,7 +178,7 @@ class GrupoService:
             raise ErroValidacao("Já existe um convite pendente para esse usuário.", status=409)
 
         grupo = GrupoService.buscar(id_grupo)
-        NotificacaoService.gerar(
+        gerar_notificacao(
             destinatario.id_usuario,
             "convite_recebido",
             f"Você recebeu um convite para o grupo {grupo.nome}.",

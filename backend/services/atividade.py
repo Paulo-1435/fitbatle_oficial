@@ -7,7 +7,7 @@ from repositories.repository import (
 )
 from services.comum import ErroValidacao
 from services.desafio import DesafioService
-from services.notificacao import NotificacaoService
+from services.notificacao.apoio import gerar_notificacao
 from services.usuario import UsuarioService
 
 FAIXAS_NIVEL = [
@@ -63,7 +63,7 @@ class AtividadeService:
         if not posicao_antes or not posicao_depois:
             return
         if posicao_depois["posicao"] < posicao_antes["posicao"]:
-            NotificacaoService.gerar(
+            gerar_notificacao(
                 id_usuario,
                 "subida_ranking",
                 f"Você subiu para a posição #{posicao_depois['posicao']} no ranking global!",

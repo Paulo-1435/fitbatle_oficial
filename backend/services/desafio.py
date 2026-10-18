@@ -7,7 +7,7 @@ from repositories.repository import (
     UsuarioRepository,
 )
 from services.comum import ErroValidacao
-from services.notificacao import NotificacaoService
+from services.notificacao.apoio import gerar_notificacao
 from services.usuario import UsuarioService
 from utils import agora, iso_utc
 
@@ -160,7 +160,7 @@ class DesafioService:
             usuario.nivel = nivel_por_xp(usuario.xp)
             UsuarioRepository.salvar(usuario)
 
-        NotificacaoService.gerar(
+        gerar_notificacao(
             inscricao.id_usuario,
             "desafio_concluido",
             f"Você concluiu o desafio \"{desafio.nome}\"!",

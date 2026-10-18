@@ -1,6 +1,6 @@
 from repositories.repository import ConviteRepository, GrupoRepository
 from services.comum import ErroValidacao
-from services.notificacao import NotificacaoService
+from services.notificacao.apoio import gerar_notificacao
 from services.usuario import UsuarioService
 from utils import agora, iso_utc
 
@@ -49,7 +49,7 @@ class ConviteService:
 
         if aceito:
             destinatario = UsuarioService.buscar(id_usuario)
-            NotificacaoService.gerar(
+            gerar_notificacao(
                 convite.id_remetente,
                 "convite_aceito",
                 f"{destinatario.nome} aceitou seu convite para o grupo.",

@@ -1,7 +1,7 @@
 from repositories.repository import CurtidaRepository
 from services.comum import ErroValidacao
 from services.feed import FeedService
-from services.notificacao import NotificacaoService
+from services.notificacao.apoio import gerar_notificacao
 from services.usuario import UsuarioService
 
 
@@ -23,7 +23,7 @@ class CurtidaService:
             curti = True
             if alvo.id_usuario != id_usuario:
                 rotulo = "treino" if tipo_alvo == "atividade" else "postagem"
-                NotificacaoService.gerar(
+                gerar_notificacao(
                     alvo.id_usuario,
                     "curtida",
                     f"{quem_curtiu.nome} curtiu seu {rotulo}.",

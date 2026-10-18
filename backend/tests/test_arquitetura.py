@@ -15,7 +15,6 @@ PENDENTES = [
     "feed.py",
     "grupo.py",
     "meta.py",
-    "notificacao.py",
     "postagem.py",
     "privacidade.py",
     "ranking.py",
