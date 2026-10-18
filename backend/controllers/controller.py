@@ -4,7 +4,6 @@ from auth import gerar_token
 from services import (
     AtividadeService,
     ComentarioService,
-    CompartilhamentoService,
     ConsentimentoService,
     ConviteService,
     CurtidaService,
@@ -17,6 +16,7 @@ from services import (
     NotificacaoService,
     PostagemService,
     RankingService,
+    RegistrarCompartilhamentoService,
     UsuarioService,
 )
 
@@ -428,7 +428,7 @@ class CompartilhamentoController:
     @staticmethod
     def registrar():
         try:
-            registro = CompartilhamentoService.registrar(_id_logado(), request.get_json(silent=True))
+            registro = RegistrarCompartilhamentoService.executar(_id_logado(), request.get_json(silent=True))
             return jsonify({
                 "mensagem": "Compartilhamento registrado.",
                 "compartilhamento": registro.to_dict(),

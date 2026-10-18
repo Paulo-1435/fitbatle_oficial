@@ -10,10 +10,10 @@ TIPOS_CONTEUDO = {"atividade", "meta", "recorde"}
 REDES_SOCIAIS = {"whatsapp", "x", "telegram", "web_share", "copiar"}
 
 
-class CompartilhamentoService:
+class RegistrarCompartilhamentoService:
 
     @staticmethod
-    def registrar(id_usuario, dados):
+    def executar(id_usuario, dados):
         dados = dados or {}
         tipo_conteudo = dados.get("tipo_conteudo")
         rede_social = dados.get("rede_social")

@@ -10,7 +10,7 @@ from services.ranking import RankingService
 from services.grupo import GrupoService
 from services.convite import ConviteService
 from services.meta import MetaService
-from services.compartilhamento import CompartilhamentoService
+from services.compartilhamento import RegistrarCompartilhamentoService
 from services.dashboard import DashboardService
 from services.notificacao import NotificacaoService
 from services.desafio import DesafioService
