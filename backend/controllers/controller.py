@@ -8,10 +8,12 @@ from services import (
     ContarNotificacoesNaoLidasService,
     ConviteService,
     CriarComentarioService,
+    CriarPostagemService,
     DashboardService,
     DesafioService,
     ErroValidacao,
     ExcluirComentarioService,
+    ExcluirPostagemService,
     GrupoService,
     ListarComentariosService,
     ListarFeedService,
@@ -19,7 +21,6 @@ from services import (
     MarcarNotificacaoLidaService,
     MarcarTodasNotificacoesLidasService,
     MetaService,
-    PostagemService,
     RankingService,
     RegistrarCompartilhamentoService,
     UsuarioService,
@@ -164,7 +165,7 @@ class PostagemController:
     @staticmethod
     def criar():
         try:
-            postagem = PostagemService.criar(
+            postagem = CriarPostagemService.executar(
                 _id_logado(),
                 request.form.get("texto"),
                 request.files.get("foto"),
@@ -180,7 +181,7 @@ class PostagemController:
     @staticmethod
     def excluir(id_postagem):
         try:
-            PostagemService.excluir(_id_logado(), id_postagem)
+            ExcluirPostagemService.executar(_id_logado(), id_postagem)
             return jsonify({"mensagem": "Postagem excluída.", "id": id_postagem})
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status

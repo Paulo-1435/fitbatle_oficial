@@ -12,7 +12,6 @@ PENDENTES = [
     "desafio.py",
     "grupo.py",
     "meta.py",
-    "postagem.py",
     "privacidade.py",
     "ranking.py",
     "usuario/legado.py",
