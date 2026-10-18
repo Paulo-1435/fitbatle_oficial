@@ -454,8 +454,11 @@ passa pelas mesmas regras, incluindo exigir o responsável se a nova data
 cair em 13-17 anos. Contas criadas antes dessa coluna existir (`data_nascimento`
 nulo) continuam usando a antiga coluna `idade` como base do cálculo.
 
-Por decisão do projeto, menores de 18 **participam** dos rankings e da busca
-(a autorização do responsável, dada no cadastro, cobre isso).
+Menores de 18 anos não aparecem na busca de perfis nem nos rankings públicos
+(global, regional, por exercício) — só no ranking interno dos próprios
+grupos, visível aos colegas de equipe. A autorização do responsável, dada
+no cadastro, cobre o uso da plataforma (registrar treino, participar de
+grupos etc.), não a exposição pública dessas informações.
 
 ### Foto de perfil e de postagem (upload de arquivo)
 

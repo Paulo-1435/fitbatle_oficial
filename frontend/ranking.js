@@ -252,6 +252,14 @@ function renderizarMinhaPosicao(dados, modo, contexto) {
   }
 
   if (!minhaLinha) {
+    if (usuarioLogado.idade != null && usuarioLogado.idade < 18) {
+      secao.hidden = false;
+      document.getElementById('minhaPosicaoTexto').textContent = '—';
+      legenda.textContent = 'O ranking público é só para maiores de 18 anos.';
+      barraWrap.hidden = true;
+      botaoDesafiar.hidden = true;
+      return;
+    }
     if (modo === 'exercicio') {
       secao.hidden = false;
       document.getElementById('minhaPosicaoTexto').textContent = '—';

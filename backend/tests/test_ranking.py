@@ -1,5 +1,7 @@
 import unittest
 
+from database import db
+from models.model import Usuario
 from tests.test_seguranca import BaseTeste
 
 
@@ -195,6 +197,94 @@ class TestRankingPorExercicio(BaseTeste):
         dados = self.buscar("Barra Fixa").get_json()
         self.assertNotIn("Bia Costa", [l["nome"] for l in dados])
         self.assertIn("Ana Silva", [l["nome"] for l in dados])
+
+
+class TestRankingEMenoresDeIdade(BaseTeste):
+
+    RESPONSAVEL = {"nome": "Carlos Responsavel", "email": "carlos.resp@teste.com"}
+
+    def setUp(self):
+        super().setUp()
+        self.menor, self.token_menor = self.criar_usuario_logado(
+            "Menor Teste", idade=15, responsavel=self.RESPONSAVEL
+        )
+        self.maior, self.token_maior = self.criar_usuario_logado("Maior Teste", idade=30)
+        for usuario, token in ((self.menor, self.token_menor), (self.maior, self.token_maior)):
+            self.cli.put(
+                f"/api/usuarios/{usuario['id']}", json={"cidade": "Belo Horizonte"},
+                headers=self.auth(token),
+            )
+
+    def treinar(self, usuario, token, titulo="Supino Reto", carga=100):
+        resposta = self.cli.post(
+            f"/api/usuarios/{usuario['id']}/atividades",
+            json={"tipo": "musculacao", "titulo": titulo, "tempo_min": 40, "carga_kg": carga, "repeticoes": 5},
+            headers=self.auth(token),
+        )
+        self.assertEqual(resposta.status_code, 201, resposta.get_data(as_text=True))
+        return resposta.get_json()
+
+    def test_menor_nao_aparece_no_ranking_global_regional_e_por_exercicio_mas_maior_aparece(self):
+        self.treinar(self.menor, self.token_menor)
+        self.treinar(self.maior, self.token_maior)
+
+        globais = [
+            l["nome"] for l in self.cli.get("/api/ranking/global", headers=self.auth(self.token_maior)).get_json()
+        ]
+        self.assertNotIn("Menor Teste", globais)
+        self.assertIn("Maior Teste", globais)
+
+        regionais = [
+            l["nome"] for l in self.cli.get(
+                "/api/ranking/regional", query_string={"cidade": "Belo Horizonte"}, headers=self.auth(self.token_maior)
+            ).get_json()
+        ]
+        self.assertNotIn("Menor Teste", regionais)
+        self.assertIn("Maior Teste", regionais)
+
+        por_exercicio = [
+            l["nome"] for l in self.cli.get(
+                "/api/ranking/exercicio", query_string={"titulo": "Supino Reto"}, headers=self.auth(self.token_maior)
+            ).get_json()
+        ]
+        self.assertNotIn("Menor Teste", por_exercicio)
+        self.assertIn("Maior Teste", por_exercicio)
+
+    def test_menor_registra_treino_sem_erro_e_sem_notificacao_de_ranking(self):
+        resposta = self.cli.post(
+            f"/api/usuarios/{self.menor['id']}/atividades",
+            json={"tipo": "musculacao", "titulo": "Supino Reto", "tempo_min": 40, "carga_kg": 100, "repeticoes": 5},
+            headers=self.auth(self.token_menor),
+        )
+        self.assertEqual(resposta.status_code, 201, resposta.get_data(as_text=True))
+
+        notificacoes = self.cli.get("/api/notificacoes", headers=self.auth(self.token_menor)).get_json()
+        tipos = [n["tipo"] for n in notificacoes]
+        self.assertNotIn("subida_ranking", tipos)
+
+    def test_sem_data_nascimento_e_idade_legada_17_nao_aparece(self):
+        usuario, token = self.criar_usuario_logado("Legado Dezessete", idade=20)
+        with self.app.app_context():
+            registro = db.session.get(Usuario, usuario["id"])
+            registro.data_nascimento = None
+            registro.idade = 17
+            db.session.commit()
+
+        self.treinar(usuario, token)
+        nomes = [l["nome"] for l in self.cli.get("/api/ranking/global", headers=self.auth(token)).get_json()]
+        self.assertNotIn("Legado Dezessete", nomes)
+
+    def test_sem_data_nascimento_e_idade_legada_30_aparece(self):
+        usuario, token = self.criar_usuario_logado("Legado Trinta", idade=20)
+        with self.app.app_context():
+            registro = db.session.get(Usuario, usuario["id"])
+            registro.data_nascimento = None
+            registro.idade = 30
+            db.session.commit()
+
+        self.treinar(usuario, token)
+        nomes = [l["nome"] for l in self.cli.get("/api/ranking/global", headers=self.auth(token)).get_json()]
+        self.assertIn("Legado Trinta", nomes)
 
 
 if __name__ == "__main__":
