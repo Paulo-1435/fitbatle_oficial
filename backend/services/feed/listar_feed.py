@@ -5,19 +5,16 @@ from repositories.repository import (
     PostagemRepository,
     UsuarioRepository,
 )
-from services.comum import ErroValidacao
-
-TIPOS_ALVO_FEED = {"atividade", "postagem"}
 
 
-class FeedService:
+class ListarFeedService:
 
     LIMITE_PADRAO = 30
     LIMITE_MAXIMO = 100
 
     @staticmethod
-    def listar(id_usuario_atual, limite=LIMITE_PADRAO):
-        limite = FeedService._limite(limite)
+    def executar(id_usuario_atual, limite=LIMITE_PADRAO):
+        limite = ListarFeedService._limite(limite)
 
         atividades = AtividadeRepository.listar_publicas(limite)
         postagens = PostagemRepository.listar_publicas(limite)
@@ -88,17 +85,5 @@ class FeedService:
         try:
             numero = int(valor)
         except (TypeError, ValueError):
-            return FeedService.LIMITE_PADRAO
-        return max(1, min(numero, FeedService.LIMITE_MAXIMO))
-
-    @staticmethod
-    def buscar_alvo(tipo_alvo, id_alvo):
-        if tipo_alvo not in TIPOS_ALVO_FEED:
-            raise ErroValidacao("Tipo de conteúdo inválido.")
-        if tipo_alvo == "atividade":
-            alvo = AtividadeRepository.buscar_por_id(id_alvo)
-        else:
-            alvo = PostagemRepository.buscar_por_id(id_alvo)
-        if not alvo:
-            raise ErroValidacao("Conteúdo não encontrado.", status=404)
-        return alvo
+            return ListarFeedService.LIMITE_PADRAO
+        return max(1, min(numero, ListarFeedService.LIMITE_MAXIMO))

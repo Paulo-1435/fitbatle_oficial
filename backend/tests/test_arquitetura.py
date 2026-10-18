@@ -12,7 +12,6 @@ PENDENTES = [
     "curtida.py",
     "dashboard.py",
     "desafio.py",
-    "feed.py",
     "grupo.py",
     "meta.py",
     "postagem.py",

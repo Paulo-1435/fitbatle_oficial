@@ -1,6 +1,6 @@
 from repositories.repository import ComentarioRepository, UsuarioRepository
 from services.comum import ErroValidacao
-from services.feed import FeedService
+from services.feed.apoio import buscar_alvo
 from services.notificacao.apoio import gerar_notificacao
 from services.usuario import UsuarioService
 
@@ -11,7 +11,7 @@ class ComentarioService:
 
     @staticmethod
     def listar(tipo_alvo, id_alvo):
-        FeedService.buscar_alvo(tipo_alvo, id_alvo)
+        buscar_alvo(tipo_alvo, id_alvo)
         comentarios = ComentarioRepository.listar(tipo_alvo, id_alvo)
 
         resultado = []
@@ -31,7 +31,7 @@ class ComentarioService:
         if id_usuario is None:
             raise ErroValidacao("Informe o usuário.", status=401)
         autor = UsuarioService.buscar(id_usuario)
-        alvo = FeedService.buscar_alvo(tipo_alvo, id_alvo)
+        alvo = buscar_alvo(tipo_alvo, id_alvo)
 
         texto = (texto or "").strip()
         if not texto:

@@ -11,8 +11,8 @@ from services import (
     DashboardService,
     DesafioService,
     ErroValidacao,
-    FeedService,
     GrupoService,
+    ListarFeedService,
     ListarNotificacoesService,
     MarcarNotificacaoLidaService,
     MarcarTodasNotificacoesLidasService,
@@ -189,7 +189,7 @@ class FeedController:
     @staticmethod
     def listar():
         limite = request.args.get("limite", 30)
-        return jsonify(FeedService.listar(_id_logado(), limite))
+        return jsonify(ListarFeedService.executar(_id_logado(), limite))
 
 
 class CurtidaController:
