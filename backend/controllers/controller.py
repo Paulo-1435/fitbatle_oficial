@@ -5,11 +5,11 @@ from services import (
     AlternarCurtidaService,
     AtividadeService,
     ConsentimentoService,
+    ConsultarDashboardService,
     ContarNotificacoesNaoLidasService,
     ConviteService,
     CriarComentarioService,
     CriarPostagemService,
-    DashboardService,
     DesafioService,
     ErroValidacao,
     ExcluirComentarioService,
@@ -423,7 +423,7 @@ class DashboardController:
     @staticmethod
     def resumo():
         try:
-            dados = DashboardService.resumo(_id_logado(), request.args.get("exercicio"))
+            dados = ConsultarDashboardService.executar(_id_logado(), request.args.get("exercicio"))
             return jsonify(dados)
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status

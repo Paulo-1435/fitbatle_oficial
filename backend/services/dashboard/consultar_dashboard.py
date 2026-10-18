@@ -1,39 +1,39 @@
 from datetime import timedelta
 
 from repositories.repository import AtividadeRepository
-from services.usuario import UsuarioService
+from services.usuario.apoio import buscar_usuario
 from utils import agora, data_local, inicio_utc_do_dia_local
 
 SEMANAS_JANELA = 8
 
 
-class DashboardService:
+class ConsultarDashboardService:
 
     @staticmethod
-    def resumo(id_usuario, exercicio=None):
-        usuario = UsuarioService.buscar(id_usuario)
+    def executar(id_usuario, exercicio=None):
+        usuario = buscar_usuario(id_usuario)
         hoje = data_local(agora())
 
-        semanas = DashboardService._semanas(hoje)
+        semanas = ConsultarDashboardService._semanas(hoje)
         inicio_janela = semanas[0]
 
-        pontos_por_dia, treinos_por_dia = DashboardService._agrupar_por_dia_local(
+        pontos_por_dia, treinos_por_dia = ConsultarDashboardService._agrupar_por_dia_local(
             AtividadeRepository.pontuacoes_desde(id_usuario, inicio_utc_do_dia_local(inicio_janela))
         )
 
         xp_por_semana = [
-            {"inicio": semana.isoformat(), "xp": DashboardService._soma_semana(pontos_por_dia, semana)}
+            {"inicio": semana.isoformat(), "xp": ConsultarDashboardService._soma_semana(pontos_por_dia, semana)}
             for semana in semanas
         ]
         treinos_por_semana = [
-            {"inicio": semana.isoformat(), "quantidade": DashboardService._soma_semana(treinos_por_dia, semana)}
+            {"inicio": semana.isoformat(), "quantidade": ConsultarDashboardService._soma_semana(treinos_por_dia, semana)}
             for semana in semanas
         ]
 
         distribuicao_por_tipo = AtividadeRepository.distribuicao_por_tipo(id_usuario)
 
         dias = [data_local(dr) for dr in AtividadeRepository.datas_registro(id_usuario)]
-        sequencia_atual, melhor_sequencia = DashboardService._sequencias(dias, hoje)
+        sequencia_atual, melhor_sequencia = ConsultarDashboardService._sequencias(dias, hoje)
 
         total_treinos, total_tempo = AtividadeRepository.totais(id_usuario)
 
