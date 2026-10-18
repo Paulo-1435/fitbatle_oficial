@@ -18,7 +18,13 @@ from services.ranking import (
 )
 from services.grupo import GrupoService
 from services.convite import ConviteService
-from services.meta import MetaService
+from services.meta import (
+    AtualizarMetaService,
+    ConsultarMetaService,
+    CriarMetaService,
+    ExcluirMetaService,
+    ListarMetasService,
+)
 from services.compartilhamento import RegistrarCompartilhamentoService
 from services.dashboard import ConsultarDashboardService
 from services.notificacao import (

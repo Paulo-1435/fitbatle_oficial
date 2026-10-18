@@ -10,7 +10,6 @@ PENDENTES = [
     "convite.py",
     "desafio.py",
     "grupo.py",
-    "meta.py",
     "usuario/legado.py",
 ]
 

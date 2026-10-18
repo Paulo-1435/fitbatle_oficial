@@ -5,7 +5,9 @@ from services import (
     AlternarCurtidaService,
     AtividadeService,
     AtualizarConsentimentoService,
+    AtualizarMetaService,
     ConsultarDashboardService,
+    ConsultarMetaService,
     ConsultarRankingGlobalService,
     ConsultarRankingPorExercicioService,
     ConsultarRankingRegionalService,
@@ -13,19 +15,21 @@ from services import (
     ContarNotificacoesNaoLidasService,
     ConviteService,
     CriarComentarioService,
+    CriarMetaService,
     CriarPostagemService,
     DesafioService,
     ErroValidacao,
     ExcluirComentarioService,
+    ExcluirMetaService,
     ExcluirPostagemService,
     GrupoService,
     ListarComentariosService,
     ListarConsentimentosService,
     ListarFeedService,
+    ListarMetasService,
     ListarNotificacoesService,
     MarcarNotificacaoLidaService,
     MarcarTodasNotificacoesLidasService,
-    MetaService,
     RegistrarCompartilhamentoService,
     UsuarioService,
 )
@@ -452,26 +456,26 @@ class MetaController:
     @staticmethod
     def criar():
         try:
-            meta = MetaService.criar(_id_logado(), request.get_json(silent=True))
+            meta = CriarMetaService.executar(_id_logado(), request.get_json(silent=True))
             return jsonify({"mensagem": "Meta criada!", "meta": meta}), 201
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status
 
     @staticmethod
     def listar():
-        return jsonify(MetaService.listar_do_usuario(_id_logado()))
+        return jsonify(ListarMetasService.executar(_id_logado()))
 
     @staticmethod
     def detalhe(id_meta):
         try:
-            return jsonify(MetaService.detalhe(id_meta, _id_logado()))
+            return jsonify(ConsultarMetaService.executar(id_meta, _id_logado()))
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status
 
     @staticmethod
     def atualizar(id_meta):
         try:
-            meta = MetaService.atualizar(id_meta, _id_logado(), request.get_json(silent=True))
+            meta = AtualizarMetaService.executar(id_meta, _id_logado(), request.get_json(silent=True))
             return jsonify({"mensagem": "Meta atualizada.", "meta": meta})
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status
@@ -479,7 +483,7 @@ class MetaController:
     @staticmethod
     def excluir(id_meta):
         try:
-            MetaService.excluir(id_meta, _id_logado())
+            ExcluirMetaService.executar(id_meta, _id_logado())
             return jsonify({"mensagem": "Meta excluída.", "id": id_meta})
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status

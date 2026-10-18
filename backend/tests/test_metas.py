@@ -2,7 +2,7 @@ import unittest
 from datetime import date
 
 from models.model import Meta
-from services.meta import MetaService
+from services.meta.apoio import meta_com_progresso
 from tests.test_seguranca import BaseTeste
 
 
@@ -196,7 +196,7 @@ class TestMetaLegadaSemCamposNovos(BaseMeta):
             concluida_em=None,
         )
 
-        resultado = MetaService._com_progresso(meta)
+        resultado = meta_com_progresso(meta)
 
         self.assertIsNone(resultado["tipo_metrica"])
         self.assertIsNone(resultado["valor_objetivo"])
