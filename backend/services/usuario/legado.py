@@ -10,7 +10,6 @@ from services.usuario.apoio import (
     IDADE_MAIORIDADE,
     buscar_usuario,
     buscar_usuario_visivel,
-    e_maior_de_idade,
     exigir_admin,
     usuario_eh_admin,
 )
@@ -25,9 +24,6 @@ IDADE_MAXIMA_PLAUSIVEL = 120
 
 
 class UsuarioService:
-
-    BUSCA_MINIMO_CARACTERES = 2
-    BUSCA_LIMITE = 20
 
     @staticmethod
     def cadastrar(dados):
@@ -69,18 +65,6 @@ class UsuarioService:
 
         _LimitadorLogin.registrar_sucesso(chave)
         return usuario
-
-    @staticmethod
-    def buscar_por_termo(termo, id_solicitante):
-        termo = (termo or "").strip()
-        if len(termo) < UsuarioService.BUSCA_MINIMO_CARACTERES:
-            raise ErroValidacao(
-                f"Digite ao menos {UsuarioService.BUSCA_MINIMO_CARACTERES} letras para buscar."
-            )
-        resultados = UsuarioRepository.buscar_publicos(
-            termo, id_solicitante, UsuarioService.BUSCA_LIMITE
-        )
-        return [u for u in resultados if e_maior_de_idade(u)]
 
     @staticmethod
     def buscar(id_usuario):

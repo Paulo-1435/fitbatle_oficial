@@ -1,5 +1,5 @@
 from services.comum import ErroValidacao
-from services.usuario import UsuarioService, resetar_limitador_login
+from services.usuario import BuscarPerfisService, UsuarioService, resetar_limitador_login
 from services.privacidade import AtualizarConsentimentoService, ListarConsentimentosService
 from services.atividade import AtividadeService
 from services.postagem import CriarPostagemService, ExcluirPostagemService

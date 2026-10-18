@@ -6,6 +6,7 @@ from services import (
     AtividadeService,
     AtualizarConsentimentoService,
     AtualizarMetaService,
+    BuscarPerfisService,
     ConsultarDashboardService,
     ConsultarMetaService,
     ConsultarRankingGlobalService,
@@ -74,7 +75,7 @@ class UsuarioController:
     @staticmethod
     def busca():
         try:
-            usuarios = UsuarioService.buscar_por_termo(
+            usuarios = BuscarPerfisService.executar(
                 request.args.get("nome"), _id_logado()
             )
             return jsonify([u.to_publico() for u in usuarios])

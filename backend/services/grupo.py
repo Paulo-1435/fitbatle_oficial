@@ -5,6 +5,7 @@ from repositories.repository import ConviteRepository, GrupoRepository, RankingR
 from services.comum import ErroValidacao
 from services.notificacao.apoio import gerar_notificacao
 from services.usuario import UsuarioService
+from services.usuario.buscar_perfis import BuscarPerfisService
 
 CODIGO_CONVITE_ALFABETO = string.ascii_uppercase + string.digits
 
@@ -149,7 +150,7 @@ class GrupoService:
     @staticmethod
     def buscar_para_convidar(id_grupo, id_usuario, termo):
         GrupoService._exigir_membro(id_grupo, id_usuario)
-        encontrados = UsuarioService.buscar_por_termo(termo, id_usuario)
+        encontrados = BuscarPerfisService.executar(termo, id_usuario)
         ids_membros = GrupoRepository.ids_membros(id_grupo)
         candidatos = [u for u in encontrados if u.id_usuario not in ids_membros]
         handles = _handles(candidatos)
