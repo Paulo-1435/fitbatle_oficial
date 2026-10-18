@@ -153,7 +153,7 @@ class DesafioService:
         DesafioUsuarioRepository.salvar(inscricao)
 
         if desafio.recompensa_xp:
-            from services.atividade import nivel_por_xp
+            from services.atividade.apoio import nivel_por_xp
 
             usuario = UsuarioService.buscar(inscricao.id_usuario)
             usuario.xp += desafio.recompensa_xp

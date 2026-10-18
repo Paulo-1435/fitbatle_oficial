@@ -5,26 +5,11 @@ from repositories.repository import (
     RankingRepository,
     UsuarioRepository,
 )
+from services.atividade.apoio import buscar_atividade, calcular_pontuacao, nivel_por_xp
 from services.comum import ErroValidacao
 from services.desafio import DesafioService
 from services.notificacao.apoio import gerar_notificacao
 from services.usuario import UsuarioService
-
-FAIXAS_NIVEL = [
-    (0, "iniciante"),
-    (1000, "intermediario"),
-    (3000, "avancado"),
-    (7000, "profissional"),
-    (15000, "elite"),
-]
-
-
-def nivel_por_xp(xp):
-    nivel = FAIXAS_NIVEL[0][1]
-    for xp_minimo, nome in FAIXAS_NIVEL:
-        if xp >= xp_minimo:
-            nivel = nome
-    return nivel
 
 
 class AtividadeService:
@@ -45,7 +30,7 @@ class AtividadeService:
 
         posicao_antes = RankingRepository.minha_posicao_global(id_usuario)
 
-        limpos["pontuacao"] = AtividadeService.calcular_pontuacao(limpos)
+        limpos["pontuacao"] = calcular_pontuacao(limpos)
         atividade = AtividadeRepository.criar(id_usuario, limpos)
 
         usuario.xp += atividade.pontuacao
@@ -76,14 +61,11 @@ class AtividadeService:
 
     @staticmethod
     def buscar(id_atividade):
-        atividade = AtividadeRepository.buscar_por_id(id_atividade)
-        if not atividade:
-            raise ErroValidacao("Atividade não encontrada.", status=404)
-        return atividade
+        return buscar_atividade(id_atividade)
 
     @staticmethod
     def buscar_visivel(id_atividade, id_solicitante):
-        atividade = AtividadeService.buscar(id_atividade)
+        atividade = buscar_atividade(id_atividade)
         if atividade.id_usuario != id_solicitante:
             dono = UsuarioRepository.buscar_por_id(atividade.id_usuario)
             if dono is None or not dono.perfil_publico:
@@ -92,7 +74,7 @@ class AtividadeService:
 
     @staticmethod
     def excluir(id_usuario, id_atividade):
-        atividade = AtividadeService.buscar(id_atividade)
+        atividade = buscar_atividade(id_atividade)
         if atividade.id_usuario != id_usuario:
             raise ErroValidacao("Você só pode excluir seus próprios treinos.", status=403)
         usuario = UsuarioRepository.buscar_por_id(atividade.id_usuario)
@@ -106,17 +88,7 @@ class AtividadeService:
 
     @staticmethod
     def calcular_pontuacao(dados):
-        tempo = dados.get("tempo_min") or 0
-        distancia = dados.get("distancia_km") or 0
-        carga = dados.get("carga_kg") or 0
-        reps = dados.get("repeticoes") or 0
-
-        pontos = tempo * 1 + distancia * 10 + (carga * reps) / 100
-
-        bonus_tipo = {"musculacao": 20, "cardio": 15, "yoga": 10, "outro": 5}
-        pontos += bonus_tipo.get(dados["tipo"], 5)
-
-        return max(10, round(pontos))
+        return calcular_pontuacao(dados)
 
     @staticmethod
     def _validar(dados):

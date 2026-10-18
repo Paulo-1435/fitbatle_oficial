@@ -6,7 +6,7 @@ import unittest
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 PENDENTES = [
-    "atividade.py",
+    "atividade/legado.py",
     "desafio.py",
     "usuario/legado.py",
 ]
