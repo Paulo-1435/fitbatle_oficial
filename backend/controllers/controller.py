@@ -14,7 +14,6 @@ from services import (
     ConsultarRankingRegionalService,
     ConsultarResumoRankingUsuarioService,
     ContarNotificacoesNaoLidasService,
-    ConviteService,
     CriarComentarioService,
     CriarMetaService,
     CriarPostagemService,
@@ -26,12 +25,14 @@ from services import (
     GrupoService,
     ListarComentariosService,
     ListarConsentimentosService,
+    ListarConvitesRecebidosService,
     ListarFeedService,
     ListarMetasService,
     ListarNotificacoesService,
     MarcarNotificacaoLidaService,
     MarcarTodasNotificacoesLidasService,
     RegistrarCompartilhamentoService,
+    ResponderConviteService,
     UsuarioService,
 )
 
@@ -391,13 +392,13 @@ class ConviteController:
 
     @staticmethod
     def meus_recebidos():
-        return jsonify(ConviteService.meus_recebidos(_id_logado()))
+        return jsonify(ListarConvitesRecebidosService.executar(_id_logado()))
 
     @staticmethod
     def responder(id_convite):
         dados = request.get_json(silent=True) or {}
         try:
-            ConviteService.responder(id_convite, _id_logado(), dados.get("aceito"))
+            ResponderConviteService.executar(id_convite, _id_logado(), dados.get("aceito"))
             return jsonify({"mensagem": "Convite respondido.", "id": id_convite})
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status

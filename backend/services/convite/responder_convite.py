@@ -1,35 +1,14 @@
 from repositories.repository import ConviteRepository, GrupoRepository
 from services.comum import ErroValidacao
 from services.notificacao.apoio import gerar_notificacao
-from services.usuario import UsuarioService
-from utils import agora, iso_utc
+from services.usuario.apoio import buscar_usuario
+from utils import agora
 
 
-class ConviteService:
-
-    @staticmethod
-    def meus_recebidos(id_usuario):
-        pendentes = []
-        for convite, grupo, remetente in ConviteRepository.listar_pendentes_recebidos(id_usuario):
-            pendentes.append({
-                "id": convite.id_convite,
-                "grupo": {
-                    "id": grupo.id_grupo,
-                    "nome": grupo.nome,
-                    "descricao": grupo.descricao,
-                    "membros": GrupoRepository.contar_membros(grupo.id_grupo),
-                },
-                "remetente": {"id": remetente.id_usuario, "nome": remetente.nome},
-                "data_envio": iso_utc(convite.data_envio),
-            })
-        return {
-            "pendentes": pendentes,
-            "meus_grupos": len(GrupoRepository.listar_do_usuario(id_usuario)),
-            "convites_enviados_pendentes": ConviteRepository.contar_enviados_pendentes(id_usuario),
-        }
+class ResponderConviteService:
 
     @staticmethod
-    def responder(id_convite, id_usuario, aceito):
+    def executar(id_convite, id_usuario, aceito):
         convite = ConviteRepository.buscar_por_id(id_convite)
         if not convite:
             raise ErroValidacao("Convite não encontrado.", status=404)
@@ -48,7 +27,7 @@ class ConviteService:
             GrupoRepository.adicionar_membro(convite.id_grupo, id_usuario, "membro")
 
         if aceito:
-            destinatario = UsuarioService.buscar(id_usuario)
+            destinatario = buscar_usuario(id_usuario)
             gerar_notificacao(
                 convite.id_remetente,
                 "convite_aceito",

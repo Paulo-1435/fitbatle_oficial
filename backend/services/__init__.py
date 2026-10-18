@@ -17,7 +17,7 @@ from services.ranking import (
     ConsultarResumoRankingUsuarioService,
 )
 from services.grupo import GrupoService
-from services.convite import ConviteService
+from services.convite import ListarConvitesRecebidosService, ResponderConviteService
 from services.meta import (
     AtualizarMetaService,
     ConsultarMetaService,
