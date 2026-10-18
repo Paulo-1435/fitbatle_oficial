@@ -10,7 +10,12 @@ from services.comentario import (
     ExcluirComentarioService,
     ListarComentariosService,
 )
-from services.ranking import RankingService
+from services.ranking import (
+    ConsultarRankingGlobalService,
+    ConsultarRankingPorExercicioService,
+    ConsultarRankingRegionalService,
+    ConsultarResumoRankingUsuarioService,
+)
 from services.grupo import GrupoService
 from services.convite import ConviteService
 from services.meta import MetaService

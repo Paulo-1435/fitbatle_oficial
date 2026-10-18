@@ -6,6 +6,10 @@ from services import (
     AtividadeService,
     ConsentimentoService,
     ConsultarDashboardService,
+    ConsultarRankingGlobalService,
+    ConsultarRankingPorExercicioService,
+    ConsultarRankingRegionalService,
+    ConsultarResumoRankingUsuarioService,
     ContarNotificacoesNaoLidasService,
     ConviteService,
     CriarComentarioService,
@@ -21,7 +25,6 @@ from services import (
     MarcarNotificacaoLidaService,
     MarcarTodasNotificacoesLidasService,
     MetaService,
-    RankingService,
     RegistrarCompartilhamentoService,
     UsuarioService,
 )
@@ -245,12 +248,12 @@ class RankingController:
 
     @staticmethod
     def ranking_global():
-        return jsonify(RankingService.global_(request.args.get("limite", 20)))
+        return jsonify(ConsultarRankingGlobalService.executar(request.args.get("limite", 20)))
 
     @staticmethod
     def ranking_regional():
         try:
-            dados = RankingService.regional(
+            dados = ConsultarRankingRegionalService.executar(
                 request.args.get("cidade"), request.args.get("limite", 20)
             )
             return jsonify(dados)
@@ -260,7 +263,7 @@ class RankingController:
     @staticmethod
     def ranking_por_exercicio():
         try:
-            dados = RankingService.por_exercicio(
+            dados = ConsultarRankingPorExercicioService.executar(
                 request.args.get("titulo"),
                 request.args.get("cidade"),
                 request.args.get("limite", 20),
@@ -272,7 +275,7 @@ class RankingController:
     @staticmethod
     def resumo_usuario(id_usuario):
         try:
-            return jsonify(RankingService.resumo_usuario(id_usuario, _id_logado()))
+            return jsonify(ConsultarResumoRankingUsuarioService.executar(id_usuario, _id_logado()))
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status
 
