@@ -16,7 +16,18 @@ from services.ranking import (
     ConsultarRankingRegionalService,
     ConsultarResumoRankingUsuarioService,
 )
-from services.grupo import GrupoService
+from services.grupo import (
+    BuscarUsuariosParaConvidarService,
+    ConsultarCodigoConviteService,
+    ConsultarGrupoService,
+    ConsultarRankingGrupoService,
+    ConvidarParaGrupoService,
+    CriarGrupoService,
+    EntrarGrupoPorCodigoService,
+    ListarMembrosGrupoService,
+    ListarMeusGruposService,
+    RegenerarCodigoConviteService,
+)
 from services.convite import ListarConvitesRecebidosService, ResponderConviteService
 from services.meta import (
     AtualizarMetaService,
