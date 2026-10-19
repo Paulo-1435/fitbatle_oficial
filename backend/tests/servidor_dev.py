@@ -11,7 +11,12 @@ from app import criar_app
 from database import db
 from models.model import Usuario
 from repositories.repository import DesafioRepository
-from services import AlternarCurtidaService, CriarComentarioService, RegistrarTreinoService, UsuarioService
+from services import (
+    AlternarCurtidaService,
+    CadastrarUsuarioService,
+    CriarComentarioService,
+    RegistrarTreinoService,
+)
 from tests.apoio import criar_views_de_ranking
 
 SENHA = "senhaforte123"
@@ -65,7 +70,7 @@ def popular():
         return
     ids = {}
     for nome, email, idade, cidade, estado in USUARIOS:
-        usuario = UsuarioService.cadastrar({
+        usuario = CadastrarUsuarioService.executar({
             "nome": nome, "email": email,
             "data_nascimento": data_nascimento_para_idade(idade), "senha": SENHA,
             "aceite_termos": True, "consentimentos": {},

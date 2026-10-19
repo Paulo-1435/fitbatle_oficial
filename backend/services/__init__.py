@@ -1,5 +1,17 @@
 from services.comum import ErroValidacao
-from services.usuario import BuscarPerfisService, UsuarioService, resetar_limitador_login
+from services.usuario import (
+    AtualizarFotoPerfilService,
+    AtualizarPerfilService,
+    AutenticarUsuarioService,
+    BuscarPerfisService,
+    BuscarUsuarioService,
+    CadastrarUsuarioService,
+    ConsultarEstatisticasService,
+    ConsultarPerfilService,
+    ExcluirContaService,
+    VerificarAdminService,
+    resetar_limitador_login,
+)
 from services.privacidade import AtualizarConsentimentoService, ListarConsentimentosService
 from services.atividade import (
     ConsultarAtividadeService,

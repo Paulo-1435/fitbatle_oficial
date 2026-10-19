@@ -5,16 +5,23 @@ from services import (
     AlternarCurtidaService,
     AtualizarConsentimentoService,
     AtualizarDesafioService,
+    AtualizarFotoPerfilService,
     AtualizarMetaService,
+    AtualizarPerfilService,
+    AutenticarUsuarioService,
     BuscarPerfisService,
+    BuscarUsuarioService,
     BuscarUsuariosParaConvidarService,
+    CadastrarUsuarioService,
     ConsultarAtividadeService,
     ConsultarCodigoConviteService,
     ConsultarDashboardService,
     ConsultarDesafioService,
+    ConsultarEstatisticasService,
     ConsultarGrupoService,
     ConsultarHistoricoTreinosService,
     ConsultarMetaService,
+    ConsultarPerfilService,
     ConsultarRankingGlobalService,
     ConsultarRankingGrupoService,
     ConsultarRankingPorExercicioService,
@@ -33,6 +40,7 @@ from services import (
     ErroValidacao,
     ExcluirAtividadeService,
     ExcluirComentarioService,
+    ExcluirContaService,
     ExcluirMetaService,
     ExcluirPostagemService,
     ListarComentariosService,
@@ -51,7 +59,7 @@ from services import (
     RegistrarCompartilhamentoService,
     RegistrarTreinoService,
     ResponderConviteService,
-    UsuarioService,
+    VerificarAdminService,
 )
 
 
@@ -64,7 +72,7 @@ class UsuarioController:
     @staticmethod
     def cadastrar():
         try:
-            usuario = UsuarioService.cadastrar(request.get_json(silent=True))
+            usuario = CadastrarUsuarioService.executar(request.get_json(silent=True))
             return jsonify({
                 "mensagem": "Cadastro concluído!",
                 "usuario": usuario.to_dict(),
@@ -76,7 +84,7 @@ class UsuarioController:
     def login():
         dados = request.get_json(silent=True) or {}
         try:
-            usuario = UsuarioService.autenticar(dados.get("email"), dados.get("senha"))
+            usuario = AutenticarUsuarioService.executar(dados.get("email"), dados.get("senha"))
             return jsonify({
                 "mensagem": "Login efetuado!",
                 "token": gerar_token(usuario.id_usuario),
@@ -88,7 +96,7 @@ class UsuarioController:
     @staticmethod
     def eu():
         dados = g.usuario_atual.to_dict()
-        dados["admin"] = UsuarioService.eh_admin(g.usuario_atual)
+        dados["admin"] = VerificarAdminService.executar(g.usuario_atual)
         return jsonify({"usuario": dados})
 
     @staticmethod
@@ -104,7 +112,7 @@ class UsuarioController:
     @staticmethod
     def buscar(id_usuario):
         try:
-            usuario = UsuarioService.buscar_visivel(id_usuario, _id_logado())
+            usuario = ConsultarPerfilService.executar(id_usuario, _id_logado())
             if usuario.id_usuario == _id_logado():
                 return jsonify(usuario.to_dict())
             return jsonify(usuario.to_publico())
@@ -114,7 +122,7 @@ class UsuarioController:
     @staticmethod
     def atualizar(id_usuario):
         try:
-            usuario = UsuarioService.atualizar(id_usuario, request.get_json(silent=True))
+            usuario = AtualizarPerfilService.executar(id_usuario, request.get_json(silent=True))
             return jsonify({
                 "mensagem": "Usuário atualizado.",
                 "usuario": usuario.to_dict(),
@@ -125,7 +133,7 @@ class UsuarioController:
     @staticmethod
     def excluir(id_usuario):
         try:
-            UsuarioService.excluir(id_usuario, current_app.config["UPLOAD_FOLDER"])
+            ExcluirContaService.executar(id_usuario, current_app.config["UPLOAD_FOLDER"])
             return jsonify({"mensagem": "Usuário excluído.", "id": id_usuario})
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status
@@ -133,7 +141,7 @@ class UsuarioController:
     @staticmethod
     def upload_foto(id_usuario):
         try:
-            usuario = UsuarioService.salvar_foto(
+            usuario = AtualizarFotoPerfilService.executar(
                 id_usuario,
                 request.files.get("foto"),
                 current_app.config["UPLOAD_FOLDER"],
@@ -144,7 +152,7 @@ class UsuarioController:
 
     @staticmethod
     def estatisticas():
-        return jsonify(UsuarioService.estatisticas())
+        return jsonify(ConsultarEstatisticasService.executar())
 
 
 class AtividadeController:
@@ -252,7 +260,7 @@ class ComentarioController:
                 _id_logado(), tipo_alvo, id_alvo, dados.get("texto")
             )
             resultado = comentario.to_dict()
-            autor = UsuarioService.buscar(comentario.id_usuario)
+            autor = BuscarUsuarioService.executar(comentario.id_usuario)
             resultado["usuario"] = {
                 "id": autor.id_usuario, "nome": autor.nome, "foto": autor.foto,
             }

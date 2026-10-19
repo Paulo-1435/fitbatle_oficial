@@ -39,7 +39,7 @@ class TestErrosEmJson(BaseTeste):
 
     def test_erro_inesperado_nao_vaza_html(self):
         with mock.patch(
-            "controllers.controller.UsuarioService.estatisticas",
+            "controllers.controller.ConsultarEstatisticasService.executar",
             side_effect=RuntimeError("falha simulada"),
         ):
             resposta = self.cli.get("/api/estatisticas")
@@ -89,7 +89,7 @@ class TestCorridaCadastroEmail(BaseTeste):
             "nome": "Primeiro", "email": email, "data_nascimento": data_nascimento_para_idade(25), "senha": SENHA,
             "aceite_termos": True, "consentimentos": {},
         }
-        with mock.patch("services.usuario.legado.UsuarioRepository.buscar_por_email", return_value=None):
+        with mock.patch("services.usuario.cadastrar_usuario.UsuarioRepository.buscar_por_email", return_value=None):
             primeira = self.cli.post("/api/usuarios", json=corpo)
             segunda = self.cli.post("/api/usuarios", json=dict(corpo, nome="Segundo"))
 
