@@ -46,35 +46,51 @@ como `auth.py`); `services/` nunca importa `database` nem `models` diretamente, 
 arquivo (não só roda os testes — lê o código-fonte) e falha se alguma camada importar
 o que não devia.
 
+`services/` é uma pasta por área (`usuario/`, `atividade/`, `grupo/`, ...), com um
+arquivo por caso de uso — uma única classe pública terminada em `Service`, com um
+único método público estático `executar(...)`. Lógica compartilhada entre casos de
+uso da mesma área fica em `<área>/apoio.py` (só funções, sem classe); o que é
+exclusivo de um caso de uso fica privado no próprio arquivo. `test_arquitetura.py`
+(classe `TestServicesPorCasoDeUso`) verifica isso por AST e também que nenhum
+arquivo de `services/` importa o pacote de outra área direto (sempre o módulo
+completo, ex.: `services.usuario.apoio`) e que a raiz de `services/` só tem
+`__init__.py` e `comum.py` soltos.
+
+Hoje (conferido direto na árvore de arquivos): 56 rotas registradas em
+`routers.py`, 58 classes `Service` de caso de uso em `services/` (uma por
+arquivo), 9 arquivos `apoio.py` (um por área que precisa de lógica
+compartilhada) e 198 testes.
+
 | Caso de uso | Controller | Service | Repository |
 |---|---|---|---|
-| Cadastro | `UsuarioController.cadastrar` | `UsuarioService.cadastrar` | `UsuarioRepository.criar` |
-| Login | `UsuarioController.login` | `UsuarioService.autenticar` | `UsuarioRepository.buscar_por_email` |
-| Perfil (editar) | `UsuarioController.atualizar` | `UsuarioService.atualizar` | `UsuarioRepository.salvar` |
-| Busca de perfis | `UsuarioController.busca` | `UsuarioService.buscar_por_termo` | `UsuarioRepository.buscar_publicos` |
-| Registrar treino | `AtividadeController.registrar` | `AtividadeService.registrar` | `AtividadeRepository.criar` |
-| Histórico de atividades | `AtividadeController.historico` | `AtividadeService.historico` | `AtividadeRepository.listar_do_usuario` |
-| Ranking global | `RankingController.ranking_global` | `RankingService.global_` | `RankingRepository.global_` |
-| Ranking regional | `RankingController.ranking_regional` | `RankingService.regional` | `RankingRepository.regional` |
-| Ranking por exercício | `RankingController.ranking_por_exercicio` | `RankingService.por_exercicio` | `RankingRepository.por_exercicio` |
-| Ranking interno do grupo | `GrupoController.ranking` | `GrupoService.ranking` | `RankingRepository.grupo` |
-| Grupos | `GrupoController.criar` | `GrupoService.criar` | `GrupoRepository.criar` |
-| Convidar para grupo | `GrupoController.convidar` | `GrupoService.convidar` | `ConviteRepository.criar` |
-| Convites (responder) | `ConviteController.responder` | `ConviteService.responder` | `ConviteRepository.buscar_por_id` |
-| Metas | `MetaController.criar` | `MetaService.criar` | `MetaRepository.criar` |
-| Feed (listagem) | `FeedController.listar` | `FeedService.listar` | `AtividadeRepository.listar_publicas` + `PostagemRepository.listar_publicas` |
-| Postagem | `PostagemController.criar` | `PostagemService.criar` | `PostagemRepository.criar` |
-| Curtida | `CurtidaController.alternar` | `CurtidaService.alternar` | `CurtidaRepository.curtir` |
-| Comentário | `ComentarioController.criar` | `ComentarioService.criar` | `ComentarioRepository.criar` |
-| Consentimentos | `ConsentimentoController.atualizar` | `ConsentimentoService.atualizar` | `ConsentimentoRepository.buscar` |
-| Compartilhamento | `CompartilhamentoController.registrar` | `CompartilhamentoService.registrar` | `CompartilhamentoRepository.criar` |
-| Dashboard | `DashboardController.resumo` | `DashboardService.resumo` | `AtividadeRepository.pontuacao_por_dia` (+ demais agregações) |
-| Notificações | `NotificacaoController.listar` | `NotificacaoService.listar` | `NotificacaoRepository.listar_do_usuario` |
-| Desafios | `DesafioController.listar` | `DesafioService.listar_ativos` | `DesafioRepository.listar_ativos` |
+| Cadastro | `UsuarioController.cadastrar` | `CadastrarUsuarioService.executar` | `UsuarioRepository.criar` |
+| Login | `UsuarioController.login` | `AutenticarUsuarioService.executar` | `UsuarioRepository.buscar_por_email` |
+| Perfil (ver) | `UsuarioController.buscar` | `ConsultarPerfilService.executar` | — (via `usuario/apoio.py`) |
+| Perfil (editar) | `UsuarioController.atualizar` | `AtualizarPerfilService.executar` | `UsuarioRepository.atualizar` |
+| Busca de perfis | `UsuarioController.busca` | `BuscarPerfisService.executar` | `UsuarioRepository.buscar_publicos` |
+| Registrar treino | `AtividadeController.registrar` | `RegistrarTreinoService.executar` | `AtividadeRepository.criar` |
+| Histórico de atividades | `AtividadeController.historico` | `ConsultarHistoricoTreinosService.executar` | `AtividadeRepository.listar_do_usuario` |
+| Ranking global | `RankingController.ranking_global` | `ConsultarRankingGlobalService.executar` | `RankingRepository.global_` |
+| Ranking regional | `RankingController.ranking_regional` | `ConsultarRankingRegionalService.executar` | `RankingRepository.regional` |
+| Ranking por exercício | `RankingController.ranking_por_exercicio` | `ConsultarRankingPorExercicioService.executar` | `RankingRepository.por_exercicio` |
+| Ranking interno do grupo | `GrupoController.ranking` | `ConsultarRankingGrupoService.executar` | `RankingRepository.grupo` |
+| Grupos | `GrupoController.criar` | `CriarGrupoService.executar` | `GrupoRepository.criar` |
+| Convidar para grupo | `GrupoController.convidar` | `ConvidarParaGrupoService.executar` | `ConviteRepository.criar` |
+| Convites (responder) | `ConviteController.responder` | `ResponderConviteService.executar` | `ConviteRepository.buscar_por_id` |
+| Metas | `MetaController.criar` | `CriarMetaService.executar` | `MetaRepository.criar` |
+| Feed (listagem) | `FeedController.listar` | `ListarFeedService.executar` | `AtividadeRepository`/`PostagemRepository`/`CurtidaRepository`/`ComentarioRepository` |
+| Postagem | `PostagemController.criar` | `CriarPostagemService.executar` | `PostagemRepository.criar` |
+| Curtida | `CurtidaController.alternar` | `AlternarCurtidaService.executar` | `CurtidaRepository.buscar`/`curtir`/`descurtir` |
+| Comentário | `ComentarioController.criar` | `CriarComentarioService.executar` | `ComentarioRepository.criar` |
+| Consentimentos | `ConsentimentoController.atualizar` | `AtualizarConsentimentoService.executar` | `ConsentimentoRepository.buscar`/`salvar` |
+| Compartilhamento | `CompartilhamentoController.registrar` | `RegistrarCompartilhamentoService.executar` | `CompartilhamentoRepository`/`AtividadeRepository`/`ConsentimentoRepository` |
+| Dashboard | `DashboardController.resumo` | `ConsultarDashboardService.executar` | `AtividadeRepository.pontuacoes_desde` (+ demais agregações) |
+| Notificações | `NotificacaoController.listar` | `ListarNotificacoesService.executar` | `NotificacaoRepository.listar_do_usuario` |
+| Desafios | `DesafioController.listar` | `ListarDesafiosAtivosService.executar` | `DesafioRepository.listar_ativos` |
 
 Busca de grupos (RF19) não tem linha própria porque não criou nenhum
 método novo: `frontend/busca.js` reaproveita o `GET /api/grupos`
-(mesmo `GrupoController.listar_meus` → `GrupoService.listar_meus` já
+(mesmo `GrupoController.listar_meus` → `ListarMeusGruposService.executar` já
 usado em `grupo.html`) e filtra pelo nome só no navegador.
 
 RF17 (bloco "Em Andamento") também não tem linha própria: é agregação
@@ -106,23 +122,26 @@ Controller, Service ou Repository novo.
 │   ├── controllers/
 │   │   └── controller.py       # Usuario/Atividade/Postagem/Feed/Curtida/Comentario/
 │   │                            # Ranking/Consentimento/Grupo/Convite/MetaController
-│   ├── services/                # regra de negócio, um módulo por domínio
+│   ├── services/                # regra de negócio; uma pasta por área, um arquivo por caso de uso
 │   │   ├── comum.py             # ErroValidacao, upload/validação de imagem
-│   │   ├── usuario.py           # UsuarioService, limitador de tentativas de login
-│   │   ├── privacidade.py       # ConsentimentoService (LGPD)
-│   │   ├── atividade.py         # AtividadeService, cálculo de XP/nível
-│   │   ├── postagem.py          # PostagemService
-│   │   ├── feed.py              # FeedService
-│   │   ├── curtida.py           # CurtidaService
-│   │   ├── comentario.py        # ComentarioService
-│   │   ├── ranking.py           # RankingService
-│   │   ├── grupo.py             # GrupoService
-│   │   ├── convite.py           # ConviteService
-│   │   ├── meta.py              # MetaService
-│   │   ├── compartilhamento.py  # CompartilhamentoService
-│   │   ├── dashboard.py         # DashboardService
-│   │   ├── desafio.py           # DesafioService
-│   │   └── notificacao.py       # NotificacaoService, e-mail opcional por SMTP
+│   │   ├── usuario/              # cadastro, login, perfil, foto, conta, estatísticas
+│   │   │   ├── apoio.py           # buscar_usuario, validações de idade/e-mail compartilhadas
+│   │   │   └── limitador_login.py # _LimitadorLogin (tentativas de login), em memória
+│   │   ├── privacidade/           # consentimentos LGPD (apoio.py: registrar_consentimentos_iniciais)
+│   │   ├── atividade/             # registrar/consultar/excluir treino, histórico
+│   │   │   └── apoio.py           # cálculo de pontuação e de nível por XP (FAIXAS_NIVEL)
+│   │   ├── postagem/              # criar/excluir postagem
+│   │   ├── feed/                  # feed combinado (treinos + postagens)
+│   │   ├── curtida/               # curtir/descurtir
+│   │   ├── comentario/            # criar/listar/excluir comentário
+│   │   ├── ranking/                # global, regional, por exercício, resumo do usuário
+│   │   ├── grupo/                  # criar, convidar, entrar por código, ranking interno
+│   │   ├── convite/                # listar recebidos, responder
+│   │   ├── meta/                   # criar/consultar/atualizar/excluir/listar metas
+│   │   ├── compartilhamento/       # registrar compartilhamento externo
+│   │   ├── dashboard/              # resumo agregado do próprio usuário
+│   │   ├── desafio/                # criar/atualizar/encerrar/participar/desistir, avaliação automática
+│   │   └── notificacao/            # gerar/listar/marcar lida, e-mail opcional por SMTP
 │   ├── repositories/
 │   │   └── repository.py       # único ponto de acesso ao banco
 │   ├── models/
@@ -247,12 +266,13 @@ cd backend
 python -m unittest discover -s tests -t .
 ```
 
-151 testes atualmente, cobrindo autenticação/LGPD (incluindo as fronteiras de
+198 testes atualmente, cobrindo autenticação/LGPD (incluindo as fronteiras de
 13 e 18 anos), robustez (uploads, limite de login, concorrência),
 grupos/convites, metas, compartilhamento, busca restrita (nome, cidade,
 menores de idade, perfil revogado), rankings, dashboard (estado vazio,
 totais, sequências, evolução de carga, isolamento entre usuários) e a
-análise estática das camadas.
+análise estática das camadas (incluindo a regra de uma classe `Service` por
+caso de uso, um método `executar` e os imports entre áreas de `services/`).
 
 ## Como rodar em 2 servidores
 
@@ -341,7 +361,7 @@ sem data prevista de implementação.
 
 **A API precisa rodar com exatamente 1 worker do gunicorn em produção.** O
 limitador de tentativas de login (`_LimitadorLogin`, em
-`backend/services/usuario.py`) guarda o contador em memória, por processo —
+`backend/services/usuario/limitador_login.py`) guarda o contador em memória, por processo —
 com mais de um worker, cada processo teria seu próprio contador e o limite
 deixaria de funcionar de verdade. `backend/gunicorn.conf.py` já fixa
 `workers = 1` (usando `threads = 4` / `worker_class = "gthread"` para
@@ -420,7 +440,7 @@ A cada treino registrado, a pontuação é calculada automaticamente a partir
 de tempo, distância, carga e repetições, mais um bônus por tipo de
 exercício. Essa pontuação é somada ao `xp` do usuário e o `nivel` é
 reatribuído pelas faixas em `FAIXAS_NIVEL`
-(`backend/services/atividade.py`): iniciante → intermediario → avancado →
+(`backend/services/atividade/apoio.py`): iniciante → intermediario → avancado →
 profissional → elite.
 
 ### Consentimento LGPD
@@ -430,7 +450,7 @@ marcadas. As **obrigatórias** (conta, registro de treinos, histórico, dados
 que podem revelar saúde — art. 11 da LGPD, segurança/auditoria) ficam
 travadas; as **opcionais** (ranking público, localização, chats, busca,
 notificações, compartilhamento) podem ser desmarcadas. O
-`ConsentimentoService` grava uma linha por finalidade na tabela
+`AtualizarConsentimentoService`/`registrar_consentimentos_iniciais` grava uma linha por finalidade na tabela
 `consentimento`. Recusar `ranking_publico` já define
 `usuario.perfil_publico = 0`. O usuário pode revogar/reativar qualquer
 opção depois via `PUT /api/usuarios/<id>/consentimentos/<chave>`. O texto
@@ -440,8 +460,9 @@ completo dos dois termos está em `frontend/termos.html`.
 
 O cadastro recebe `data_nascimento` (`AAAA-MM-DD`), não mais uma idade
 digitada — a idade é sempre calculada na hora (`utils.calcular_idade`) a
-partir dela, nunca gravada para contas novas. `UsuarioService._validar_faixa_etaria`
-aplica, a partir dessa idade calculada:
+partir dela, nunca gravada para contas novas. `usuario/apoio.py::validar_faixa_etaria`
+(usada por `CadastrarUsuarioService` e `AtualizarPerfilService`) aplica, a partir
+dessa idade calculada:
 
 - **< 13 anos:** cadastro (ou edição) recusado (400).
 - **13 a 17 anos:** obrigatório `responsavel` (`nome`, `email`) e
