@@ -5,11 +5,9 @@ import unittest
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-PENDENTES = [
-    "usuario/legado.py",
-]
-
 ARQUIVOS_ISENTOS_DA_REGRA_DE_CASO_DE_USO = {"__init__.py", "apoio.py", "limitador_login.py"}
+
+ARQUIVOS_SOLTOS_PERMITIDOS_NA_RAIZ_DE_SERVICES = {"__init__.py", "comum.py"}
 
 
 def _nomes_importados(caminho):
@@ -57,6 +55,22 @@ def _areas_com_pacote(caminho_services):
 
 def _caminho_relativo_a_services(caminho, caminho_services):
     return os.path.relpath(caminho, caminho_services).replace(os.sep, "/")
+
+
+def _verificar_raiz_de_services_so_tem_arquivos_permitidos(caminho_services):
+    permitidos = ARQUIVOS_SOLTOS_PERMITIDOS_NA_RAIZ_DE_SERVICES
+    soltos = sorted(
+        nome
+        for nome in os.listdir(caminho_services)
+        if nome.endswith(".py") and os.path.isfile(os.path.join(caminho_services, nome))
+    )
+    extras = [nome for nome in soltos if nome not in permitidos]
+    if extras:
+        return (
+            f"services/ só pode ter {sorted(permitidos)} soltos na raiz; "
+            f"encontrado(s) fora do padrão de caso de uso: {extras}"
+        )
+    return None
 
 
 def _classe_e_metodo_do_caso_de_uso(caminho):
@@ -129,7 +143,6 @@ class TestServicesPorCasoDeUso(unittest.TestCase):
 
     def test_arquivos_de_caso_de_uso_tem_uma_classe_service_com_um_metodo_executar(self):
         caminho_services = os.path.join(RAIZ, "services")
-        pendentes = set(PENDENTES)
         for nome_area in _pastas_de_area(caminho_services):
             caminho_area = os.path.join(caminho_services, nome_area)
             for nome_arquivo in sorted(os.listdir(caminho_area)):
@@ -138,8 +151,6 @@ class TestServicesPorCasoDeUso(unittest.TestCase):
                 if nome_arquivo in ARQUIVOS_ISENTOS_DA_REGRA_DE_CASO_DE_USO:
                     continue
                 caminho = os.path.join(caminho_area, nome_arquivo)
-                if _caminho_relativo_a_services(caminho, caminho_services) in pendentes:
-                    continue
                 erro = _classe_e_metodo_do_caso_de_uso(caminho)
                 self.assertIsNone(erro, erro)
 
@@ -179,12 +190,9 @@ class TestServicesPorCasoDeUso(unittest.TestCase):
     def test_services_nao_importam_pacote_de_area_direto(self):
         caminho_services = os.path.join(RAIZ, "services")
         areas = _areas_com_pacote(caminho_services)
-        pendentes = set(PENDENTES)
         caminho_init_raiz = os.path.normpath(os.path.join(caminho_services, "__init__.py"))
         for caminho in _arquivos_py("services"):
             if os.path.normpath(caminho) == caminho_init_raiz:
-                continue
-            if _caminho_relativo_a_services(caminho, caminho_services) in pendentes:
                 continue
             for nome in _nomes_importados(caminho):
                 partes = nome.split(".")
@@ -194,27 +202,18 @@ class TestServicesPorCasoDeUso(unittest.TestCase):
                         "importe o módulo completo, ex.: services.<area>.apoio"
                     )
 
-    def test_arquivos_pendentes_de_migracao_sao_so_os_declarados(self):
+    def test_services_so_tem_init_e_comum_soltos_na_raiz(self):
         caminho_services = os.path.join(RAIZ, "services")
-        pendentes_raiz = {p for p in PENDENTES if "/" not in p}
-        pendentes_aninhados = {p for p in PENDENTES if "/" in p}
+        erro = _verificar_raiz_de_services_so_tem_arquivos_permitidos(caminho_services)
+        self.assertIsNone(erro, erro)
 
-        planos = {
-            nome
-            for nome in os.listdir(caminho_services)
-            if nome.endswith(".py")
-            and nome not in ("__init__.py", "comum.py")
-            and os.path.isfile(os.path.join(caminho_services, nome))
-        }
-        self.assertEqual(planos, pendentes_raiz)
-
-        for pendente in pendentes_aninhados:
-            caminho = os.path.join(caminho_services, *pendente.split("/"))
-            self.assertTrue(os.path.isfile(caminho), f"{pendente} não existe mais")
-            erro = _classe_e_metodo_do_caso_de_uso(caminho)
-            self.assertIsNotNone(
-                erro, f"{pendente} já segue a regra de caso de uso, remova de PENDENTES"
-            )
+    def test_verificacao_de_raiz_de_services_reprova_arquivo_solto_extra(self):
+        with tempfile.TemporaryDirectory() as pasta:
+            for nome in ("__init__.py", "comum.py", "legado.py"):
+                with open(os.path.join(pasta, nome), "w", encoding="utf-8") as arquivo:
+                    arquivo.write("")
+            erro = _verificar_raiz_de_services_so_tem_arquivos_permitidos(pasta)
+            self.assertIsNotNone(erro)
 
 
 if __name__ == "__main__":
