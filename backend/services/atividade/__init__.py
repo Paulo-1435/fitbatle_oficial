@@ -1,1 +1,4 @@
-from services.atividade.legado import AtividadeService
+from services.atividade.consultar_atividade import ConsultarAtividadeService
+from services.atividade.consultar_historico_treinos import ConsultarHistoricoTreinosService
+from services.atividade.excluir_atividade import ExcluirAtividadeService
+from services.atividade.registrar_treino import RegistrarTreinoService

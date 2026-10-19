@@ -3,16 +3,17 @@ from flask import current_app, g, jsonify, request
 from auth import gerar_token
 from services import (
     AlternarCurtidaService,
-    AtividadeService,
     AtualizarConsentimentoService,
     AtualizarDesafioService,
     AtualizarMetaService,
     BuscarPerfisService,
     BuscarUsuariosParaConvidarService,
+    ConsultarAtividadeService,
     ConsultarCodigoConviteService,
     ConsultarDashboardService,
-    ConsultarGrupoService,
     ConsultarDesafioService,
+    ConsultarGrupoService,
+    ConsultarHistoricoTreinosService,
     ConsultarMetaService,
     ConsultarRankingGlobalService,
     ConsultarRankingGrupoService,
@@ -30,6 +31,7 @@ from services import (
     EncerrarDesafioService,
     EntrarGrupoPorCodigoService,
     ErroValidacao,
+    ExcluirAtividadeService,
     ExcluirComentarioService,
     ExcluirMetaService,
     ExcluirPostagemService,
@@ -47,6 +49,7 @@ from services import (
     ParticiparDesafioService,
     RegenerarCodigoConviteService,
     RegistrarCompartilhamentoService,
+    RegistrarTreinoService,
     ResponderConviteService,
     UsuarioService,
 )
@@ -149,7 +152,7 @@ class AtividadeController:
     @staticmethod
     def registrar(id_usuario):
         try:
-            atividade, usuario = AtividadeService.registrar(
+            atividade, usuario = RegistrarTreinoService.executar(
                 id_usuario, request.get_json(silent=True)
             )
             return jsonify({
@@ -164,7 +167,7 @@ class AtividadeController:
     @staticmethod
     def historico(id_usuario):
         try:
-            atividades = AtividadeService.historico(id_usuario)
+            atividades = ConsultarHistoricoTreinosService.executar(id_usuario)
             return jsonify([a.to_dict() for a in atividades])
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status
@@ -172,14 +175,14 @@ class AtividadeController:
     @staticmethod
     def buscar(id_atividade):
         try:
-            return jsonify(AtividadeService.buscar_visivel(id_atividade, _id_logado()).to_dict())
+            return jsonify(ConsultarAtividadeService.executar(id_atividade, _id_logado()).to_dict())
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status
 
     @staticmethod
     def excluir(id_atividade):
         try:
-            AtividadeService.excluir(_id_logado(), id_atividade)
+            ExcluirAtividadeService.executar(_id_logado(), id_atividade)
             return jsonify({"mensagem": "Atividade excluída.", "id": id_atividade})
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status

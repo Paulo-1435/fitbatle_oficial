@@ -11,7 +11,7 @@ from app import criar_app
 from database import db
 from models.model import Usuario
 from repositories.repository import DesafioRepository
-from services import AlternarCurtidaService, AtividadeService, CriarComentarioService, UsuarioService
+from services import AlternarCurtidaService, CriarComentarioService, RegistrarTreinoService, UsuarioService
 from tests.apoio import criar_views_de_ranking
 
 SENHA = "senhaforte123"
@@ -77,7 +77,7 @@ def popular():
 
     for email, treinos in TREINOS.items():
         for tipo, titulo, minutos, carga, reps in treinos:
-            AtividadeService.registrar(ids[email], {
+            RegistrarTreinoService.executar(ids[email], {
                 "tipo": tipo, "titulo": titulo, "tempo_min": minutos,
                 "carga_kg": carga, "repeticoes": reps,
                 "descricao": "Treino de exemplo do ambiente de desenvolvimento.",

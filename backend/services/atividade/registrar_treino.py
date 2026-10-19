@@ -1,0 +1,87 @@
+from repositories.repository import AtividadeRepository, RankingRepository, UsuarioRepository
+from services.atividade.apoio import calcular_pontuacao, nivel_por_xp
+from services.comum import ErroValidacao
+from services.desafio.avaliar_desafios_do_usuario import AvaliarDesafiosDoUsuarioService
+from services.notificacao.apoio import gerar_notificacao
+from services.usuario.apoio import buscar_usuario
+
+TIPOS_VALIDOS = {"musculacao", "cardio", "yoga", "outro"}
+
+LIMITES_CAMPOS = {
+    "tempo_min": 600,
+    "distancia_km": 500,
+    "carga_kg": 500,
+    "repeticoes": 1000,
+}
+
+
+def _validar(dados):
+    if not dados:
+        raise ErroValidacao("Corpo da requisição vazio ou JSON inválido.")
+
+    tipo = (dados.get("tipo") or "").strip().lower()
+    if tipo not in TIPOS_VALIDOS:
+        raise ErroValidacao(
+            "Tipo inválido. Use: " + ", ".join(sorted(TIPOS_VALIDOS))
+        )
+
+    numericos = {}
+    for campo in ("tempo_min", "distancia_km", "carga_kg", "repeticoes"):
+        valor = dados.get(campo)
+        if valor in (None, ""):
+            numericos[campo] = None
+            continue
+        try:
+            valor = float(str(valor).replace(",", "."))
+        except (TypeError, ValueError):
+            raise ErroValidacao(f"O campo '{campo}' deve ser numérico.")
+        if valor < 0:
+            raise ErroValidacao(f"O campo '{campo}' não pode ser negativo.")
+        limite = LIMITES_CAMPOS[campo]
+        if valor > limite:
+            raise ErroValidacao(f"O campo '{campo}' não pode passar de {limite}.")
+        numericos[campo] = valor
+
+    if not numericos["tempo_min"] and not numericos["distancia_km"]:
+        raise ErroValidacao("Informe ao menos a duração ou a distância do treino.")
+
+    return {
+        "tipo": tipo,
+        "titulo": (dados.get("titulo") or None),
+        "descricao": (dados.get("descricao") or None),
+        **numericos,
+    }
+
+
+def _notificar_subida_no_ranking(id_usuario, posicao_antes):
+    posicao_depois = RankingRepository.minha_posicao_global(id_usuario)
+    if not posicao_antes or not posicao_depois:
+        return
+    if posicao_depois["posicao"] < posicao_antes["posicao"]:
+        gerar_notificacao(
+            id_usuario,
+            "subida_ranking",
+            f"Você subiu para a posição #{posicao_depois['posicao']} no ranking global!",
+        )
+
+
+class RegistrarTreinoService:
+
+    @staticmethod
+    def executar(id_usuario, dados):
+        usuario = buscar_usuario(id_usuario)
+        limpos = _validar(dados)
+
+        posicao_antes = RankingRepository.minha_posicao_global(id_usuario)
+
+        limpos["pontuacao"] = calcular_pontuacao(limpos)
+        atividade = AtividadeRepository.criar(id_usuario, limpos)
+
+        usuario.xp += atividade.pontuacao
+        usuario.nivel = nivel_por_xp(usuario.xp)
+        UsuarioRepository.salvar(usuario)
+
+        _notificar_subida_no_ranking(id_usuario, posicao_antes)
+        AvaliarDesafiosDoUsuarioService.executar(id_usuario)
+
+        return atividade, usuario
