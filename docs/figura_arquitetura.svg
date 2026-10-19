@@ -61,26 +61,27 @@
 <!-- service -->
 <g id="node4" class="node">
 <title>service</title>
-<polygon fill="#6b46a3" stroke="transparent" points="9,-570 9,-598 649,-598 649,-570 9,-570"/>
-<text text-anchor="start" x="16" y="-581.6" font-family="Inter" font-weight="bold" font-size="13.00" fill="white">3. Services — backend/services/</text>
-<polygon fill="#e8ddf5" stroke="transparent" points="9,-532 9,-570 649,-570 649,-532 9,-532"/>
-<text text-anchor="start" x="16" y="-554.2" font-family="Inter" font-size="11.00">Regras da aplicação: validação, pontuação, nível, permissões, desafios e notificações.</text>
-<text text-anchor="start" x="16" y="-542.2" font-family="Inter" font-size="11.00">Um Service por área; cada caso de uso é um método.</text>
-<polygon fill="#e8ddf5" stroke="transparent" points="9,-515 9,-532 649,-532 649,-515 9,-515"/>
-<text text-anchor="start" x="12" y="-521" font-family="DejaVu Sans Mono" font-size="10.00" fill="#1f2430">atividade.py &#160;&#160;comentario.py &#160;&#160;compartilhamento.py &#160;&#160;curtida.py</text>
-<polygon fill="#e8ddf5" stroke="transparent" points="9,-498 9,-515 649,-515 649,-498 9,-498"/>
-<text text-anchor="start" x="12" y="-504" font-family="DejaVu Sans Mono" font-size="10.00" fill="#1f2430">dashboard.py &#160;&#160;desafio.py &#160;&#160;feed.py &#160;&#160;grupo.py</text>
-<polygon fill="#e8ddf5" stroke="transparent" points="9,-481 9,-498 649,-498 649,-481 9,-481"/>
-<text text-anchor="start" x="12" y="-487" font-family="DejaVu Sans Mono" font-size="10.00" fill="#1f2430">meta.py &#160;&#160;notificacao.py &#160;&#160;postagem.py &#160;&#160;privacidade.py</text>
-<polygon fill="#e8ddf5" stroke="transparent" points="9,-464 9,-481 649,-481 649,-464 9,-464"/>
-<text text-anchor="start" x="12" y="-470" font-family="DejaVu Sans Mono" font-size="10.00" fill="#1f2430">ranking.py &#160;&#160;usuario.py &#160;&#160;comum.py</text>
-<polygon fill="none" stroke="#6b46a3" points="8,-463 8,-599 650,-599 650,-463 8,-463"/>
+<polygon fill="#6b46a3" stroke="transparent" points="9,-576 9,-604 649,-604 649,-576 9,-576"/>
+<text text-anchor="start" x="16" y="-587.6" font-family="Inter" font-weight="bold" font-size="13.00" fill="white">3. Services — backend/services/</text>
+<polygon fill="#e8ddf5" stroke="transparent" points="9,-526 9,-576 649,-576 649,-526 9,-526"/>
+<text text-anchor="start" x="16" y="-560.2" font-family="Inter" font-size="11.00">Regras da aplicação: validação, pontuação, nível, permissões, desafios e notificações.</text>
+<text text-anchor="start" x="16" y="-548.2" font-family="Inter" font-size="11.00">Uma pasta por área e um arquivo por caso de uso (58 no total): cada um é uma classe</text>
+<text text-anchor="start" x="16" y="-536.2" font-family="Inter" font-size="11.00">&lt;Verbo&gt;&lt;Objeto&gt;Service com um único método executar(). Regras compartilhadas ficam em apoio.py.</text>
+<polygon fill="#e8ddf5" stroke="transparent" points="9,-509 9,-526 649,-526 649,-509 9,-509"/>
+<text text-anchor="start" x="12" y="-515" font-family="DejaVu Sans Mono" font-size="10.00" fill="#1f2430">usuario/ (10) &#160;&#160;grupo/ (10) &#160;&#160;desafio/ (8) &#160;&#160;meta/ (5)</text>
+<polygon fill="#e8ddf5" stroke="transparent" points="9,-492 9,-509 649,-509 649,-492 9,-492"/>
+<text text-anchor="start" x="12" y="-498" font-family="DejaVu Sans Mono" font-size="10.00" fill="#1f2430">atividade/ (4) &#160;&#160;notificacao/ (4) &#160;&#160;ranking/ (4) &#160;&#160;comentario/ (3)</text>
+<polygon fill="#e8ddf5" stroke="transparent" points="9,-475 9,-492 649,-492 649,-475 9,-475"/>
+<text text-anchor="start" x="12" y="-481" font-family="DejaVu Sans Mono" font-size="10.00" fill="#1f2430">convite/ (2) &#160;&#160;postagem/ (2) &#160;&#160;privacidade/ (2) &#160;&#160;curtida/ (1)</text>
+<polygon fill="#e8ddf5" stroke="transparent" points="9,-458 9,-475 649,-475 649,-458 9,-458"/>
+<text text-anchor="start" x="12" y="-464" font-family="DejaVu Sans Mono" font-size="10.00" fill="#1f2430">dashboard/ (1) &#160;&#160;feed/ (1) &#160;&#160;compartilhamento/ (1) &#160;&#160;comum.py</text>
+<polygon fill="none" stroke="#6b46a3" points="8,-457 8,-605 650,-605 650,-457 8,-457"/>
 </g>
 <!-- controller&#45;&gt;service -->
 <g id="edge3" class="edge">
 <title>controller&#45;&gt;service</title>
-<path fill="none" stroke="#4a5160" stroke-width="1.6" d="M329,-680.98C329,-660.98 329,-635.93 329,-612.12"/>
-<polygon fill="#4a5160" stroke="#4a5160" stroke-width="1.6" points="332.15,-612.07 329,-603.07 325.85,-612.07 332.15,-612.07"/>
+<path fill="none" stroke="#4a5160" stroke-width="1.6" d="M329,-680.98C329,-662.67 329,-640.14 329,-618.2"/>
+<polygon fill="#4a5160" stroke="#4a5160" stroke-width="1.6" points="332.15,-618.17 329,-609.17 325.85,-618.17 332.15,-618.17"/>
 <text text-anchor="middle" x="385.5" y="-653" font-family="Inter" font-size="10.00"> &#160;aciona o caso de uso &#160;</text>
 </g>
 <!-- repository -->
@@ -97,8 +98,8 @@
 <!-- service&#45;&gt;repository -->
 <g id="edge4" class="edge">
 <title>service&#45;&gt;repository</title>
-<path fill="none" stroke="#4a5160" stroke-width="1.6" d="M329,-458.74C329,-435.95 329,-411.26 329,-390.44"/>
-<polygon fill="#4a5160" stroke="#4a5160" stroke-width="1.6" points="332.15,-390.17 329,-381.17 325.85,-390.17 332.15,-390.17"/>
+<path fill="none" stroke="#4a5160" stroke-width="1.6" d="M329,-452.79C329,-431.64 329,-409.31 329,-390.25"/>
+<polygon fill="#4a5160" stroke="#4a5160" stroke-width="1.6" points="332.15,-390.18 329,-381.18 325.85,-390.18 332.15,-390.18"/>
 <text text-anchor="middle" x="380" y="-404" font-family="Inter" font-size="10.00"> &#160;persiste e consulta &#160;</text>
 </g>
 <!-- tecnologias -->
@@ -121,9 +122,10 @@
 <polygon fill="#f4f5f7" stroke="transparent" points="783,-457 783,-477 954,-477 954,-457 783,-457"/>
 <text text-anchor="start" x="787" y="-464.2" font-family="Inter" font-size="11.00">HTML, CSS e JavaScript</text>
 <polygon fill="#f4f5f7" stroke="transparent" points="783,-437 783,-457 954,-457 954,-437 783,-437"/>
-<text text-anchor="start" x="787" y="-444.2" font-family="Inter" font-size="11.00">unittest (188 testes)</text>
+<text text-anchor="start" x="787" y="-444.2" font-family="Inter" font-size="11.00">unittest (198 testes)</text>
 <polygon fill="none" stroke="#8a8f99" points="781.5,-436 781.5,-626 954.5,-626 954.5,-436 781.5,-436"/>
 </g>
+<!-- service&#45;&gt;tecnologias -->
 <!-- model -->
 <g id="node6" class="node">
 <title>model</title>
