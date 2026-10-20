@@ -16,6 +16,8 @@ class ParticiparDesafioService:
         inscricao = DesafioUsuarioRepository.buscar(id_desafio, id_usuario)
         if inscricao and inscricao.status == "inscrito":
             raise ErroValidacao("Você já está inscrito neste desafio.", status=409)
+        if inscricao and inscricao.status == "concluido":
+            raise ErroValidacao("Você já concluiu este desafio.", status=409)
         if inscricao:
             inscricao.status = "inscrito"
             inscricao.concluido_em = None
