@@ -155,14 +155,14 @@ async function carregarRankingPorExercicio(titulo, cidade) {
 
 function mostrarCarregando() {
   document.getElementById('podio').innerHTML = '<p class="estado-vazio">Carregando o pódio...</p>';
-  document.getElementById('tabelaRankingCorpo').innerHTML = '<tr><td colspan="5" class="estado-vazio">Carregando...</td></tr>';
+  document.getElementById('tabelaRankingCorpo').innerHTML = '<tr><td colspan="4" class="estado-vazio">Carregando...</td></tr>';
   document.getElementById('rankingContagem').textContent = '';
   document.getElementById('minhaPosicao').hidden = true;
 }
 
 function mostrarErro(mensagem) {
   document.getElementById('podio').innerHTML = '<p class="estado-vazio">' + esc(mensagem) + '</p>';
-  document.getElementById('tabelaRankingCorpo').innerHTML = '<tr><td colspan="5" class="estado-vazio">' + esc(mensagem) + '</td></tr>';
+  document.getElementById('tabelaRankingCorpo').innerHTML = '<tr><td colspan="4" class="estado-vazio">' + esc(mensagem) + '</td></tr>';
 }
 
 function valorMetrica(item, modo) {
@@ -203,7 +203,7 @@ function renderizarTabela(dados, modo, opcoes) {
   const contagem = document.getElementById('rankingContagem');
 
   if (dados.length === 0) {
-    corpo.innerHTML = '<tr><td colspan="5" class="estado-vazio">' + esc(opcoes.vazio || 'Ninguém no ranking ainda.') + '</td></tr>';
+    corpo.innerHTML = '<tr><td colspan="4" class="estado-vazio">' + esc(opcoes.vazio || 'Ninguém no ranking ainda.') + '</td></tr>';
     contagem.textContent = '';
     return;
   }
@@ -215,10 +215,6 @@ function renderizarTabela(dados, modo, opcoes) {
 function htmlLinhaTabela(item, modo) {
   const eu = usuarioLogado && item.id_usuario === usuarioLogado.id;
   const local = [item.cidade, item.estado].filter(Boolean).join(' - ') || '—';
-  const acao = eu
-    ? '—'
-    : '<button type="button" class="btn btn--secundario btn--pequeno" data-em-breve="Desafios 1x1">Desafiar</button>';
-
   return `<tr class="${eu ? 'linha--eu' : ''}">
     <td class="ranking-tabela__pos">${item.posicao}º</td>
     <td>
@@ -229,7 +225,6 @@ function htmlLinhaTabela(item, modo) {
     </td>
     <td>${esc(local)}</td>
     <td class="ranking-tabela__pontos">${textoMetrica(item, modo)}</td>
-    <td>${acao}</td>
   </tr>`;
 }
 
@@ -241,7 +236,6 @@ function renderizarMinhaPosicao(dados, modo, contexto) {
   const legenda = document.getElementById('minhaPosicaoLegenda');
   const barraWrap = document.getElementById('minhaPosicaoBarraWrap');
   const barra = document.getElementById('minhaPosicaoBarra');
-  const botaoDesafiar = document.getElementById('btnDesafiarProximo');
 
   if (modo === 'exercicio') {
     rotulo.textContent = 'Sua posição em ' + contexto.titulo;
@@ -257,7 +251,6 @@ function renderizarMinhaPosicao(dados, modo, contexto) {
       document.getElementById('minhaPosicaoTexto').textContent = '—';
       legenda.textContent = 'O ranking público é só para maiores de 18 anos.';
       barraWrap.hidden = true;
-      botaoDesafiar.hidden = true;
       return;
     }
     if (modo === 'exercicio') {
@@ -265,7 +258,6 @@ function renderizarMinhaPosicao(dados, modo, contexto) {
       document.getElementById('minhaPosicaoTexto').textContent = '—';
       legenda.textContent = 'Você ainda não registrou ' + contexto.titulo + '. Registre um treino para entrar no ranking!';
       barraWrap.hidden = true;
-      botaoDesafiar.hidden = true;
     } else {
       secao.hidden = true;
     }
@@ -283,7 +275,6 @@ function renderizarMinhaPosicao(dados, modo, contexto) {
       ? 'Você está no topo do ranking! 🏆'
       : 'Continue treinando para subir no ranking!';
     barraWrap.hidden = true;
-    botaoDesafiar.hidden = true;
     return;
   }
 
@@ -300,8 +291,6 @@ function renderizarMinhaPosicao(dados, modo, contexto) {
     ? `Faltam ${formatarNumero(faltam)} ${unidade} para ultrapassar ${acima.nome} (#${acima.posicao})`
     : `Você empatou com ${acima.nome} (#${acima.posicao})`;
 
-  botaoDesafiar.hidden = false;
-  botaoDesafiar.textContent = 'Desafiar #' + acima.posicao;
 }
 
 function nivelDeXp(xp) {

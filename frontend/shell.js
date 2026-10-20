@@ -9,7 +9,7 @@ const ITENS_NAVEGACAO = [
   { id: 'dashboard', rotulo: 'Dashboard', href: 'dashboard.html' },
   { id: 'ranking', rotulo: 'Ranking', href: 'ranking.html' },
   { id: 'registrar', rotulo: 'Registrar Treino', href: 'registrar-treino.html' },
-  { id: 'desafios', rotulo: '1v1', href: 'desafio.html' },
+  { id: 'desafios', rotulo: '1v1', href: 'desafio.html', breve: true },
   { id: 'grupo', rotulo: 'Grupo', href: 'grupo.html' },
   { id: 'metas', rotulo: 'Metas', href: 'metas.html' },
   { id: 'perfil', rotulo: 'Perfil', href: 'perfil.html' }
@@ -126,9 +126,9 @@ function montarBusca() {
     classe: 'busca__campo',
     type: 'search',
     id: 'busca-global',
-    placeholder: 'Buscar amigos ou treinos...',
+    placeholder: 'Buscar pessoas...',
     autocomplete: 'off',
-    'aria-label': 'Buscar amigos ou treinos'
+    'aria-label': 'Buscar pessoas'
   });
   const resultados = criarElemento('ul', { classe: 'menu-flutuante busca__resultados', hidden: true });
   const caixa = criarElemento('div', { classe: 'busca' }, [criarElemento('span', { html: ICONES.busca }).firstChild, campo, resultados]);
@@ -206,9 +206,10 @@ function montarBusca() {
 function montarNavegacao(paginaAtiva) {
   const links = ITENS_NAVEGACAO.map(function (item) {
     return criarElemento('a', {
-      classe: 'nav-principal__link',
+      classe: 'nav-principal__link' + (item.breve ? ' nav-principal__link--breve' : ''),
       href: item.href,
       texto: item.rotulo,
+      title: item.breve ? item.rotulo + ' (em breve)' : false,
       'aria-current': item.id === paginaAtiva ? 'page' : false
     });
   });

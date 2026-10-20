@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', function () {
   if (!usuarioLogado) return;
 
   ligarAvisosEmBreve();
+  carregarDesafioAtivo();
   configurarExercicios();
   configurarPeso();
   configurarContadores();
@@ -282,4 +283,24 @@ function configurarSubmissao() {
 
 function formatarNumero(n) {
   return Number(n).toString().replace('.', ',');
+}
+
+async function carregarDesafioAtivo() {
+  const area = document.getElementById('desafioAtivoConteudo');
+  try {
+    const resposta = await api('/desafios');
+    if (!resposta.ok) return;
+    const desafios = await resposta.json();
+    const ativo = desafios.find(function (d) {
+      return d.minha_inscricao && d.minha_inscricao.status === 'inscrito';
+    });
+    if (!ativo) return;
+    const progresso = ativo.minha_inscricao;
+    const unidade = ativo.tipo_metrica === 'carga_maxima' ? 'kg' : 'treinos';
+    area.innerHTML = `
+      <p class="rt-desafio-nome">${esc(ativo.nome)}</p>
+      <div class="barra"><div class="barra__preenchimento" style="width:${progresso.percentual}%"></div></div>
+      <p class="rotulo-mini">${formatarNumero(progresso.valor_atual)} de ${formatarNumero(ativo.valor_objetivo)} ${unidade}</p>
+      <p><a href="desafio-detalhes.html?id=${ativo.id}">Ver desafio</a></p>`;
+  } catch (erro) {}
 }

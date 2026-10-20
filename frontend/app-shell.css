@@ -186,6 +186,10 @@ body[data-pagina] > main {
   transition: color 0.12s ease, background-color 0.12s ease;
 }
 
+.nav-principal__link--breve {
+  color: var(--cor-texto-3);
+}
+
 .nav-principal__link:hover {
   color: var(--cor-texto);
   background: var(--cor-superficie);
