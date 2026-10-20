@@ -443,17 +443,6 @@ header {
     margin-bottom: 10px;
 }
 
-.btn-view-more {
-    background-color: #8e8e93;
-    color: #ffffff;
-    border: none;
-    padding: 4px 25px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
 .menu-links-list {
     list-style: none;
     margin-top: 35px;

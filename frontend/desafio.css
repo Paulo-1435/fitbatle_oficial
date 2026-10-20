@@ -36,12 +36,6 @@
   font-size: var(--texto-2xl);
 }
 
-.dsf-cabecalho__riscado {
-  color: var(--cor-texto-3);
-  text-decoration: line-through;
-  text-decoration-color: var(--cor-perigo);
-}
-
 .dsf-cabecalho p {
   margin: var(--esp-2) auto 0;
   max-width: 560px;
