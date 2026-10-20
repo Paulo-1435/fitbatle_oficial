@@ -68,7 +68,7 @@ async function carregarLink() {
 }
 
 function montarLink(codigo) {
-  return window.location.origin + '/entrar-grupo.html?codigo=' + codigo;
+  return new URL('entrar-grupo.html?codigo=' + encodeURIComponent(codigo), window.location.href).href;
 }
 
 async function regenerarLink() {

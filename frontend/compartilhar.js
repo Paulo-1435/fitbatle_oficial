@@ -18,7 +18,7 @@ function abrirAvisoCompartilhar() {
 
 function abrirMenuCompartilhar(opcoes) {
   const texto = opcoes.texto;
-  const url = opcoes.url || window.location.origin;
+  const url = opcoes.url || new URL('feed.html', window.location.href).href;
   const overlay = document.createElement('div');
   overlay.className = 'overlay aberto';
   overlay.innerHTML =
