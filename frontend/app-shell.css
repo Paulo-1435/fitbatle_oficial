@@ -70,8 +70,9 @@ body[data-pagina] > main {
 
 .busca {
   position: relative;
-  flex: 0 1 300px;
-  min-width: 0;
+  flex: 1 1 180px;
+  min-width: 160px;
+  max-width: 300px;
 }
 
 .busca__icone {
@@ -176,7 +177,7 @@ body[data-pagina] > main {
 }
 
 .nav-principal__link {
-  padding: 9px var(--esp-4);
+  padding: 9px 10px;
   border-radius: var(--raio-md);
   color: var(--cor-texto-2);
   font-size: var(--texto-md);
@@ -459,22 +460,7 @@ body[data-pagina] > main {
   }
 }
 
-@media (max-width: 1180px) {
-  .nav-principal__link {
-    padding: 9px var(--esp-3);
-    font-size: var(--texto-sm);
-  }
-
-  .usuario-atual__nome {
-    max-width: 96px;
-  }
-
-  .busca {
-    flex-basis: 220px;
-  }
-}
-
-@media (max-width: 1040px) {
+@media (max-width: 1280px) {
   .botao-menu {
     display: inline-flex;
   }
