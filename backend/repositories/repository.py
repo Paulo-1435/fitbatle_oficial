@@ -396,6 +396,11 @@ class CurtidaRepository:
         Curtida.query.filter_by(tipo_alvo=tipo_alvo, id_alvo=id_alvo).delete()
         db.session.commit()
 
+    @staticmethod
+    def excluir_do_usuario(id_usuario):
+        Curtida.query.filter_by(id_usuario=id_usuario).delete()
+        db.session.commit()
+
 
 class ComentarioRepository:
 
@@ -440,6 +445,11 @@ class ComentarioRepository:
     @staticmethod
     def excluir_do_alvo(tipo_alvo, id_alvo):
         Comentario.query.filter_by(tipo_alvo=tipo_alvo, id_alvo=id_alvo).delete()
+        db.session.commit()
+
+    @staticmethod
+    def excluir_do_usuario(id_usuario):
+        Comentario.query.filter_by(id_usuario=id_usuario).delete()
         db.session.commit()
 
 

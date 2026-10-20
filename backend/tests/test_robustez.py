@@ -463,3 +463,55 @@ class TestNumerosInvalidos(BaseTeste):
         grupo = self.cli.post("/api/grupos", json={"nome": "Grupo Numeros"}, headers=self.cabecalho).get_json()["grupo"]
         resposta = self.cli.get(f"/api/grupos/{grupo['id']}/ranking?limite=abc", headers=self.cabecalho)
         self.assertEqual(resposta.status_code, 200)
+
+
+class TestExclusaoRemoveComentariosECurtidas(BaseTeste):
+
+    def setUp(self):
+        super().setUp()
+        self.ana, self.token_ana = self.criar_usuario_logado("Ana Exclusao")
+        self.bia, self.token_bia = self.criar_usuario_logado("Bia Exclusao")
+        resposta = self.cli.post(
+            f"/api/usuarios/{self.ana['id']}/atividades",
+            json={"tipo": "cardio", "titulo": "Treino da Ana", "tempo_min": 20},
+            headers=self.auth(self.token_ana),
+        )
+        self.atividade = resposta.get_json()["atividade"]
+
+    def _item_do_feed(self):
+        itens = self.cli.get("/api/feed", headers=self.auth(self.token_ana)).get_json()
+        return next(i for i in itens if i["tipo_conteudo"] == "atividade" and i["id"] == self.atividade["id"])
+
+    def test_excluir_conta_remove_comentarios_e_curtidas_do_usuario(self):
+        self.cli.post(
+            f"/api/feed/atividade/{self.atividade['id']}/comentarios",
+            json={"texto": "Mandou bem"}, headers=self.auth(self.token_bia),
+        )
+        self.cli.post(
+            f"/api/feed/atividade/{self.atividade['id']}/curtir", headers=self.auth(self.token_bia),
+        )
+        antes = self._item_do_feed()
+        self.assertEqual((antes["comentarios"], antes["curtidas"]), (1, 1))
+
+        exclusao = self.cli.delete(f"/api/usuarios/{self.bia['id']}", headers=self.auth(self.token_bia))
+        self.assertEqual(exclusao.status_code, 200)
+
+        depois = self._item_do_feed()
+        self.assertEqual((depois["comentarios"], depois["curtidas"]), (0, 0))
+
+    def test_excluir_conta_remove_conteudo_alheio_sobre_os_treinos_do_usuario(self):
+        self.cli.post(
+            f"/api/feed/atividade/{self.atividade['id']}/comentarios",
+            json={"texto": "Comentario de outra pessoa"}, headers=self.auth(self.token_bia),
+        )
+        self.cli.post(
+            f"/api/feed/atividade/{self.atividade['id']}/curtir", headers=self.auth(self.token_bia),
+        )
+        exclusao = self.cli.delete(f"/api/usuarios/{self.ana['id']}", headers=self.auth(self.token_ana))
+        self.assertEqual(exclusao.status_code, 200)
+
+        from database import db
+        from models.model import Comentario, Curtida
+        with self.app.app_context():
+            self.assertEqual(Comentario.query.filter_by(tipo_alvo="atividade", id_alvo=self.atividade["id"]).count(), 0)
+            self.assertEqual(Curtida.query.filter_by(tipo_alvo="atividade", id_alvo=self.atividade["id"]).count(), 0)
