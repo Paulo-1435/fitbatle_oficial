@@ -8,12 +8,16 @@ const FAIXAS_NIVEL = [
   [15000, 'elite']
 ];
 
-const EMOJI_TIPO = {
-  musculacao: '🏋️',
-  cardio: '🏃',
-  yoga: '🧘',
-  outro: '💪'
+const ICONE_TIPO = {
+  musculacao: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6v12M18 6v12M3 9v6M21 9v6M6 12h12"/></svg>',
+  cardio: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 0 0-7.1 7.1L12 21.5l8.8-8.8a5 5 0 0 0 0-7.1z"/></svg>',
+  yoga: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><path d="M12 8v5M7 13h10M9 21l3-8 3 8"/></svg>',
+  outro: '<svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'
 };
+const ICONE_EDITAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
+const ICONE_FECHAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+const ICONE_COMPARTILHAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>';
+const ICONE_LIXEIRA = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>';
 const NOME_TIPO = {
   musculacao: 'Musculação',
   cardio: 'Cardio',
@@ -58,7 +62,6 @@ document.addEventListener('DOMContentLoaded', function () {
   usuarioLogado = exigirLogin();
   if (!usuarioLogado) return;
 
-  configurarMenu();
   configurarModais();
   configurarAvatar();
   configurarRanking();
@@ -76,10 +79,6 @@ function configurarAvatar() {
     } else {
       abrirEditarPerfil();
     }
-  });
-
-  ligar('avatarMini', 'click', function () {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
   ligar('closeFoto', 'click', function () { fecharOverlay('overlayFoto'); });
@@ -114,16 +113,14 @@ function preencherPerfil(u) {
   texto('pAltura', u.altura ? formatarNumero(u.altura) + ' m' : '—');
   texto('pIdade', u.idade != null ? u.idade : '—');
 
-  aplicarFoto('avatarLarge', u.foto);
-  aplicarFoto('avatarMini', u.foto);
+  aplicarFotoOuIniciais('avatarLarge', u);
 
   const nivel = calcularNivel(u.xp || 0);
   texto('levelNome', nivel.nome);
   document.getElementById('levelBar').style.width = nivel.pct + '%';
-  document.getElementById('levelMarker').style.left = nivel.pct + '%';
   document.getElementById('levelFooter').textContent = nivel.falta > 0
-    ? `Faltam ${nivel.falta} xp para o próximo nível ↑`
-    : 'Nível máximo alcançado 🏆';
+    ? `Faltam ${nivel.falta} xp para o próximo nível.`
+    : 'Nível máximo alcançado.';
 }
 
 async function carregarTreinos() {
@@ -185,7 +182,7 @@ function renderizarTreinos(treinos) {
 }
 
 function htmlCardTreino(t) {
-  const emoji = EMOJI_TIPO[t.tipo] || '💪';
+  const icone = ICONE_TIPO[t.tipo] || ICONE_TIPO.outro;
   const nomeTipo = NOME_TIPO[t.tipo] || capitalizar(t.tipo);
   const titulo = nomeTipo + (t.titulo ? ' — ' + esc(t.titulo).toUpperCase() : '');
 
@@ -203,14 +200,14 @@ function htmlCardTreino(t) {
 
   return `
     <div class="activity-card">
-      <div class="activity-title">${emoji} ${titulo}
+      <div class="activity-title"><span class="perfil-icone">${icone}</span>${titulo}
         <span class="activity-time">${dataRelativa(t.data_registro)}</span>
       </div>
       <div class="activity-desc">${esc(t.descricao || '')}</div>
       <div class="activity-metrics">${metricas.join('')}</div>
       <div class="card-actions">
-        <button class="action-btn" data-compartilhar="${esc('Registrei um treino de ' + nomeTipo + (t.titulo ? ' (' + t.titulo + ')' : '') + ' no FitBattle! 💪 #FitBattle')}" data-compartilhar-id="${t.id}">🔗 Compartilhar</button>
-        <button class="action-btn excluir" data-excluir="${t.id}">🗑️ Excluir</button>
+        <button class="btn btn--fantasma btn--pequeno" data-compartilhar="${esc('Registrei um treino de ' + nomeTipo + (t.titulo ? ' (' + t.titulo + ')' : '') + ' no FitBattle! 💪 #FitBattle')}" data-compartilhar-id="${t.id}"><span class="perfil-icone">${ICONE_COMPARTILHAR}</span>Compartilhar</button>
+        <button class="btn btn--fantasma btn--pequeno perfil-acao-excluir" data-excluir="${t.id}"><span class="perfil-icone">${ICONE_LIXEIRA}</span>Excluir</button>
       </div>
     </div>`;
 }
@@ -256,7 +253,8 @@ function configurarModais() {
   ligar('treinoTipo', 'change', ajustarCamposTreino);
   ligar('closeTreino', 'click', function () { fecharOverlay('overlayTreino'); });
   ligar('btnEditarPerfil', 'click', abrirEditarPerfil);
-  ligar('btnEditarPerfilMenu', 'click', abrirEditarPerfil);
+  document.getElementById('iconeEditar').innerHTML = ICONE_EDITAR;
+  document.querySelectorAll('.modal-close').forEach(function (botao) { botao.innerHTML = ICONE_FECHAR; });
   ligar('closePerfil', 'click', function () { fecharOverlay('overlayPerfil'); });
   document.getElementById('editDataNascimento').max = dataDeHoje();
   ligar('editDataNascimento', 'input', atualizarResponsavelPerfil);
@@ -425,44 +423,9 @@ function abrirEditarPerfil() {
   fotoSelecionada = null;
   document.getElementById('fotoInput').value = '';
   document.getElementById('fotoNome').textContent = 'JPG, PNG ou WEBP (até 3 MB)';
-  aplicarFoto('avatarPreview', u.foto);
+  aplicarFotoOuIniciais('avatarPreview', u);
 
   abrirOverlay('overlayPerfil');
-}
-
-function configurarMenu() {
-  const sidebar = document.getElementById('configSidebar');
-  const main = document.getElementById('mainContent');
-
-  function abrir() {
-    sidebar.classList.remove('escondida');
-    main.classList.remove('menu-fechado');
-  }
-  function fechar() {
-    sidebar.classList.add('escondida');
-    main.classList.add('menu-fechado');
-  }
-
-  fechar();
-
-  document.getElementById('toggleMenuBtn').addEventListener('click', function () {
-    if (sidebar.classList.contains('escondida')) abrir();
-    else fechar();
-  });
-  document.getElementById('closeMenuBtn').addEventListener('click', fechar);
-
-  document.querySelectorAll('.menu-em-breve').forEach(function (a) {
-    a.addEventListener('click', function (e) {
-      e.preventDefault();
-      mostrarToast('Essa área ainda está em desenvolvimento.');
-    });
-  });
-
-  document.getElementById('btnSair').addEventListener('click', sair);
-
-  ligar('btnProgresso', 'click', function () {
-    mostrarToast('Relatório de progresso: em breve.');
-  });
 }
 
 function sair() {
@@ -470,7 +433,7 @@ function sair() {
 }
 
 function configurarRanking() {
-  ligar('btnRanking', 'click', abrirRanking);
+  ligar('btnVerRanking', 'click', abrirRanking);
   ligar('closeRanking', 'click', function () { fecharOverlay('overlayRanking'); });
 
   document.querySelectorAll('.ranking-aba').forEach(function (aba) {
@@ -582,9 +545,17 @@ function ligar(id, evento, fn) {
   if (el) el.addEventListener(evento, fn);
 }
 
-function urlFoto(caminho) {
-  if (!caminho) return null;
-  return caminho.indexOf('http') === 0 ? caminho : ORIGEM_API + caminho;
+
+function aplicarFotoOuIniciais(id, usuario) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (usuario.foto) {
+    aplicarFoto(id, usuario.foto);
+    el.textContent = '';
+  } else {
+    el.style.backgroundImage = 'none';
+    el.textContent = iniciais(usuario.nome);
+  }
 }
 
 function aplicarFoto(id, url) {
@@ -596,14 +567,6 @@ function aplicarFoto(id, url) {
 
 function abrirOverlay(id) { document.getElementById(id).classList.add('aberto'); }
 function fecharOverlay(id) { document.getElementById(id).classList.remove('aberto'); }
-
-function mostrarToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('mostrar');
-  clearTimeout(mostrarToast._timer);
-  mostrarToast._timer = setTimeout(function () { t.classList.remove('mostrar'); }, 2600);
-}
 
 
 function capitalizar(s) {

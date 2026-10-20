@@ -59,11 +59,11 @@ body[data-pagina] > main {
   color: var(--cor-destaque);
 }
 
-.marca--pequena {
+.app-footer .marca {
   font-size: var(--texto-md);
 }
 
-.marca--pequena svg {
+.app-footer .marca svg {
   width: 18px;
   height: 18px;
 }

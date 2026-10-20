@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', function () {
   usuarioLogado = exigirLogin();
   if (!usuarioLogado) return;
 
-  aplicarFoto('avatarMini', usuarioLogado.foto);
   carregarConsentimentos();
 });
 
@@ -106,24 +105,3 @@ async function salvarConsentimento(chave, caixa, legenda) {
     caixa.disabled = false;
   }
 }
-
-function aplicarFoto(id, url) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  const src = urlFoto(url);
-  el.style.backgroundImage = src ? `url("${src}")` : 'none';
-}
-
-function urlFoto(caminho) {
-  if (!caminho) return null;
-  return caminho.indexOf('http') === 0 ? caminho : ORIGEM_API + caminho;
-}
-
-function mostrarToast(mensagem) {
-  const t = document.getElementById('toast');
-  t.textContent = mensagem;
-  t.classList.add('mostrar');
-  clearTimeout(mostrarToast._timer);
-  mostrarToast._timer = setTimeout(function () { t.classList.remove('mostrar'); }, 2600);
-}
-

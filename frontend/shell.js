@@ -406,7 +406,7 @@ function montarFooter() {
     return link;
   }
 
-  const marca = criarElemento('a', { classe: 'marca marca--pequena', href: 'feed.html' }, [
+  const marca = criarElemento('a', { classe: 'marca', href: 'feed.html' }, [
     criarElemento('span', { html: ICONES.raio }).firstChild,
     criarElemento('span', {}, [
       document.createTextNode('Fit'),

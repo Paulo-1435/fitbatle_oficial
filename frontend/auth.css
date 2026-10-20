@@ -18,36 +18,6 @@ body.auth-pagina {
   padding: var(--esp-6) var(--gutter) 0;
 }
 
-.auth-marca {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-  color: var(--cor-texto);
-}
-
-.auth-marca:hover {
-  text-decoration: none;
-}
-
-.auth-marca svg {
-  width: 26px;
-  height: 26px;
-  fill: none;
-  stroke: var(--cor-destaque);
-  stroke-width: 2;
-  stroke-linejoin: round;
-}
-
-.auth-marca span {
-  font-size: 1.125rem;
-  font-weight: var(--peso-extra);
-}
-
-.auth-marca__battle {
-  color: var(--cor-destaque);
-}
-
 .auth-conteudo {
   flex: 1 0 auto;
   display: flex;
