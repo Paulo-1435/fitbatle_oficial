@@ -17,7 +17,7 @@
 <body data-pagina="busca">
 <main>
 
-  <section class="card">
+  <section class="card card--interno">
     <h1>Buscar</h1>
     <div class="abas" role="tablist" aria-label="O que buscar">
       <button type="button" class="aba aba--ativa" id="abaPerfis" role="tab" aria-selected="true">Perfis</button>
@@ -25,14 +25,14 @@
     </div>
   </section>
 
-  <section class="card" id="painelPerfis">
+  <section class="card card--interno" id="painelPerfis">
     <div class="campo">
       <input class="input" type="search" id="campoBuscaPerfis" placeholder="Buscar por nome ou cidade..." autocomplete="off" minlength="2">
     </div>
     <ul class="busca__resultados" id="resultadosPerfis"></ul>
   </section>
 
-  <section class="card" id="painelGrupos" hidden>
+  <section class="card card--interno" id="painelGrupos" hidden>
     <div class="campo">
       <input class="input" type="search" id="campoBuscaGrupos" placeholder="Buscar nos seus grupos..." autocomplete="off">
     </div>
