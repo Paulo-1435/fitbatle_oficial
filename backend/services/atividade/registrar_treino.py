@@ -1,9 +1,15 @@
 from repositories.repository import AtividadeRepository, RankingRepository, UsuarioRepository
-from services.atividade.apoio import calcular_pontuacao, nivel_por_xp
+from services.atividade.apoio import (
+    PONTUACAO_MAXIMA_TREINO,
+    XP_MAXIMO_DIARIO,
+    calcular_pontuacao,
+    nivel_por_xp,
+)
 from services.comum import ErroValidacao
 from services.desafio.avaliar_desafios_do_usuario import AvaliarDesafiosDoUsuarioService
 from services.notificacao.apoio import gerar_notificacao
 from services.usuario.apoio import buscar_usuario
+from utils import agora, data_local, inicio_utc_do_dia_local
 
 TIPOS_VALIDOS = {"musculacao", "cardio", "yoga", "outro"}
 
@@ -53,6 +59,22 @@ def _validar(dados):
     }
 
 
+def _validar_teto(id_usuario, pontuacao):
+    if pontuacao > PONTUACAO_MAXIMA_TREINO:
+        raise ErroValidacao(
+            f"Este treino vale {pontuacao} XP, acima do máximo de {PONTUACAO_MAXIMA_TREINO} XP por treino. "
+            "Confira os valores informados."
+        )
+    xp_hoje = AtividadeRepository.pontuacao_total_desde(
+        id_usuario, inicio_utc_do_dia_local(data_local(agora()))
+    )
+    if xp_hoje + pontuacao > XP_MAXIMO_DIARIO:
+        raise ErroValidacao(
+            f"Limite diário de XP atingido: você já somou {xp_hoje} XP hoje e o máximo é "
+            f"{XP_MAXIMO_DIARIO} XP por dia. Tente novamente amanhã."
+        )
+
+
 def _notificar_subida_no_ranking(id_usuario, posicao_antes):
     posicao_depois = RankingRepository.minha_posicao_global(id_usuario)
     if not posicao_antes or not posicao_depois:
@@ -75,6 +97,7 @@ class RegistrarTreinoService:
         posicao_antes = RankingRepository.minha_posicao_global(id_usuario)
 
         limpos["pontuacao"] = calcular_pontuacao(limpos)
+        _validar_teto(id_usuario, limpos["pontuacao"])
         atividade = AtividadeRepository.criar(id_usuario, limpos)
 
         usuario.xp += atividade.pontuacao

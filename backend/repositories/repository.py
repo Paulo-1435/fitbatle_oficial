@@ -223,6 +223,15 @@ class AtividadeRepository:
         )
 
     @staticmethod
+    def pontuacao_total_desde(id_usuario, desde_utc):
+        total = (
+            db.session.query(func.coalesce(func.sum(Atividade.pontuacao), 0))
+            .filter(Atividade.id_usuario == id_usuario, Atividade.data_registro >= desde_utc)
+            .scalar()
+        )
+        return int(total)
+
+    @staticmethod
     def pontuacoes_desde(id_usuario, desde_utc):
         return (
             db.session.query(Atividade.data_registro, Atividade.pontuacao)

@@ -9,6 +9,9 @@ FAIXAS_NIVEL = [
     (15000, "elite"),
 ]
 
+PONTUACAO_MAXIMA_TREINO = 2000
+XP_MAXIMO_DIARIO = 3000
+
 
 def nivel_por_xp(xp):
     nivel = FAIXAS_NIVEL[0][1]

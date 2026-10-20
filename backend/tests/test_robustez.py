@@ -314,3 +314,52 @@ class TestLimiteDeTentativasDeLogin(BaseTeste):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestTetoDePontuacao(BaseTeste):
+
+    def setUp(self):
+        super().setUp()
+        self.usuario, self.token = self.criar_usuario_logado("Ana Teto")
+
+    def registrar(self, **campos):
+        corpo = {"tipo": "musculacao", "tempo_min": 30}
+        corpo.update(campos)
+        return self.cli.post(
+            f"/api/usuarios/{self.usuario['id']}/atividades",
+            json=corpo,
+            headers={"Authorization": "Bearer " + self.token},
+        )
+
+    def test_treino_acima_do_teto_por_treino_e_rejeitado(self):
+        resposta = self.registrar(tipo="cardio", tempo_min=600, distancia_km=500)
+        self.assertEqual(resposta.status_code, 400)
+        self.assertIn("por treino", resposta.get_json()["erro"])
+
+    def test_treino_realista_pesado_passa(self):
+        resposta = self.registrar(tipo="musculacao", tempo_min=180, carga_kg=150, repeticoes=300)
+        self.assertEqual(resposta.status_code, 201)
+
+    def test_ultra_de_100_km_passa(self):
+        resposta = self.registrar(tipo="cardio", tempo_min=600, distancia_km=100)
+        self.assertEqual(resposta.status_code, 201)
+
+    def test_limite_diario_bloqueia_treino_que_estouraria_o_dia(self):
+        self.assertEqual(self.registrar(tipo="cardio", tempo_min=600, distancia_km=100).status_code, 201)
+        resposta = self.registrar(tipo="cardio", tempo_min=600, distancia_km=100)
+        self.assertEqual(resposta.status_code, 400)
+        self.assertIn("diário", resposta.get_json()["erro"])
+
+    def test_treino_pequeno_continua_passando_abaixo_do_limite_diario(self):
+        self.assertEqual(self.registrar(tipo="cardio", tempo_min=600, distancia_km=100).status_code, 201)
+        self.assertEqual(self.registrar(tipo="musculacao", tempo_min=10).status_code, 201)
+
+    def test_limite_diario_nao_vale_no_dia_seguinte(self):
+        from datetime import timedelta
+        from utils import agora
+
+        self.assertEqual(self.registrar(tipo="cardio", tempo_min=600, distancia_km=100).status_code, 201)
+        amanha = agora() + timedelta(days=1)
+        with mock.patch("services.atividade.registrar_treino.agora", return_value=amanha):
+            resposta = self.registrar(tipo="cardio", tempo_min=600, distancia_km=100)
+        self.assertEqual(resposta.status_code, 201)
