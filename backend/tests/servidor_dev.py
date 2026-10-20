@@ -1,5 +1,6 @@
 import os
 import sys
+from datetime import date, timedelta
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, RAIZ)
@@ -10,7 +11,7 @@ os.environ.setdefault("DB_URI", "sqlite:///" + CAMINHO_BANCO)
 from app import criar_app
 from database import db
 from models.model import Usuario
-from repositories.repository import DesafioRepository
+from repositories.repository import AtividadeRepository, DesafioRepository, DesafioUsuarioRepository, UsuarioRepository
 from services import (
     AlternarCurtidaService,
     CadastrarUsuarioService,
@@ -18,54 +19,125 @@ from services import (
     CriarGrupoService,
     CriarMetaService,
     EntrarGrupoPorCodigoService,
-    RegistrarTreinoService,
 )
+from services.atividade.apoio import calcular_pontuacao, nivel_por_xp
 from tests.apoio import criar_views_de_ranking
+from utils import inicio_utc_do_dia_local
 
 SENHA = "senhaforte123"
+PRINCIPAL = "helena@fitbattle.dev"
+
+USUARIOS = [
+    ("Helena Duarte", PRINCIPAL, 29, "Belo Horizonte", "MG"),
+    ("Lucas Ferreira", "lucas@fitbattle.dev", 26, "Belo Horizonte", "MG"),
+    ("Marina Alves", "marina@fitbattle.dev", 24, "Belo Horizonte", "MG"),
+    ("Bruno Teixeira", "bruno@fitbattle.dev", 31, "Belo Horizonte", "MG"),
+    ("Carolina Pires", "carolina@fitbattle.dev", 27, "Belo Horizonte", "MG"),
+    ("Diego Moreira", "diego@fitbattle.dev", 33, "Contagem", "MG"),
+    ("Juliana Rocha", "juliana@fitbattle.dev", 35, "Belo Horizonte", "MG"),
+    ("Rafael Nunes", "rafael@fitbattle.dev", 30, "Belo Horizonte", "MG"),
+    ("Fernanda Lima", "fernanda@fitbattle.dev", 25, "Nova Lima", "MG"),
+    ("Thiago Barros", "thiago@fitbattle.dev", 28, "Belo Horizonte", "MG"),
+    ("Beatriz Correia", "beatriz@fitbattle.dev", 26, "Belo Horizonte", "MG"),
+    ("Gustavo Melo", "gustavo@fitbattle.dev", 40, "Betim", "MG"),
+]
+
+DESCRICOES = [
+    "Supino reto com pausa de um segundo no peito. Última série até a falha técnica.",
+    "Treino de costas focado em remada e puxada. Descanso de 90 segundos entre as séries.",
+    "Agachamento livre e leg press. Subi a carga em relação à semana passada.",
+    "Corrida leve no parque, ritmo constante e respiração controlada.",
+    "Intervalado na bike: um minuto forte e um minuto leve, repetidos.",
+    "Ombro e abdômen com execução lenta, sem balanço.",
+    "Yoga de recuperação depois do treino pesado. Alongamento de quadril e costas.",
+    "Full body com carga moderada. Boa energia do começo ao fim.",
+    "Esteira em ritmo de tempo: aquecimento de 10 minutos e bloco forte no meio.",
+    "Peito e tríceps mantendo a amplitude completa em todas as repetições.",
+    "Remada curvada com halteres. Boa tensão nas costas.",
+    "Treino leve para manter a rotina depois da viagem.",
+    "Subida de rampa na esteira, inclinação 8 por 25 minutos.",
+    "Pernas: afundo e cadeira extensora. Reduzi a carga no último bloco.",
+    "Caminhada rápida na hora do almoço, 40 minutos.",
+]
+
+MUSCULACAO = ["Costas e bíceps", "Pernas", "Ombros e abdômen", "Full body", "Peito e tríceps"]
+CARDIO = ["Corrida no parque", "Bike ergométrica", "Esteira intervalada", "Caminhada rápida"]
+
+HELENA_DIAS_ATRAS = [56, 54, 52, 49, 47, 45, 42, 40, 38, 35, 33, 31, 28, 26, 24, 21, 19, 17, 14, 12, 10, 7, 5, 3, 1, 0]
+
+
+def treino_principal(i, dias_atras):
+    descricao = DESCRICOES[i % len(DESCRICOES)]
+    if i % 3 == 1:
+        return {
+            "tipo": "cardio", "titulo": CARDIO[i % len(CARDIO)], "descricao": descricao,
+            "tempo_min": 30 + (i % 4) * 5, "distancia_km": round(3 + (i % 5) * 0.8, 1),
+            "dias_atras": dias_atras,
+        }
+    if i % 3 == 0:
+        return {
+            "tipo": "musculacao", "titulo": "Supino reto", "descricao": descricao,
+            "tempo_min": 45 + (i % 4) * 5, "carga_kg": round(60 + i * 1.5, 1), "repeticoes": 8 - (i % 3),
+            "dias_atras": dias_atras,
+        }
+    return {
+        "tipo": "musculacao", "titulo": MUSCULACAO[i % len(MUSCULACAO)], "descricao": descricao,
+        "tempo_min": 45 + (i % 4) * 5, "carga_kg": 40 + (i % 5) * 8, "repeticoes": 8 + (i % 3) * 2,
+        "dias_atras": dias_atras,
+    }
+
+
+def treino_de_outro(i, k):
+    descricao = DESCRICOES[(i * 3 + k) % len(DESCRICOES)]
+    dias_atras = 2 + k * 4 + (i % 3)
+    if k % 2 == 0:
+        return {
+            "tipo": "musculacao", "titulo": MUSCULACAO[(i + k) % len(MUSCULACAO)], "descricao": descricao,
+            "tempo_min": 40 + (k % 3) * 10, "carga_kg": 30 + ((i + k) % 6) * 10, "repeticoes": 8 + (k % 3),
+            "dias_atras": dias_atras,
+        }
+    return {
+        "tipo": "cardio", "titulo": CARDIO[(i + k) % len(CARDIO)], "descricao": descricao,
+        "tempo_min": 25 + (k % 3) * 10, "distancia_km": round(2.5 + (k % 4) * 0.7, 1),
+        "dias_atras": dias_atras,
+    }
+
+
+def planos_de_treino():
+    planos = {PRINCIPAL: [treino_principal(i, dias) for i, dias in enumerate(HELENA_DIAS_ATRAS)]}
+    for i, (_, email, _, _, _) in enumerate(USUARIOS[1:], start=1):
+        planos[email] = [treino_de_outro(i, k) for k in range(3 + i % 3)]
+    return planos
+
+
+def registrar_treinos_historicos(ids, hoje):
+    primeira = None
+    for email, treinos in planos_de_treino().items():
+        uid = ids[email]
+        xp = 0
+        for treino in treinos:
+            dias_atras = treino.pop("dias_atras")
+            dados = dict(treino)
+            dados["pontuacao"] = calcular_pontuacao(dados)
+            atividade = AtividadeRepository.criar(uid, dados)
+            atividade.data_registro = inicio_utc_do_dia_local(hoje - timedelta(days=dias_atras)) + timedelta(hours=18)
+            db.session.commit()
+            xp += atividade.pontuacao
+            primeira = primeira or atividade.id_atividade
+        usuario = UsuarioRepository.buscar_por_id(uid)
+        usuario.xp = xp
+        usuario.nivel = nivel_por_xp(xp)
+        UsuarioRepository.salvar(usuario)
+    return primeira
 
 
 def data_nascimento_para_idade(idade):
-    from datetime import date
     hoje = date.today()
     try:
         nascimento = hoje.replace(year=hoje.year - idade)
     except ValueError:
         nascimento = hoje.replace(year=hoje.year - idade, month=3, day=1)
     return nascimento.isoformat()
-
-USUARIOS = [
-    ("Paulo Susu", "paulo@fitbattle.dev", 28, "Belo Horizonte", "MG"),
-    ("Lu Quimica", "lu@fitbattle.dev", 26, "Belo Horizonte", "MG"),
-    ("Clebim", "clebim@fitbattle.dev", 31, "Belo Horizonte", "MG"),
-    ("Camila Martins", "camila@fitbattle.dev", 24, "Belo Horizonte", "MG"),
-    ("Pedro Surfistao", "pedro@fitbattle.dev", 29, "Belo Horizonte", "MG"),
-    ("Mari", "mari@fitbattle.dev", 27, "Belo Horizonte", "MG"),
-    ("Marcelo", "marcelo@fitbattle.dev", 35, "Belo Horizonte", "MG"),
-    ("Breno Iron", "breno@fitbattle.dev", 30, "Contagem", "MG"),
-    ("Rafael Souza", "rafael@fitbattle.dev", 33, "Belo Horizonte", "MG"),
-    ("Thiago Rocha", "thiago@fitbattle.dev", 28, "Belo Horizonte", "MG"),
-    ("Beatriz Sales", "beatriz@fitbattle.dev", 25, "Belo Horizonte", "MG"),
-    ("Gabriel B", "gabriel@fitbattle.dev", 27, "Belo Horizonte", "MG"),
-]
-
-TREINOS = {
-    "paulo@fitbattle.dev": [
-        ("musculacao", "Supino Reto", 60, 140, 6),
-        ("cardio", "Corrida leve", 40, None, None),
-        ("musculacao", "Agachamento Livre", 55, 120, 8),
-    ],
-    "lu@fitbattle.dev": [("musculacao", "Levantamento Terra", 70, 250, 3), ("cardio", "Esteira", 30, None, None)],
-    "clebim@fitbattle.dev": [("musculacao", "Leg Press", 50, 267, 8)],
-    "camila@fitbattle.dev": [("musculacao", "Supino Reto", 60, 155, 2), ("yoga", "Yoga", 45, None, None)],
-    "pedro@fitbattle.dev": [("musculacao", "Supino Reto", 60, 145, 5)],
-    "marcelo@fitbattle.dev": [("musculacao", "Agachamento Livre", 65, 200, 5)],
-    "breno@fitbattle.dev": [("musculacao", "Agachamento Livre", 65, 220, 4)],
-    "rafael@fitbattle.dev": [("musculacao", "Supino Reto", 60, 160, 3)],
-    "thiago@fitbattle.dev": [("musculacao", "Supino Reto", 60, 150, 1)],
-    "beatriz@fitbattle.dev": [("musculacao", "Supino Reto", 60, 145, 4)],
-    "gabriel@fitbattle.dev": [("musculacao", "Supino Reto", 75, 210, 1)],
-}
 
 
 def popular():
@@ -83,41 +155,34 @@ def popular():
         db.session.commit()
         ids[email] = usuario.id_usuario
 
-    for email, treinos in TREINOS.items():
-        for tipo, titulo, minutos, carga, reps in treinos:
-            RegistrarTreinoService.executar(ids[email], {
-                "tipo": tipo, "titulo": titulo, "tempo_min": minutos,
-                "carga_kg": carga, "repeticoes": reps,
-                "descricao": "Treino de exemplo do ambiente de desenvolvimento.",
-            })
-
-    CriarComentarioService.executar(ids["camila@fitbattle.dev"], "atividade", 1, "Mandou bem demais!")
-    CriarComentarioService.executar(ids["lu@fitbattle.dev"], "atividade", 1, "Bora pra cima.")
-    AlternarCurtidaService.executar(ids["lu@fitbattle.dev"], "atividade", 1)
-    AlternarCurtidaService.executar(ids["clebim@fitbattle.dev"], "atividade", 1)
-
-    grupo = CriarGrupoService.executar(ids["paulo@fitbattle.dev"], {
-        "nome": "Turma FitBattle", "descricao": "Grupo de demonstração do ambiente de desenvolvimento.",
-    })
-    EntrarGrupoPorCodigoService.executar(ids["lu@fitbattle.dev"], grupo.codigo_convite)
-    CriarMetaService.executar(ids["paulo@fitbattle.dev"], {
-        "titulo": "Supino 120 kg", "tipo": "curto_prazo", "tipo_metrica": "carga_maxima",
-        "exercicio": "supino", "valor_objetivo": 120, "data_final": "2030-12-31",
-    })
-
-    from datetime import date, timedelta
-
     hoje = date.today()
-    DesafioRepository.criar({
-        "nome": "Desafio de Outubro: 5 treinos",
-        "descricao": "Registre 5 treinos até o fim do período para ganhar XP bônus.",
+    primeira = registrar_treinos_historicos(ids, hoje)
+
+    CriarComentarioService.executar(ids["carolina@fitbattle.dev"], "atividade", primeira, "Mandou bem demais!")
+    CriarComentarioService.executar(ids["lucas@fitbattle.dev"], "atividade", primeira, "Bora pra cima!")
+    AlternarCurtidaService.executar(ids["lucas@fitbattle.dev"], "atividade", primeira)
+    AlternarCurtidaService.executar(ids["diego@fitbattle.dev"], "atividade", primeira)
+
+    grupo = CriarGrupoService.executar(ids[PRINCIPAL], {
+        "nome": "Turma do Parque", "descricao": "Grupo para treinar junto e acompanhar a evolução.",
+    })
+    EntrarGrupoPorCodigoService.executar(ids["lucas@fitbattle.dev"], grupo.codigo_convite)
+    CriarMetaService.executar(ids[PRINCIPAL], {
+        "titulo": "Supino 120 kg", "tipo": "curto_prazo", "tipo_metrica": "carga_maxima",
+        "exercicio": "supino reto", "valor_objetivo": 120, "data_final": "2030-12-31",
+    })
+
+    desafio = DesafioRepository.criar({
+        "nome": "Desafio: 5 treinos nesta semana",
+        "descricao": "Registre 5 treinos no período para ganhar 100 XP de bônus.",
         "exercicio": "livre",
         "tipo_metrica": "treinos",
         "valor_objetivo": 5,
-        "data_inicio": hoje,
-        "data_fim": hoje + timedelta(days=14),
+        "data_inicio": hoje - timedelta(days=3),
+        "data_fim": hoje + timedelta(days=11),
         "recompensa_xp": 100,
     })
+    DesafioUsuarioRepository.inscrever(desafio.id_desafio, ids[PRINCIPAL])
 
 
 def preparar():
