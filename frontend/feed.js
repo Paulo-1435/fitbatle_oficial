@@ -133,7 +133,7 @@ function htmlCardFeed(item) {
     }
     metricasHtml = metricas.length ? `<div class="feed-card__metricas">${metricas.join('')}</div>` : '';
   } else {
-    titulo = '📣 Nova postagem';
+    titulo = '';
   }
 
   const descricao = item.descricao || item.texto || '';
@@ -152,7 +152,7 @@ function htmlCardFeed(item) {
           <span class="feed-card__tempo">${dataRelativa(item.data_registro)}</span>
         </div>
       </div>
-      <div class="feed-card__titulo">${titulo}</div>
+      ${titulo ? `<div class="feed-card__titulo">${titulo}</div>` : ''}
       ${descricao ? `<p class="feed-card__texto">${esc(descricao)}</p>` : ''}
       ${midia}
       ${metricasHtml}
