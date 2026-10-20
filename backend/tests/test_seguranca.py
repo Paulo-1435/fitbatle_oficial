@@ -607,5 +607,65 @@ class TestDataDeNascimento(BaseTeste):
             self.assertNotIn("idade", resultado)
 
 
+class TestConteudoDeMenores(BaseTeste):
+
+    def setUp(self):
+        super().setUp()
+        self.menor, self.token_menor = self.criar_usuario_logado(
+            "Miguel Menor", idade=15, responsavel={"nome": "Responsavel Teste", "email": "resp.menor@teste.com"}
+        )
+        self.adulto, self.token_adulto = self.criar_usuario_logado("Ana Adulta", idade=30)
+
+    def registrar_treino(self, usuario, token, titulo):
+        resposta = self.cli.post(
+            f"/api/usuarios/{usuario['id']}/atividades",
+            json={"tipo": "cardio", "titulo": titulo, "tempo_min": 20},
+            headers={"Authorization": "Bearer " + token},
+        )
+        self.assertEqual(resposta.status_code, 201, resposta.get_data(as_text=True))
+        return resposta.get_json()["atividade"]
+
+    def feed(self, token):
+        resposta = self.cli.get("/api/feed", headers={"Authorization": "Bearer " + token})
+        self.assertEqual(resposta.status_code, 200)
+        return resposta.get_json()
+
+    def test_adulto_nao_le_treino_de_menor_por_id(self):
+        atividade = self.registrar_treino(self.menor, self.token_menor, "Corrida do menor")
+        resposta = self.cli.get(
+            f"/api/atividades/{atividade['id']}", headers={"Authorization": "Bearer " + self.token_adulto}
+        )
+        self.assertEqual(resposta.status_code, 404)
+
+    def test_feed_de_adulto_nao_traz_itens_do_menor(self):
+        self.registrar_treino(self.menor, self.token_menor, "Corrida do menor")
+        self.registrar_treino(self.adulto, self.token_adulto, "Treino da adulta")
+        donos = {item["usuario"]["id"] for item in self.feed(self.token_adulto)}
+        self.assertIn(self.adulto["id"], donos)
+        self.assertNotIn(self.menor["id"], donos)
+
+    def test_menor_ve_o_proprio_treino_por_id_e_no_feed(self):
+        atividade = self.registrar_treino(self.menor, self.token_menor, "Corrida do menor")
+        resposta = self.cli.get(
+            f"/api/atividades/{atividade['id']}", headers={"Authorization": "Bearer " + self.token_menor}
+        )
+        self.assertEqual(resposta.status_code, 200)
+        donos = {item["usuario"]["id"] for item in self.feed(self.token_menor)}
+        self.assertIn(self.menor["id"], donos)
+
+    def test_postagem_de_menor_nao_aparece_no_feed_de_adulto(self):
+        self.cli.post(
+            "/api/postagens", data={"texto": "Post do menor"},
+            headers={"Authorization": "Bearer " + self.token_menor}, content_type="multipart/form-data",
+        )
+        self.cli.post(
+            "/api/postagens", data={"texto": "Post da adulta"},
+            headers={"Authorization": "Bearer " + self.token_adulto}, content_type="multipart/form-data",
+        )
+        donos = {item["usuario"]["id"] for item in self.feed(self.token_adulto)}
+        self.assertIn(self.adulto["id"], donos)
+        self.assertNotIn(self.menor["id"], donos)
+
+
 if __name__ == "__main__":
     unittest.main()

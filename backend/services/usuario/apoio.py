@@ -4,9 +4,8 @@ from datetime import date, datetime
 
 from repositories.repository import UsuarioRepository
 from services.comum import ErroValidacao
-from utils import agora, calcular_idade
+from utils import IDADE_MAIORIDADE, agora, calcular_idade
 
-IDADE_MAIORIDADE = 18
 EMAIL_REGEX = r"^[^\s@]+@[^\s@]+\.[^\s@]+$"
 IDADE_MINIMA_CADASTRO = 13
 IDADE_MAXIMA_PLAUSIVEL = 120

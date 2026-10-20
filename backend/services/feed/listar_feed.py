@@ -16,8 +16,8 @@ class ListarFeedService:
     def executar(id_usuario_atual, limite=LIMITE_PADRAO):
         limite = ListarFeedService._limite(limite)
 
-        atividades = AtividadeRepository.listar_publicas(limite)
-        postagens = PostagemRepository.listar_publicas(limite)
+        atividades = AtividadeRepository.listar_publicas(limite, id_usuario_atual)
+        postagens = PostagemRepository.listar_publicas(limite, id_usuario_atual)
 
         itens = []
         for a in atividades:

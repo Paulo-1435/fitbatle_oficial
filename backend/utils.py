@@ -1,6 +1,7 @@
 from datetime import date, datetime, timedelta, timezone
 
 FUSO_LOCAL = timezone(timedelta(hours=-3))
+IDADE_MAIORIDADE = 18
 
 
 def agora():
@@ -26,6 +27,13 @@ def data_local(valor):
 def inicio_utc_do_dia_local(dia):
     meia_noite_local = datetime(dia.year, dia.month, dia.day)
     return meia_noite_local - FUSO_LOCAL.utcoffset(None)
+
+
+def limite_nascimento_maioridade(hoje):
+    try:
+        return hoje.replace(year=hoje.year - IDADE_MAIORIDADE)
+    except ValueError:
+        return date(hoje.year - IDADE_MAIORIDADE, 2, 28)
 
 
 def calcular_idade(data_nascimento, idade_legada=None, hoje=None):

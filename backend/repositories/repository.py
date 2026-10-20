@@ -1,3 +1,5 @@
+from datetime import date
+
 from sqlalchemy import func, text
 from sqlalchemy.exc import IntegrityError
 
@@ -18,8 +20,23 @@ from models.model import (
     Postagem,
     Usuario,
 )
+from utils import IDADE_MAIORIDADE, limite_nascimento_maioridade
 
 _COLUNAS_RANKING = "id_usuario, nome, cidade, estado, pontuacao_total, posicao"
+
+
+def _clausula_maior_de_idade_ou_proprio(id_solicitante):
+    limite = limite_nascimento_maioridade(date.today())
+    maior = db.or_(
+        Usuario.data_nascimento <= limite,
+        db.and_(
+            Usuario.data_nascimento.is_(None),
+            db.or_(Usuario.idade.is_(None), Usuario.idade >= IDADE_MAIORIDADE),
+        ),
+    )
+    if id_solicitante is None:
+        return maior
+    return db.or_(Usuario.id_usuario == id_solicitante, maior)
 
 
 def _escapar_like(termo):
@@ -157,10 +174,10 @@ class AtividadeRepository:
         db.session.commit()
 
     @staticmethod
-    def listar_publicas(limite):
+    def listar_publicas(limite, id_solicitante=None):
         return (
             Atividade.query.join(Usuario, Atividade.id_usuario == Usuario.id_usuario)
-            .filter(Usuario.perfil_publico.is_(True))
+            .filter(Usuario.perfil_publico.is_(True), _clausula_maior_de_idade_ou_proprio(id_solicitante))
             .order_by(Atividade.data_registro.desc())
             .limit(limite)
             .all()
@@ -305,10 +322,10 @@ class PostagemRepository:
         db.session.commit()
 
     @staticmethod
-    def listar_publicas(limite):
+    def listar_publicas(limite, id_solicitante=None):
         return (
             Postagem.query.join(Usuario, Postagem.id_usuario == Usuario.id_usuario)
-            .filter(Usuario.perfil_publico.is_(True))
+            .filter(Usuario.perfil_publico.is_(True), _clausula_maior_de_idade_ou_proprio(id_solicitante))
             .order_by(Postagem.data_registro.desc())
             .limit(limite)
             .all()
