@@ -1,5 +1,6 @@
 from repositories.repository import RankingRepository
 from services.grupo.apoio import exigir_membro
+from services.ranking.apoio import normalizar_limite_ranking
 
 
 class ConsultarRankingGrupoService:
@@ -7,4 +8,4 @@ class ConsultarRankingGrupoService:
     @staticmethod
     def executar(id_grupo, id_usuario, limite=20):
         exigir_membro(id_grupo, id_usuario)
-        return RankingRepository.grupo(id_grupo, limite)
+        return RankingRepository.grupo(id_grupo, normalizar_limite_ranking(limite))

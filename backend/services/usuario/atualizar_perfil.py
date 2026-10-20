@@ -3,7 +3,7 @@ import re
 from werkzeug.security import generate_password_hash
 
 from repositories.repository import UsuarioRepository
-from services.comum import ErroValidacao
+from services.comum import ErroValidacao, numero_decimal
 from services.usuario.apoio import (
     EMAIL_REGEX,
     buscar_usuario,
@@ -13,11 +13,8 @@ from services.usuario.apoio import (
 
 
 def _validar_numero(valor, nome, minimo, maximo):
-    try:
-        numero = float(str(valor).replace(",", "."))
-    except (TypeError, ValueError):
-        raise ErroValidacao(f"Valor de {nome} inválido.")
-    if numero < minimo or numero > maximo:
+    numero = numero_decimal(valor, nome, maximo)
+    if numero < minimo:
         raise ErroValidacao(f"Valor de {nome} fora do intervalo permitido.")
     return round(numero, 2)
 

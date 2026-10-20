@@ -1,9 +1,11 @@
 from datetime import date, datetime
 
 from repositories.repository import AtividadeRepository, MetaRepository
-from services.comum import ErroValidacao
+from services.comum import ErroValidacao, numero_decimal
 from services.notificacao.apoio import gerar_notificacao
 from utils import agora
+
+VALOR_OBJETIVO_MAXIMO = 1000000
 
 
 def buscar_meta(id_meta):
@@ -94,10 +96,7 @@ def meta_com_progresso(meta):
 
 
 def validar_numero_meta(valor, nome):
-    try:
-        numero = float(str(valor).replace(",", "."))
-    except (TypeError, ValueError):
-        raise ErroValidacao(f"Informe um {nome} válido.")
+    numero = numero_decimal(valor, nome, VALOR_OBJETIVO_MAXIMO)
     if numero <= 0:
         raise ErroValidacao(f"O {nome} deve ser maior que zero.")
     return round(numero, 2)

@@ -5,7 +5,7 @@ from services.atividade.apoio import (
     calcular_pontuacao,
     nivel_por_xp,
 )
-from services.comum import ErroValidacao
+from services.comum import ErroValidacao, numero_decimal
 from services.desafio.avaliar_desafios_do_usuario import AvaliarDesafiosDoUsuarioService
 from services.notificacao.apoio import gerar_notificacao
 from services.usuario.apoio import buscar_usuario
@@ -37,15 +37,9 @@ def _validar(dados):
         if valor in (None, ""):
             numericos[campo] = None
             continue
-        try:
-            valor = float(str(valor).replace(",", "."))
-        except (TypeError, ValueError):
-            raise ErroValidacao(f"O campo '{campo}' deve ser numérico.")
+        valor = numero_decimal(valor, campo, LIMITES_CAMPOS[campo])
         if valor < 0:
             raise ErroValidacao(f"O campo '{campo}' não pode ser negativo.")
-        limite = LIMITES_CAMPOS[campo]
-        if valor > limite:
-            raise ErroValidacao(f"O campo '{campo}' não pode passar de {limite}.")
         numericos[campo] = valor
 
     if not numericos["tempo_min"] and not numericos["distancia_km"]:

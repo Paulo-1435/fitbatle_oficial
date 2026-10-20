@@ -363,3 +363,54 @@ class TestTetoDePontuacao(BaseTeste):
         with mock.patch("services.atividade.registrar_treino.agora", return_value=amanha):
             resposta = self.registrar(tipo="cardio", tempo_min=600, distancia_km=100)
         self.assertEqual(resposta.status_code, 201)
+
+
+class TestNumerosInvalidos(BaseTeste):
+
+    def setUp(self):
+        super().setUp()
+        self.usuario, self.token = self.criar_usuario_logado("Ana Numeros")
+        self.cabecalho = {"Authorization": "Bearer " + self.token}
+
+    def test_treino_com_nan_e_400(self):
+        resposta = self.cli.post(
+            f"/api/usuarios/{self.usuario['id']}/atividades",
+            json={"tipo": "cardio", "tempo_min": "nan"},
+            headers=self.cabecalho,
+        )
+        self.assertEqual(resposta.status_code, 400)
+
+    def test_perfil_com_peso_nan_e_400(self):
+        resposta = self.cli.put(
+            f"/api/usuarios/{self.usuario['id']}", json={"peso": "nan"}, headers=self.cabecalho
+        )
+        self.assertEqual(resposta.status_code, 400)
+
+    def test_perfil_com_altura_infinita_e_400(self):
+        resposta = self.cli.put(
+            f"/api/usuarios/{self.usuario['id']}", json={"altura": "inf"}, headers=self.cabecalho
+        )
+        self.assertEqual(resposta.status_code, 400)
+
+    def test_meta_com_valor_objetivo_nan_e_400(self):
+        resposta = self.cli.post(
+            "/api/metas",
+            json={"tipo": "curto_prazo", "tipo_metrica": "carga_maxima", "exercicio": "supino",
+                  "titulo": "Meta", "valor_objetivo": "nan", "data_final": "2030-12-31"},
+            headers=self.cabecalho,
+        )
+        self.assertEqual(resposta.status_code, 400)
+
+    def test_meta_com_valor_objetivo_acima_do_maximo_e_400(self):
+        resposta = self.cli.post(
+            "/api/metas",
+            json={"tipo": "curto_prazo", "tipo_metrica": "carga_maxima", "exercicio": "supino",
+                  "titulo": "Meta", "valor_objetivo": 1e308, "data_final": "2030-12-31"},
+            headers=self.cabecalho,
+        )
+        self.assertEqual(resposta.status_code, 400)
+
+    def test_ranking_do_grupo_aceita_limite_invalido(self):
+        grupo = self.cli.post("/api/grupos", json={"nome": "Grupo Numeros"}, headers=self.cabecalho).get_json()["grupo"]
+        resposta = self.cli.get(f"/api/grupos/{grupo['id']}/ranking?limite=abc", headers=self.cabecalho)
+        self.assertEqual(resposta.status_code, 200)

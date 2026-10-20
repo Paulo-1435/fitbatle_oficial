@@ -1,7 +1,20 @@
+import math
 import os
 import time
 
 EXTENSOES_FOTO = {"png", "jpg", "jpeg", "webp"}
+
+
+def numero_decimal(valor, nome, maximo):
+    try:
+        numero = float(str(valor).replace(",", "."))
+    except (TypeError, ValueError):
+        raise ErroValidacao(f"O campo '{nome}' deve ser numérico.")
+    if not math.isfinite(numero):
+        raise ErroValidacao(f"O campo '{nome}' deve ser numérico.")
+    if numero > maximo:
+        raise ErroValidacao(f"O campo '{nome}' não pode passar de {maximo}.")
+    return numero
 
 
 class ErroValidacao(Exception):

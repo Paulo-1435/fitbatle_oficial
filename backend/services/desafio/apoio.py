@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 from repositories.repository import AtividadeRepository, DesafioRepository, DesafioUsuarioRepository, UsuarioRepository
-from services.comum import ErroValidacao
+from services.comum import ErroValidacao, numero_decimal
 from services.notificacao.apoio import gerar_notificacao
 from services.usuario.apoio import buscar_usuario
 from utils import agora, iso_utc
@@ -9,6 +9,8 @@ from utils import agora, iso_utc
 TIPOS_METRICA = {"treinos", "carga_maxima"}
 NOME_MAX = 120
 DESCRICAO_MAX = 500
+VALOR_OBJETIVO_MAXIMO = 1000000
+RECOMPENSA_XP_MAXIMA = 100000
 
 
 def buscar_desafio(id_desafio):
@@ -125,10 +127,7 @@ def normalizar_exercicio_desafio(exercicio):
 
 
 def validar_numero_desafio(valor, nome):
-    try:
-        numero = float(str(valor).replace(",", "."))
-    except (TypeError, ValueError):
-        raise ErroValidacao(f"Informe um {nome} válido.")
+    numero = numero_decimal(valor, nome, VALOR_OBJETIVO_MAXIMO)
     if numero <= 0:
         raise ErroValidacao(f"O {nome} deve ser maior que zero.")
     return round(numero, 2)
@@ -141,6 +140,8 @@ def validar_inteiro_desafio(valor, nome):
         raise ErroValidacao(f"Informe um {nome} válido.")
     if numero < 0:
         raise ErroValidacao(f"O {nome} não pode ser negativo.")
+    if numero > RECOMPENSA_XP_MAXIMA:
+        raise ErroValidacao(f"O {nome} não pode passar de {RECOMPENSA_XP_MAXIMA}.")
     return numero
 
 

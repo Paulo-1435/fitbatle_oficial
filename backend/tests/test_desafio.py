@@ -319,3 +319,18 @@ class TestConclusaoRecompensaENotificacao(BaseDesafio):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestValidacaoNumericaDeDesafio(BaseDesafio):
+
+    def test_desafio_com_valor_objetivo_nan_e_400(self):
+        resposta = self.cli.post(
+            "/api/desafios", json=self.corpo_desafio(valor_objetivo="nan"), headers=self.auth(self.token_admin)
+        )
+        self.assertEqual(resposta.status_code, 400)
+
+    def test_desafio_com_valor_objetivo_acima_do_maximo_e_400(self):
+        resposta = self.cli.post(
+            "/api/desafios", json=self.corpo_desafio(valor_objetivo=1e308), headers=self.auth(self.token_admin)
+        )
+        self.assertEqual(resposta.status_code, 400)
