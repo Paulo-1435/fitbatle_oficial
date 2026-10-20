@@ -15,6 +15,9 @@ from services import (
     AlternarCurtidaService,
     CadastrarUsuarioService,
     CriarComentarioService,
+    CriarGrupoService,
+    CriarMetaService,
+    EntrarGrupoPorCodigoService,
     RegistrarTreinoService,
 )
 from tests.apoio import criar_views_de_ranking
@@ -92,6 +95,15 @@ def popular():
     CriarComentarioService.executar(ids["lu@fitbattle.dev"], "atividade", 1, "Bora pra cima.")
     AlternarCurtidaService.executar(ids["lu@fitbattle.dev"], "atividade", 1)
     AlternarCurtidaService.executar(ids["clebim@fitbattle.dev"], "atividade", 1)
+
+    grupo = CriarGrupoService.executar(ids["paulo@fitbattle.dev"], {
+        "nome": "Turma FitBattle", "descricao": "Grupo de demonstração do ambiente de desenvolvimento.",
+    })
+    EntrarGrupoPorCodigoService.executar(ids["lu@fitbattle.dev"], grupo.codigo_convite)
+    CriarMetaService.executar(ids["paulo@fitbattle.dev"], {
+        "titulo": "Supino 120 kg", "tipo": "curto_prazo", "tipo_metrica": "carga_maxima",
+        "exercicio": "supino", "valor_objetivo": 120, "data_final": "2030-12-31",
+    })
 
     from datetime import date, timedelta
 
