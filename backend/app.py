@@ -65,7 +65,9 @@ def criar_app():
 
     @app.get("/uploads/<path:nome>")
     def servir_upload(nome):
-        return send_from_directory(app.config["UPLOAD_FOLDER"], nome)
+        resposta = send_from_directory(app.config["UPLOAD_FOLDER"], nome)
+        resposta.headers["X-Content-Type-Options"] = "nosniff"
+        return resposta
 
     servir_frontend = os.environ.get("SERVIR_FRONTEND") == "1" and os.path.isdir(PASTA_FRONTEND)
 

@@ -12,6 +12,10 @@ from services.usuario import _LimitadorLogin
 from tests.test_seguranca import SENHA, BaseTeste, data_nascimento_para_idade
 
 
+PNG_VALIDO = b"\x89PNG\r\n\x1a\n" + b"\x00" * 16
+JPEG_VALIDO = b"\xff\xd8\xff\xe0" + b"\x00" * 16
+
+
 class TestErrosEmJson(BaseTeste):
 
     def test_rota_inexistente_devolve_json(self):
@@ -135,7 +139,7 @@ class TestLimpezaDeImagens(BaseTeste):
     def _enviar_foto_de_perfil(self, usuario, token):
         resposta = self.cli.post(
             f"/api/usuarios/{usuario['id']}/foto",
-            data={"foto": (io.BytesIO(b"conteudo-fake-de-imagem"), "avatar.png")},
+            data={"foto": (io.BytesIO(PNG_VALIDO), "avatar.png")},
             content_type="multipart/form-data",
             headers=self.auth(token),
         )
@@ -156,7 +160,7 @@ class TestLimpezaDeImagens(BaseTeste):
         usuario, token = self.criar_usuario_logado("Bia Foto")
         postagem = self.cli.post(
             "/api/postagens",
-            data={"texto": "Treino com foto", "foto": (io.BytesIO(b"fake-png"), "post.png")},
+            data={"texto": "Treino com foto", "foto": (io.BytesIO(PNG_VALIDO), "post.png")},
             content_type="multipart/form-data",
             headers=self.auth(token),
         )
@@ -179,7 +183,7 @@ class TestNomeDeArquivoDeImagem(BaseTeste):
     def tearDown(self):
         shutil.rmtree(self.pasta_uploads, ignore_errors=True)
 
-    def _enviar_foto_de_perfil(self, usuario, token, nome_arquivo="avatar.png", conteudo=b"fake-imagem"):
+    def _enviar_foto_de_perfil(self, usuario, token, nome_arquivo="avatar.png", conteudo=PNG_VALIDO):
         resposta = self.cli.post(
             f"/api/usuarios/{usuario['id']}/foto",
             data={"foto": (io.BytesIO(conteudo), nome_arquivo)},
@@ -189,7 +193,7 @@ class TestNomeDeArquivoDeImagem(BaseTeste):
         self.assertEqual(resposta.status_code, 200, resposta.get_data(as_text=True))
         return resposta.get_json()["usuario"]["foto"]
 
-    def _enviar_postagem_com_foto(self, token, nome_arquivo="post.png", conteudo=b"fake-imagem"):
+    def _enviar_postagem_com_foto(self, token, nome_arquivo="post.png", conteudo=PNG_VALIDO):
         resposta = self.cli.post(
             "/api/postagens",
             data={"texto": "Treino com foto", "foto": (io.BytesIO(conteudo), nome_arquivo)},
@@ -202,24 +206,24 @@ class TestNomeDeArquivoDeImagem(BaseTeste):
     def test_foto_de_perfil_gera_nome_com_prefixo_usuario_e_id(self):
         usuario, token = self.criar_usuario_logado("Ana Nome")
         caminho = self._enviar_foto_de_perfil(usuario, token)
-        padrao = r"^/uploads/usuario_" + str(usuario["id"]) + r"_\d+\.png$"
+        padrao = r"^/uploads/usuario_" + str(usuario["id"]) + r"_[0-9a-f]{16}\.png$"
         self.assertRegex(caminho, padrao)
 
     def test_foto_de_postagem_gera_nome_com_prefixo_postagem_e_id(self):
         usuario, token = self.criar_usuario_logado("Bia Nome")
         caminho = self._enviar_postagem_com_foto(token)
-        padrao = r"^/uploads/postagem_" + str(usuario["id"]) + r"_\d+\.png$"
+        padrao = r"^/uploads/postagem_" + str(usuario["id"]) + r"_[0-9a-f]{16}\.png$"
         self.assertRegex(caminho, padrao)
 
     def test_extensao_jpeg_e_normalizada_para_jpg_no_perfil(self):
         usuario, token = self.criar_usuario_logado("Cris Jpeg")
-        caminho = self._enviar_foto_de_perfil(usuario, token, nome_arquivo="foto.jpeg")
+        caminho = self._enviar_foto_de_perfil(usuario, token, nome_arquivo="foto.jpeg", conteudo=JPEG_VALIDO)
         self.assertTrue(caminho.endswith(".jpg"))
         self.assertFalse(caminho.endswith(".jpeg"))
 
     def test_extensao_jpeg_e_normalizada_para_jpg_na_postagem(self):
         _, token = self.criar_usuario_logado("Davi Jpeg")
-        caminho = self._enviar_postagem_com_foto(token, nome_arquivo="post.jpeg")
+        caminho = self._enviar_postagem_com_foto(token, nome_arquivo="post.jpeg", conteudo=JPEG_VALIDO)
         self.assertTrue(caminho.endswith(".jpg"))
         self.assertFalse(caminho.endswith(".jpeg"))
 
@@ -248,6 +252,51 @@ class TestNomeDeArquivoDeImagem(BaseTeste):
         self.assertNotEqual(nome_1, nome_2)
         self.assertTrue(os.path.exists(os.path.join(self.pasta_uploads, nome_1)))
         self.assertTrue(os.path.exists(os.path.join(self.pasta_uploads, nome_2)))
+
+
+class TestAssinaturaDeImagem(BaseTeste):
+
+    def setUp(self):
+        super().setUp()
+        self.pasta_uploads = tempfile.mkdtemp()
+        self.app.config["UPLOAD_FOLDER"] = self.pasta_uploads
+        self.usuario, self.token = self.criar_usuario_logado("Gabi Assinatura")
+
+    def tearDown(self):
+        shutil.rmtree(self.pasta_uploads, ignore_errors=True)
+
+    def _enviar(self, nome_arquivo, conteudo):
+        return self.cli.post(
+            f"/api/usuarios/{self.usuario['id']}/foto",
+            data={"foto": (io.BytesIO(conteudo), nome_arquivo)},
+            content_type="multipart/form-data",
+            headers=self.auth(self.token),
+        )
+
+    def test_html_com_nome_de_png_e_rejeitado(self):
+        resposta = self._enviar("ataque.png", b"<html><script>alert(1)</script></html>")
+        self.assertEqual(resposta.status_code, 400)
+        self.assertEqual(os.listdir(self.pasta_uploads), [])
+
+    def test_png_com_extensao_jpg_e_rejeitado(self):
+        resposta = self._enviar("disfarce.jpg", PNG_VALIDO)
+        self.assertEqual(resposta.status_code, 400)
+
+    def test_gif_valido_e_aceito(self):
+        resposta = self._enviar("animado.gif", b"GIF89a" + b"\x00" * 16)
+        self.assertEqual(resposta.status_code, 200)
+        self.assertTrue(resposta.get_json()["usuario"]["foto"].endswith(".gif"))
+
+    def test_webp_valido_e_aceito(self):
+        resposta = self._enviar("imagem.webp", b"RIFF" + b"\x00" * 4 + b"WEBP" + b"\x00" * 8)
+        self.assertEqual(resposta.status_code, 200)
+
+    def test_cabecalho_nosniff_nas_respostas_de_uploads(self):
+        resposta = self._enviar("avatar.png", PNG_VALIDO)
+        caminho = resposta.get_json()["usuario"]["foto"]
+        arquivo = self.cli.get(caminho)
+        self.assertEqual(arquivo.status_code, 200)
+        self.assertEqual(arquivo.headers.get("X-Content-Type-Options"), "nosniff")
 
 
 class TestLimiteDeTentativasDeLogin(BaseTeste):
