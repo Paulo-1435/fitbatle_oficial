@@ -86,7 +86,7 @@
 
         <label class="check">
           <input type="checkbox" id="aceitePagina" name="aceitePagina">
-          <span>Li e concordo com os <a href="#" data-abrir-termo="termo-uso">Termos de Uso</a> e a <a href="#" data-abrir-termo="termo-consentimento">Política de Privacidade (LGPD)</a></span>
+          <span>Li e concordo com os <a href="termos.html#termo-uso" data-abrir-termo="termo-uso">Termos de Uso</a> e a <a href="termos.html#termo-consentimento" data-abrir-termo="termo-consentimento">Política de Privacidade (LGPD)</a></span>
         </label>
 
         <p class="mensagem-form" id="errorMessage" role="alert" aria-live="polite"></p>
@@ -121,32 +121,32 @@
         <p class="consent-intro">
           As permissões abaixo já vêm marcadas. <strong>Desmarque</strong> o que você
           não autoriza — você pode mudar isso depois nas configurações.
-          <a href="#" id="linkLerTermoCompleto">Ler o termo completo</a>
+          <a href="termos.html" id="linkLerTermoCompleto">Ler o termo completo</a>
         </p>
 
         <div class="consent-scroll">
           <p class="consent-group-title">Obrigatórios <span>(necessários para a conta existir)</span></p>
 
-          <label class="consent-item is-locked">
-            <input type="checkbox" checked disabled>
+          <div class="consent-item is-locked">
+            <span class="consent-item__fixo" aria-hidden="true">✓</span>
             <span>Criar, autenticar e manter a minha conta</span>
-          </label>
-          <label class="consent-item is-locked">
-            <input type="checkbox" checked disabled>
+          </div>
+          <div class="consent-item is-locked">
+            <span class="consent-item__fixo" aria-hidden="true">✓</span>
             <span>Registrar e guardar meus treinos e histórico</span>
-          </label>
-          <label class="consent-item is-locked">
-            <input type="checkbox" checked disabled>
+          </div>
+          <div class="consent-item is-locked">
+            <span class="consent-item__fixo" aria-hidden="true">✓</span>
             <span>Manter meu histórico e minhas estatísticas individuais</span>
-          </label>
-          <label class="consent-item is-locked">
-            <input type="checkbox" checked disabled>
+          </div>
+          <div class="consent-item is-locked">
+            <span class="consent-item__fixo" aria-hidden="true">✓</span>
             <span>Tratar dados de treino que possam revelar condição de saúde (art. 11 da LGPD)</span>
-          </label>
-          <label class="consent-item is-locked">
-            <input type="checkbox" checked disabled>
+          </div>
+          <div class="consent-item is-locked">
+            <span class="consent-item__fixo" aria-hidden="true">✓</span>
             <span>Guardar registros técnicos de segurança e auditoria</span>
-          </label>
+          </div>
 
           <p class="consent-group-title">Opcionais <span>(pode recusar sem perder o uso do app)</span></p>
 

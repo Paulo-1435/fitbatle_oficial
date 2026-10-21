@@ -300,6 +300,20 @@ body.auth-pagina {
   opacity: 0.8;
 }
 
+.consent-item__fixo {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-top: 3px;
+  border-radius: 4px;
+  background: var(--cor-destaque);
+  color: var(--cor-sobre-destaque);
+  font-size: 0.6875rem;
+  font-weight: var(--peso-extra);
+  line-height: 16px;
+  text-align: center;
+}
+
 .consent-accept {
   display: flex;
   align-items: flex-start;
