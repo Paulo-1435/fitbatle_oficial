@@ -1,5 +1,6 @@
 from repositories.repository import ComentarioRepository
 from services.comum import ErroValidacao
+from services.feed.apoio import buscar_alvo
 
 
 class ExcluirComentarioService:
@@ -11,6 +12,7 @@ class ExcluirComentarioService:
         comentario = ComentarioRepository.buscar_por_id(id_comentario)
         if not comentario:
             raise ErroValidacao("Comentário não encontrado.", status=404)
+        buscar_alvo(comentario.tipo_alvo, comentario.id_alvo, id_usuario)
         if comentario.id_usuario != id_usuario:
             raise ErroValidacao("Você só pode excluir seus próprios comentários.", status=403)
         ComentarioRepository.excluir(comentario)

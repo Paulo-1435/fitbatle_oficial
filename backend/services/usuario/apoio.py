@@ -3,7 +3,7 @@ import re
 from datetime import date, datetime
 
 from repositories.repository import UsuarioRepository
-from services.comum import ErroValidacao
+from services.comum import ErroValidacao, texto_do_cliente
 from utils import IDADE_MAIORIDADE, agora, calcular_idade
 
 EMAIL_REGEX = r"^[^\s@]+@[^\s@]+\.[^\s@]+$"
@@ -23,11 +23,16 @@ def e_maior_de_idade(usuario):
     return idade is None or idade >= IDADE_MAIORIDADE
 
 
+def usuario_visivel_para(usuario, id_solicitante):
+    if usuario.id_usuario == id_solicitante:
+        return True
+    return bool(usuario.perfil_publico) and e_maior_de_idade(usuario)
+
+
 def buscar_usuario_visivel(id_usuario, id_solicitante):
     usuario = buscar_usuario(id_usuario)
-    if usuario.id_usuario != id_solicitante:
-        if not usuario.perfil_publico or not e_maior_de_idade(usuario):
-            raise ErroValidacao("Usuário não encontrado.", status=404)
+    if not usuario_visivel_para(usuario, id_solicitante):
+        raise ErroValidacao("Usuário não encontrado.", status=404)
     return usuario
 
 
@@ -78,8 +83,10 @@ def validar_faixa_etaria(idade, dados):
         return {}
 
     responsavel = dados.get("responsavel") or {}
-    nome = (responsavel.get("nome") or "").strip()
-    email = (responsavel.get("email") or "").strip()
+    if not isinstance(responsavel, dict):
+        raise ErroValidacao("Os dados do responsável legal devem ser enviados em formato de objeto.")
+    nome = texto_do_cliente(responsavel.get("nome"), "nome do responsável")
+    email = texto_do_cliente(responsavel.get("email"), "e-mail do responsável")
 
     if not dados.get("autorizacao_responsavel"):
         raise ErroValidacao(

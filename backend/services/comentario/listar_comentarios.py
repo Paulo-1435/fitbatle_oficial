@@ -5,8 +5,8 @@ from services.feed.apoio import buscar_alvo
 class ListarComentariosService:
 
     @staticmethod
-    def executar(tipo_alvo, id_alvo):
-        buscar_alvo(tipo_alvo, id_alvo)
+    def executar(tipo_alvo, id_alvo, id_solicitante):
+        buscar_alvo(tipo_alvo, id_alvo, id_solicitante)
         comentarios = ComentarioRepository.listar(tipo_alvo, id_alvo)
 
         resultado = []

@@ -67,12 +67,19 @@ def _id_logado():
     return g.usuario_atual.id_usuario
 
 
+def _corpo_json():
+    corpo = request.get_json(silent=True)
+    if not isinstance(corpo, dict):
+        raise ErroValidacao("Corpo da requisição vazio ou JSON inválido.")
+    return corpo
+
+
 class UsuarioController:
 
     @staticmethod
     def cadastrar():
         try:
-            usuario = CadastrarUsuarioService.executar(request.get_json(silent=True))
+            usuario = CadastrarUsuarioService.executar(_corpo_json())
             return jsonify({
                 "mensagem": "Cadastro concluído!",
                 "usuario": usuario.to_dict(),
@@ -82,8 +89,8 @@ class UsuarioController:
 
     @staticmethod
     def login():
-        dados = request.get_json(silent=True) or {}
         try:
+            dados = _corpo_json()
             usuario = AutenticarUsuarioService.executar(dados.get("email"), dados.get("senha"))
             return jsonify({
                 "mensagem": "Login efetuado!",
@@ -122,7 +129,7 @@ class UsuarioController:
     @staticmethod
     def atualizar(id_usuario):
         try:
-            usuario = AtualizarPerfilService.executar(id_usuario, request.get_json(silent=True))
+            usuario = AtualizarPerfilService.executar(id_usuario, _corpo_json())
             return jsonify({
                 "mensagem": "Usuário atualizado.",
                 "usuario": usuario.to_dict(),
@@ -161,7 +168,7 @@ class AtividadeController:
     def registrar(id_usuario):
         try:
             atividade, usuario = RegistrarTreinoService.executar(
-                id_usuario, request.get_json(silent=True)
+                id_usuario, _corpo_json()
             )
             return jsonify({
                 "mensagem": "Treino registrado!",
@@ -247,15 +254,15 @@ class ComentarioController:
     @staticmethod
     def listar(tipo_alvo, id_alvo):
         try:
-            comentarios = ListarComentariosService.executar(tipo_alvo, id_alvo)
+            comentarios = ListarComentariosService.executar(tipo_alvo, id_alvo, _id_logado())
             return jsonify(comentarios)
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status
 
     @staticmethod
     def criar(tipo_alvo, id_alvo):
-        dados = request.get_json(silent=True) or {}
         try:
+            dados = _corpo_json()
             comentario = CriarComentarioService.executar(
                 _id_logado(), tipo_alvo, id_alvo, dados.get("texto")
             )
@@ -325,8 +332,8 @@ class ConsentimentoController:
 
     @staticmethod
     def atualizar(id_usuario, chave):
-        dados = request.get_json(silent=True) or {}
         try:
+            dados = _corpo_json()
             registro = AtualizarConsentimentoService.executar(id_usuario, chave, dados.get("aceito"))
             return jsonify({
                 "mensagem": "Consentimento atualizado.",
@@ -341,7 +348,7 @@ class GrupoController:
     @staticmethod
     def criar():
         try:
-            grupo = CriarGrupoService.executar(_id_logado(), request.get_json(silent=True))
+            grupo = CriarGrupoService.executar(_id_logado(), _corpo_json())
             return jsonify({"mensagem": "Grupo criado!", "grupo": grupo.to_dict()}), 201
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status
@@ -387,8 +394,8 @@ class GrupoController:
 
     @staticmethod
     def entrar():
-        dados = request.get_json(silent=True) or {}
         try:
+            dados = _corpo_json()
             grupo = EntrarGrupoPorCodigoService.executar(_id_logado(), dados.get("codigo"))
             return jsonify({"mensagem": "Você entrou no grupo!", "grupo": grupo.to_dict()})
         except ErroValidacao as erro:
@@ -406,8 +413,8 @@ class GrupoController:
 
     @staticmethod
     def convidar(id_grupo):
-        dados = request.get_json(silent=True) or {}
         try:
+            dados = _corpo_json()
             convite = ConvidarParaGrupoService.executar(id_grupo, _id_logado(), dados.get("id_usuario"))
             return jsonify({"mensagem": "Convite enviado!", "id": convite.id_convite}), 201
         except ErroValidacao as erro:
@@ -422,8 +429,8 @@ class ConviteController:
 
     @staticmethod
     def responder(id_convite):
-        dados = request.get_json(silent=True) or {}
         try:
+            dados = _corpo_json()
             ResponderConviteService.executar(id_convite, _id_logado(), dados.get("aceito"))
             return jsonify({"mensagem": "Convite respondido.", "id": id_convite})
         except ErroValidacao as erro:
@@ -470,7 +477,7 @@ class CompartilhamentoController:
     @staticmethod
     def registrar():
         try:
-            registro = RegistrarCompartilhamentoService.executar(_id_logado(), request.get_json(silent=True))
+            registro = RegistrarCompartilhamentoService.executar(_id_logado(), _corpo_json())
             return jsonify({
                 "mensagem": "Compartilhamento registrado.",
                 "compartilhamento": registro.to_dict(),
@@ -484,7 +491,7 @@ class MetaController:
     @staticmethod
     def criar():
         try:
-            meta = CriarMetaService.executar(_id_logado(), request.get_json(silent=True))
+            meta = CriarMetaService.executar(_id_logado(), _corpo_json())
             return jsonify({"mensagem": "Meta criada!", "meta": meta}), 201
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status
@@ -503,7 +510,7 @@ class MetaController:
     @staticmethod
     def atualizar(id_meta):
         try:
-            meta = AtualizarMetaService.executar(id_meta, _id_logado(), request.get_json(silent=True))
+            meta = AtualizarMetaService.executar(id_meta, _id_logado(), _corpo_json())
             return jsonify({"mensagem": "Meta atualizada.", "meta": meta})
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status
@@ -522,7 +529,7 @@ class DesafioController:
     @staticmethod
     def criar():
         try:
-            desafio = CriarDesafioService.executar(_id_logado(), request.get_json(silent=True))
+            desafio = CriarDesafioService.executar(_id_logado(), _corpo_json())
             return jsonify({"mensagem": "Desafio criado!", "desafio": desafio}), 201
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status
@@ -541,7 +548,7 @@ class DesafioController:
     @staticmethod
     def atualizar(id_desafio):
         try:
-            desafio = AtualizarDesafioService.executar(_id_logado(), id_desafio, request.get_json(silent=True))
+            desafio = AtualizarDesafioService.executar(_id_logado(), id_desafio, _corpo_json())
             return jsonify({"mensagem": "Desafio atualizado.", "desafio": desafio})
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status

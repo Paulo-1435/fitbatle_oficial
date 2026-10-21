@@ -1,5 +1,5 @@
 from repositories.repository import ComentarioRepository
-from services.comum import ErroValidacao
+from services.comum import ErroValidacao, texto_do_cliente
 from services.feed.apoio import buscar_alvo
 from services.notificacao.apoio import gerar_notificacao
 from services.usuario.apoio import buscar_usuario
@@ -14,9 +14,9 @@ class CriarComentarioService:
         if id_usuario is None:
             raise ErroValidacao("Informe o usuário.", status=401)
         autor = buscar_usuario(id_usuario)
-        alvo = buscar_alvo(tipo_alvo, id_alvo)
+        alvo = buscar_alvo(tipo_alvo, id_alvo, id_usuario)
 
-        texto = (texto or "").strip()
+        texto = texto_do_cliente(texto, "texto")
         if not texto:
             raise ErroValidacao("Escreva um comentário.")
         if len(texto) > CriarComentarioService.TEXTO_MAX:

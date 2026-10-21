@@ -656,6 +656,75 @@ class TestConteudoDeMenores(BaseTeste):
         donos = {item["usuario"]["id"] for item in self.feed(self.token_menor)}
         self.assertIn(self.menor["id"], donos)
 
+    def postar(self, token, texto):
+        resposta = self.cli.post(
+            "/api/postagens", data={"texto": texto},
+            headers={"Authorization": "Bearer " + token}, content_type="multipart/form-data",
+        )
+        self.assertEqual(resposta.status_code, 201, resposta.get_data(as_text=True))
+        postagem = resposta.get_json()["postagem"]
+        return postagem.get("id") or postagem.get("id_postagem")
+
+    def acao_de_adulto(self, metodo, caminho, corpo=None):
+        return self.cli.open(caminho, method=metodo, json=corpo, headers=self.auth(self.token_adulto))
+
+    def test_adulto_nao_curte_treino_de_menor(self):
+        atividade = self.registrar_treino(self.menor, self.token_menor, "Corrida do menor")
+        resposta = self.acao_de_adulto("POST", f"/api/feed/atividade/{atividade['id']}/curtir")
+        self.assertEqual(resposta.status_code, 404)
+
+    def test_adulto_nao_comenta_nem_lista_comentarios_de_treino_de_menor(self):
+        atividade = self.registrar_treino(self.menor, self.token_menor, "Corrida do menor")
+        caminho = f"/api/feed/atividade/{atividade['id']}/comentarios"
+        self.assertEqual(self.acao_de_adulto("POST", caminho, {"texto": "Oi"}).status_code, 404)
+        self.assertEqual(self.acao_de_adulto("GET", caminho).status_code, 404)
+
+    def test_adulto_nao_curte_nem_comenta_postagem_de_menor(self):
+        postagem = self.postar(self.token_menor, "Post do menor")
+        self.assertEqual(
+            self.acao_de_adulto("POST", f"/api/feed/postagem/{postagem}/curtir").status_code, 404
+        )
+        self.assertEqual(
+            self.acao_de_adulto("POST", f"/api/feed/postagem/{postagem}/comentarios", {"texto": "Oi"}).status_code, 404
+        )
+
+    def test_adulto_nao_exclui_comentario_em_conteudo_de_menor(self):
+        atividade = self.registrar_treino(self.menor, self.token_menor, "Corrida do menor")
+        comentario = self.cli.post(
+            f"/api/feed/atividade/{atividade['id']}/comentarios",
+            json={"texto": "Comentario de teste"},
+            headers=self.auth(self.token_menor),
+        ).get_json()["comentario"]["id"]
+        resposta = self.acao_de_adulto("DELETE", f"/api/comentarios/{comentario}")
+        self.assertEqual(resposta.status_code, 404)
+
+    def test_menor_curte_comenta_lista_e_exclui_o_proprio_conteudo(self):
+        atividade = self.registrar_treino(self.menor, self.token_menor, "Corrida do menor")
+        caminho = f"/api/feed/atividade/{atividade['id']}/comentarios"
+        curtida = self.cli.post(
+            f"/api/feed/atividade/{atividade['id']}/curtir", headers=self.auth(self.token_menor)
+        )
+        self.assertEqual(curtida.status_code, 200)
+        comentario = self.cli.post(caminho, json={"texto": "Bom treino"}, headers=self.auth(self.token_menor))
+        self.assertEqual(comentario.status_code, 201)
+        lista = self.cli.get(caminho, headers=self.auth(self.token_menor)).get_json()
+        self.assertIn("Bom treino", [c["texto"] for c in lista])
+        excluido = self.cli.delete(
+            f"/api/comentarios/{comentario.get_json()['comentario']['id']}", headers=self.auth(self.token_menor)
+        )
+        self.assertEqual(excluido.status_code, 200)
+
+    def test_menor_ve_os_proprios_comentarios_em_postagem(self):
+        postagem = self.postar(self.token_menor, "Post do menor")
+        self.cli.post(
+            f"/api/feed/postagem/{postagem}/comentarios", json={"texto": "Comentario no proprio post"},
+            headers=self.auth(self.token_menor),
+        )
+        lista = self.cli.get(
+            f"/api/feed/postagem/{postagem}/comentarios", headers=self.auth(self.token_menor)
+        ).get_json()
+        self.assertEqual(len(lista), 1)
+
     def test_postagem_de_menor_nao_aparece_no_feed_de_adulto(self):
         self.cli.post(
             "/api/postagens", data={"texto": "Post do menor"},

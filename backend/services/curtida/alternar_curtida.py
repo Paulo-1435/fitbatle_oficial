@@ -12,7 +12,7 @@ class AlternarCurtidaService:
         if id_usuario is None:
             raise ErroValidacao("Informe o usuário.", status=401)
         quem_curtiu = buscar_usuario(id_usuario)
-        alvo = buscar_alvo(tipo_alvo, id_alvo)
+        alvo = buscar_alvo(tipo_alvo, id_alvo, id_usuario)
 
         existente = CurtidaRepository.buscar(id_usuario, tipo_alvo, id_alvo)
         if existente:
