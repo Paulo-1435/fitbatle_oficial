@@ -21,7 +21,8 @@ async function carregarNotificacoes() {
     }
     renderizarNotificacoes(await resposta.json());
   } catch (erro) {
-    lista.innerHTML = '<p class="estado-vazio">Não foi possível conectar à API.</p>';
+    lista.innerHTML = '';
+    mostrarFalhaDeCarregamento(carregarNotificacoes);
   }
 }
 
@@ -64,6 +65,6 @@ async function marcarTodasComoLidas() {
     await api('/notificacoes/lidas', { method: 'PUT' });
     carregarNotificacoes();
   } catch (erro) {
-    mostrarToast('Não foi possível conectar à API.');
+    mostrarToast('Não foi possível falar com o servidor. Tente novamente.');
   }
 }

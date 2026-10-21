@@ -29,7 +29,7 @@ async function carregarMeta() {
     metaAtual = meta;
     renderizar(meta);
   } catch (e) {
-    mostrarToast('Não foi possível conectar à API.');
+    mostrarFalhaDeCarregamento(carregarMeta);
   }
 }
 
@@ -158,7 +158,7 @@ async function editarMeta() {
     mostrarToast('Meta atualizada.');
     carregarMeta();
   } catch (e) {
-    mostrarToast('Não foi possível conectar à API.');
+    mostrarToast('Não foi possível falar com o servidor. Tente novamente.');
   }
 }
 
@@ -175,7 +175,7 @@ async function excluirMeta() {
     mostrarToast('Meta excluída.');
     window.location.href = 'metas.html';
   } catch (e) {
-    mostrarToast('Não foi possível conectar à API.');
+    mostrarToast('Não foi possível falar com o servidor. Tente novamente.');
   }
 }
 

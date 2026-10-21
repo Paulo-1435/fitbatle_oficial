@@ -13,7 +13,6 @@ document.addEventListener('DOMContentLoaded', function () {
   usuarioLogado = exigirLogin();
   if (!usuarioLogado) return;
 
-  ligarAvisosEmBreve();
   carregarDesafioAtivo();
   configurarExercicios();
   configurarPeso();
@@ -25,14 +24,6 @@ document.addEventListener('DOMContentLoaded', function () {
   atualizarRecompensaEstimada();
   carregarHistoricoDoUsuario();
 });
-
-function ligarAvisosEmBreve() {
-  document.body.addEventListener('click', function (evento) {
-    const alvo = evento.target.closest('[data-em-breve]');
-    if (!alvo) return;
-    mostrarToast(alvo.getAttribute('data-em-breve') + ' estará disponível em breve.');
-  });
-}
 
 async function carregarHistoricoDoUsuario() {
   try {
@@ -274,7 +265,7 @@ function configurarSubmissao() {
       mostrarToast('Treino registrado! +' + dados.pontuacao_ganha + ' xp');
       setTimeout(function () { window.location.href = 'feed.html'; }, 1400);
     } catch (e) {
-      erro.textContent = 'Não foi possível conectar à API.';
+      erro.textContent = 'Não foi possível falar com o servidor. Tente novamente.';
     } finally {
       botao.disabled = false;
     }

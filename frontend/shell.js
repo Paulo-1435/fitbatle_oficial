@@ -139,9 +139,9 @@ function montarBusca() {
     classe: 'busca__campo',
     type: 'search',
     id: 'busca-global',
-    placeholder: 'Buscar pessoas...',
+    placeholder: 'Buscar pessoas por nome ou cidade',
     autocomplete: 'off',
-    'aria-label': 'Buscar pessoas'
+    'aria-label': 'Buscar pessoas por nome ou cidade'
   });
   const resultados = criarElemento('ul', { classe: 'menu-flutuante busca__resultados', hidden: true });
   const caixa = criarElemento('div', { classe: 'busca' }, [criarElemento('span', { html: ICONES.busca }).firstChild, campo, resultados]);
@@ -190,7 +190,7 @@ function montarBusca() {
       if (!resposta.ok) return mostrarAviso('Não foi possível buscar agora.');
       mostrarResultados(await resposta.json());
     } catch (e) {
-      if (minha === sequencia) mostrarAviso('Não foi possível conectar à API.');
+      if (minha === sequencia) mostrarAviso('Não foi possível falar com o servidor. Tente novamente.');
     }
   }
 

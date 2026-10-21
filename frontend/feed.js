@@ -38,9 +38,7 @@ function configurarBanner() {
 }
 
 async function carregarBanner() {
-  const chips = document.getElementById('feedChips');
   const subtitulo = document.getElementById('feedSubtitulo');
-  chips.replaceChildren(criarElemento('span', { classe: 'badge badge--placeholder', texto: 'Unidade: em breve' }));
 
   try {
     const resposta = await api(`/usuarios/${usuarioLogado.id}/atividades`);
@@ -79,7 +77,8 @@ async function carregarFeed() {
     lista.innerHTML = itens.map(htmlCardFeed).join('');
     aplicarFotosNoAvatares(lista);
   } catch (e) {
-    lista.replaceChildren(criarElemento('p', { classe: 'estado-vazio', texto: 'Não foi possível carregar o feed. A API está rodando?' }));
+    lista.replaceChildren();
+    mostrarFalhaDeCarregamento(function () { carregarFeed(); carregarTop3(); });
   }
 }
 
@@ -103,7 +102,8 @@ async function carregarTop3() {
       </div>`;
     }).join('');
   } catch (e) {
-    lista.replaceChildren(criarElemento('p', { classe: 'estado-vazio', texto: 'Não foi possível carregar o ranking.' }));
+    lista.replaceChildren();
+    mostrarFalhaDeCarregamento(function () { carregarFeed(); carregarTop3(); });
   }
 }
 
@@ -248,7 +248,7 @@ async function curtir(botao) {
     botao.classList.toggle('feed-acao--ativa', dados.curti);
     botao.querySelector('[data-contagem="curtidas"]').textContent = dados.curtidas + ' Mandou Bem';
   } catch (e) {
-    mostrarToast('Não foi possível conectar à API.');
+    mostrarToast('Não foi possível falar com o servidor. Tente novamente.');
   } finally {
     botao.disabled = false;
   }
@@ -314,7 +314,7 @@ async function enviarComentario(form) {
     const atual = parseInt(contagem.textContent, 10) || 0;
     contagem.textContent = (atual + 1) + ' Comentários';
   } catch (e) {
-    mostrarToast('Não foi possível conectar à API.');
+    mostrarToast('Não foi possível falar com o servidor. Tente novamente.');
   } finally {
     botao.disabled = false;
   }
@@ -411,7 +411,7 @@ function configurarModalTreino() {
       carregarBanner();
       carregarFeed();
     } catch (e) {
-      erro.textContent = 'Não foi possível conectar à API.';
+      erro.textContent = 'Não foi possível falar com o servidor. Tente novamente.';
     } finally {
       botaoSalvar.disabled = false;
     }

@@ -53,7 +53,7 @@ async function carregarGrupo() {
       carregarLink();
     }
   } catch (e) {
-    mostrarToast('Não foi possível conectar à API.');
+    mostrarToast('Não foi possível falar com o servidor. Tente novamente.');
   }
 }
 
@@ -82,7 +82,7 @@ async function regenerarLink() {
     document.getElementById('linkConvite').value = montarLink(dados.codigo);
     mostrarToast('Novo link gerado. O anterior deixou de funcionar.');
   } catch (e) {
-    mostrarToast('Não foi possível conectar à API.');
+    mostrarToast('Não foi possível falar com o servidor. Tente novamente.');
   }
 }
 
@@ -113,7 +113,7 @@ async function buscar(termo) {
     renderizarResultados(dados);
   } catch (e) {
     if (minha === sequenciaBusca) {
-      document.getElementById('resultadosConvite').innerHTML = '<li class="estado-vazio">Não foi possível conectar à API.</li>';
+      document.getElementById('resultadosConvite').innerHTML = '<li class="estado-vazio">Não foi possível falar com o servidor. Tente novamente.</li>';
     }
   }
 }
@@ -175,7 +175,7 @@ async function convidar(botao) {
     botao.outerHTML = '<button type="button" class="btn btn--secundario btn--pequeno" disabled>✓ Convite Enviado</button>';
     mostrarToast('Convite enviado!');
   } catch (e) {
-    mostrarToast('Não foi possível conectar à API.');
+    mostrarToast('Não foi possível falar com o servidor. Tente novamente.');
     botao.disabled = false;
   }
 }

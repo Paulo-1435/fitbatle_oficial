@@ -26,7 +26,7 @@ async function carregarPerfilPublico(idPerfil) {
     renderizarPerfilPublico(usuario);
     carregarPosicaoNoRanking(idPerfil);
   } catch (erro) {
-    document.getElementById('cartaoNaoEncontrado').hidden = false;
+    mostrarFalhaDeCarregamento(function () { carregarPerfilPublico(idPerfil); });
   }
 }
 

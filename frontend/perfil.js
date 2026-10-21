@@ -71,10 +71,14 @@ document.addEventListener('DOMContentLoaded', function () {
   configurarAvatar();
   configurarRanking();
 
+  carregarTudo();
+});
+
+function carregarTudo() {
   carregarPerfil();
   carregarTreinos();
   carregarRankingLocal();
-});
+}
 
 function configurarAvatar() {
   ligar('avatarLarge', 'click', function () {
@@ -105,7 +109,7 @@ async function carregarPerfil() {
     atualizarUsuarioDaSessao(u);
     preencherPerfil(u);
   } catch (e) {
-    mostrarToast('Não foi possível carregar o perfil. A API está rodando?');
+    mostrarFalhaDeCarregamento(carregarTudo);
   }
 }
 
@@ -138,7 +142,7 @@ async function carregarTreinos() {
     document.getElementById('statTreinos').textContent = treinos.length;
     document.getElementById('statSequencia').textContent = calcularSequencia(treinos) + 'd';
   } catch (e) {
-    mostrarToast('Não foi possível carregar os treinos.');
+    mostrarFalhaDeCarregamento(carregarTudo);
   }
 }
 
@@ -150,6 +154,7 @@ async function carregarRankingLocal() {
     const pos = dados.regional && dados.regional.posicao;
     document.getElementById('statRanking').textContent = pos ? pos + 'º' : '—';
   } catch (e) {
+    mostrarFalhaDeCarregamento(carregarTudo);
   }
 }
 
@@ -344,7 +349,7 @@ function configurarModais() {
       carregarTreinos();
       carregarRankingLocal();
     } catch (err) {
-      erro.textContent = 'Não foi possível conectar à API.';
+      erro.textContent = 'Não foi possível falar com o servidor. Tente novamente.';
     }
   });
 
@@ -400,7 +405,7 @@ function configurarModais() {
       fecharOverlay('overlayPerfil');
       mostrarToast('Perfil atualizado.');
     } catch (err) {
-      erro.textContent = 'Não foi possível conectar à API.';
+      erro.textContent = 'Não foi possível falar com o servidor. Tente novamente.';
     }
   });
 }
@@ -489,7 +494,7 @@ async function carregarRanking(escopo) {
         '</div>';
     }).join('');
   } catch (e) {
-    lista.innerHTML = '<p class="rank-vazio">Não foi possível conectar à API.</p>';
+    lista.innerHTML = '<p class="rank-vazio">Não foi possível falar com o servidor. Tente novamente.</p>';
   }
 }
 

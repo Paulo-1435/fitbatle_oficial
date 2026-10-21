@@ -63,7 +63,8 @@ async function carregarMetas() {
     renderizarRecentes();
     atualizarEmAndamentoGeral();
   } catch (e) {
-    grade.innerHTML = '<p class="estado-vazio">Não foi possível conectar à API.</p>';
+    grade.innerHTML = '';
+    mostrarFalhaDeCarregamento(function () { carregarMetas(); carregarDesafios(); });
   }
 }
 
@@ -205,7 +206,8 @@ async function carregarDesafios() {
     renderizarDesafios();
     atualizarEmAndamentoGeral();
   } catch (e) {
-    grade.innerHTML = '<p class="estado-vazio">Não foi possível conectar à API.</p>';
+    grade.innerHTML = '';
+    mostrarFalhaDeCarregamento(function () { carregarMetas(); carregarDesafios(); });
   }
 }
 
@@ -300,7 +302,7 @@ async function participarDesafio(id) {
     mostrarToast('Inscrição confirmada!');
     carregarDesafios();
   } catch (e) {
-    mostrarToast('Não foi possível conectar à API.');
+    mostrarToast('Não foi possível falar com o servidor. Tente novamente.');
   }
 }
 
@@ -312,7 +314,7 @@ async function desistirDesafio(id) {
     mostrarToast('Você desistiu do desafio.');
     carregarDesafios();
   } catch (e) {
-    mostrarToast('Não foi possível conectar à API.');
+    mostrarToast('Não foi possível falar com o servidor. Tente novamente.');
   }
 }
 
@@ -324,7 +326,7 @@ async function encerrarDesafio(id) {
     mostrarToast('Desafio encerrado.');
     carregarDesafios();
   } catch (e) {
-    mostrarToast('Não foi possível conectar à API.');
+    mostrarToast('Não foi possível falar com o servidor. Tente novamente.');
   }
 }
 
@@ -380,7 +382,7 @@ async function enviarFormDesafio(evento) {
     cancelarEdicaoDesafio();
     carregarDesafios();
   } catch (e) {
-    erro.textContent = 'Não foi possível conectar à API.';
+    erro.textContent = 'Não foi possível falar com o servidor. Tente novamente.';
   }
 }
 

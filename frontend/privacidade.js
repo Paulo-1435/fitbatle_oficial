@@ -16,7 +16,7 @@ async function carregarConsentimentos() {
     const registros = await resposta.json();
     renderizarConsentimentos(registros);
   } catch (e) {
-    erro.textContent = 'Não foi possível carregar suas preferências. A API está rodando?';
+    mostrarFalhaDeCarregamento(carregarConsentimentos);
   }
 }
 
@@ -100,7 +100,7 @@ async function salvarConsentimento(chave, caixa, legenda) {
     mostrarToast('Preferência salva.');
   } catch (e) {
     caixa.checked = anterior;
-    mostrarToast('Não foi possível conectar à API.');
+    mostrarToast('Não foi possível falar com o servidor. Tente novamente.');
   } finally {
     caixa.disabled = false;
   }

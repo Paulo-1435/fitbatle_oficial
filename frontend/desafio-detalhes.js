@@ -40,7 +40,7 @@ async function carregarDesafio() {
     desafioAtual = desafio;
     renderizar(desafio);
   } catch (e) {
-    mostrarToast('Não foi possível conectar à API.');
+    mostrarFalhaDeCarregamento(carregarDesafio);
   }
 }
 
@@ -96,7 +96,7 @@ async function participar() {
     mostrarToast('Inscrição confirmada!');
     carregarDesafio();
   } catch (e) {
-    mostrarToast('Não foi possível conectar à API.');
+    mostrarToast('Não foi possível falar com o servidor. Tente novamente.');
   }
 }
 
@@ -108,7 +108,7 @@ async function desistir() {
     mostrarToast('Você desistiu do desafio.');
     carregarDesafio();
   } catch (e) {
-    mostrarToast('Não foi possível conectar à API.');
+    mostrarToast('Não foi possível falar com o servidor. Tente novamente.');
   }
 }
 
@@ -120,7 +120,7 @@ async function encerrar() {
     mostrarToast('Desafio encerrado.');
     carregarDesafio();
   } catch (e) {
-    mostrarToast('Não foi possível conectar à API.');
+    mostrarToast('Não foi possível falar com o servidor. Tente novamente.');
   }
 }
 

@@ -85,6 +85,15 @@ function encerrarSessao() {
   window.location.href = PAGINA_LOGIN;
 }
 
+const MENSAGEM_SEM_CONEXAO = 'Não foi possível falar com o servidor. Tente novamente.';
+
+class ErroDeConexao extends Error {
+  constructor() {
+    super(MENSAGEM_SEM_CONEXAO);
+    this.name = 'ErroDeConexao';
+  }
+}
+
 async function api(caminho, opcoes) {
   const config = Object.assign({}, opcoes);
   const cabecalhos = Object.assign({}, config.headers);
@@ -92,9 +101,42 @@ async function api(caminho, opcoes) {
   if (sessao) cabecalhos['Authorization'] = 'Bearer ' + sessao.token;
   config.headers = cabecalhos;
 
-  const resposta = await fetch(API_URL + caminho, config);
+  let resposta;
+  try {
+    resposta = await fetch(API_URL + caminho, config);
+  } catch (erro) {
+    throw new ErroDeConexao();
+  }
   if (resposta.status === 401) encerrarSessao();
+  if (resposta.status >= 500) throw new ErroDeConexao();
   return resposta;
+}
+
+function mostrarFalhaDeCarregamento(aoTentarDeNovo) {
+  document.querySelectorAll('body *').forEach(function (elemento) {
+    if (elemento.childElementCount === 0 && /^carregando/i.test(elemento.textContent.trim())) {
+      elemento.textContent = /^(H[1-6]|SPAN)$/.test(elemento.tagName) ? 'Indisponível no momento' : MENSAGEM_SEM_CONEXAO;
+    }
+  });
+  let bloco = document.getElementById('falhaDeCarregamento');
+  if (bloco) bloco.remove();
+  bloco = document.createElement('div');
+  bloco.id = 'falhaDeCarregamento';
+  bloco.className = 'card card--interno estado-falha';
+  bloco.setAttribute('role', 'alert');
+  const texto = document.createElement('p');
+  texto.textContent = MENSAGEM_SEM_CONEXAO;
+  const botao = document.createElement('button');
+  botao.type = 'button';
+  botao.className = 'btn btn--secundario btn--pequeno';
+  botao.textContent = 'Tentar de novo';
+  botao.addEventListener('click', function () {
+    bloco.remove();
+    aoTentarDeNovo();
+  });
+  bloco.append(texto, botao);
+  const principal = document.querySelector('main') || document.body;
+  principal.insertBefore(bloco, principal.firstChild);
 }
 
 async function atualizarSessaoPelaApi() {

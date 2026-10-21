@@ -16,20 +16,11 @@ document.addEventListener('DOMContentLoaded', function () {
   usuarioLogado = exigirLogin();
   if (!usuarioLogado) return;
 
-  ligarAvisosEmBreve();
   ligarAbas();
   ligarAbasExercicio();
   configurarBotaoRegional();
   atualizarRanking();
 });
-
-function ligarAvisosEmBreve() {
-  document.body.addEventListener('click', function (evento) {
-    const alvo = evento.target.closest('[data-em-breve]');
-    if (!alvo) return;
-    mostrarToast(alvo.getAttribute('data-em-breve') + ' estará disponível em breve.');
-  });
-}
 
 function configurarBotaoRegional() {
   const semCidade = !usuarioLogado.cidade;
@@ -128,7 +119,7 @@ async function carregarRanking(escopo) {
     renderizarTabela(dados, 'xp');
     renderizarMinhaPosicao(dados, 'xp', { escopo: escopo });
   } catch (e) {
-    mostrarErro('Não foi possível conectar à API.');
+    mostrarFalhaDeCarregamento(function () { carregarRanking(escopo); });
   }
 }
 
@@ -149,7 +140,7 @@ async function carregarRankingPorExercicio(titulo, cidade) {
     renderizarTabela(dados, 'exercicio', { vazio: 'Ninguém registrou este exercício ainda.' });
     renderizarMinhaPosicao(dados, 'exercicio', { titulo: titulo });
   } catch (e) {
-    mostrarErro('Não foi possível conectar à API.');
+    mostrarFalhaDeCarregamento(function () { carregarRankingPorExercicio(titulo, cidade); });
   }
 }
 

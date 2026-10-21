@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     botao.textContent = 'Acessar o grupo';
     botao.href = 'grupo-detalhes.html?id=' + dados.grupo.id;
   } catch (e) {
-    titulo.textContent = 'Não foi possível conectar à API.';
+    titulo.textContent = 'Não foi possível falar com o servidor. Tente novamente.';
     texto.textContent = 'Verifique sua conexão e tente novamente.';
     botao.hidden = false;
     botao.textContent = 'Ver meus grupos';

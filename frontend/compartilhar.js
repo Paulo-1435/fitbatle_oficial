@@ -86,6 +86,6 @@ async function abrirCompartilhar(opcoes) {
     if (!compartilhamento || !compartilhamento.aceito) return abrirAvisoCompartilhar();
     abrirMenuCompartilhar(opcoes);
   } catch (erro) {
-    mostrarToast('Não foi possível conectar à API.');
+    mostrarToast('Não foi possível falar com o servidor. Tente novamente.');
   }
 }
