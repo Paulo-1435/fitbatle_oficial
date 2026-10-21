@@ -5,7 +5,7 @@ from services.atividade.apoio import (
     calcular_pontuacao,
     nivel_por_xp,
 )
-from services.comum import ErroValidacao, numero_decimal
+from services.comum import ErroValidacao, numero_decimal, texto_do_cliente
 from services.desafio.avaliar_desafios_do_usuario import AvaliarDesafiosDoUsuarioService
 from services.notificacao.apoio import gerar_notificacao
 from services.usuario.apoio import buscar_usuario
@@ -25,7 +25,7 @@ def _validar(dados):
     if not dados:
         raise ErroValidacao("Corpo da requisição vazio ou JSON inválido.")
 
-    tipo = (dados.get("tipo") or "").strip().lower()
+    tipo = texto_do_cliente(dados.get("tipo"), "tipo").lower()
     if tipo not in TIPOS_VALIDOS:
         raise ErroValidacao(
             "Tipo inválido. Use: " + ", ".join(sorted(TIPOS_VALIDOS))
@@ -47,8 +47,8 @@ def _validar(dados):
 
     return {
         "tipo": tipo,
-        "titulo": (dados.get("titulo") or None),
-        "descricao": (dados.get("descricao") or None),
+        "titulo": texto_do_cliente(dados.get("titulo"), "título") or None,
+        "descricao": texto_do_cliente(dados.get("descricao"), "descrição") or None,
         **numericos,
     }
 

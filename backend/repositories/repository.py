@@ -725,10 +725,6 @@ class DesafioRepository:
         )
 
     @staticmethod
-    def listar_todos():
-        return Desafio.query.order_by(Desafio.data_inicio.desc()).all()
-
-    @staticmethod
     def salvar(desafio):
         db.session.add(desafio)
         db.session.commit()

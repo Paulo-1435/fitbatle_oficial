@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 from repositories.repository import AtividadeRepository, DesafioRepository, DesafioUsuarioRepository, UsuarioRepository
-from services.comum import ErroValidacao, numero_decimal
+from services.comum import VALOR_OBJETIVO_MAXIMO, ErroValidacao, numero_decimal, texto_do_cliente
 from services.notificacao.apoio import gerar_notificacao
 from services.usuario.apoio import buscar_usuario
 from utils import agora, iso_utc
@@ -9,7 +9,6 @@ from utils import agora, iso_utc
 TIPOS_METRICA = {"treinos", "carga_maxima"}
 NOME_MAX = 120
 DESCRICAO_MAX = 500
-VALOR_OBJETIVO_MAXIMO = 1000000
 RECOMPENSA_XP_MAXIMA = 100000
 
 
@@ -107,7 +106,7 @@ def dict_admin_desafio(desafio):
 
 
 def validar_nome_desafio(nome):
-    nome = (nome or "").strip()
+    nome = texto_do_cliente(nome, "nome")
     if not nome:
         raise ErroValidacao("Informe o nome do desafio.")
     if len(nome) > NOME_MAX:
@@ -116,13 +115,14 @@ def validar_nome_desafio(nome):
 
 
 def validar_tipo_metrica_desafio(tipo_metrica):
+    tipo_metrica = texto_do_cliente(tipo_metrica, "tipo de métrica")
     if tipo_metrica not in TIPOS_METRICA:
         raise ErroValidacao("Tipo de métrica inválido. Use: treinos ou carga_maxima.")
     return tipo_metrica
 
 
 def normalizar_exercicio_desafio(exercicio):
-    exercicio = (exercicio or "").strip()
+    exercicio = texto_do_cliente(exercicio, "exercício")
     return exercicio if exercicio else "livre"
 
 

@@ -1,11 +1,9 @@
 from datetime import date, datetime
 
 from repositories.repository import AtividadeRepository, MetaRepository
-from services.comum import ErroValidacao, numero_decimal
+from services.comum import VALOR_OBJETIVO_MAXIMO, ErroValidacao, numero_decimal
 from services.notificacao.apoio import gerar_notificacao
 from utils import agora
-
-VALOR_OBJETIVO_MAXIMO = 1000000
 
 
 def buscar_meta(id_meta):

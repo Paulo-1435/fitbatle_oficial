@@ -4,7 +4,7 @@ from repositories.repository import (
     ConsentimentoRepository,
     MetaRepository,
 )
-from services.comum import ErroValidacao
+from services.comum import ErroValidacao, inteiro_do_cliente, texto_do_cliente
 
 TIPOS_CONTEUDO = {"atividade", "meta", "recorde"}
 REDES_SOCIAIS = {"whatsapp", "x", "telegram", "web_share", "copiar"}
@@ -15,8 +15,8 @@ class RegistrarCompartilhamentoService:
     @staticmethod
     def executar(id_usuario, dados):
         dados = dados or {}
-        tipo_conteudo = dados.get("tipo_conteudo")
-        rede_social = dados.get("rede_social")
+        tipo_conteudo = texto_do_cliente(dados.get("tipo_conteudo"), "tipo de conteúdo")
+        rede_social = texto_do_cliente(dados.get("rede_social"), "rede social")
 
         if tipo_conteudo not in TIPOS_CONTEUDO:
             raise ErroValidacao("Tipo de conteúdo inválido para compartilhamento.")
@@ -37,6 +37,7 @@ class RegistrarCompartilhamentoService:
             id_atividade = dados.get("id_atividade")
             if not id_atividade:
                 raise ErroValidacao("Informe a atividade a compartilhar.")
+            id_atividade = inteiro_do_cliente(id_atividade, "id_atividade")
             atividade = AtividadeRepository.buscar_por_id(id_atividade)
             if not atividade:
                 raise ErroValidacao("Atividade não encontrada.", status=404)
@@ -46,6 +47,7 @@ class RegistrarCompartilhamentoService:
             id_meta = dados.get("id_meta")
             if not id_meta:
                 raise ErroValidacao("Informe a meta a compartilhar.")
+            id_meta = inteiro_do_cliente(id_meta, "id_meta")
             meta = MetaRepository.buscar_por_id(id_meta)
             if not meta:
                 raise ErroValidacao("Meta não encontrada.", status=404)

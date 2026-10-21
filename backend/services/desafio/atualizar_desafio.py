@@ -1,5 +1,5 @@
 from repositories.repository import DesafioRepository
-from services.comum import ErroValidacao
+from services.comum import ErroValidacao, texto_do_cliente
 from services.desafio.apoio import (
     DESCRICAO_MAX,
     buscar_desafio,
@@ -25,7 +25,7 @@ class AtualizarDesafioService:
         if dados.get("nome") is not None:
             desafio.nome = validar_nome_desafio(dados["nome"])
         if "descricao" in dados:
-            descricao = (dados["descricao"] or "").strip()
+            descricao = texto_do_cliente(dados["descricao"], "descrição")
             if len(descricao) > DESCRICAO_MAX:
                 raise ErroValidacao(f"A descrição pode ter no máximo {DESCRICAO_MAX} caracteres.")
             desafio.descricao = descricao or None

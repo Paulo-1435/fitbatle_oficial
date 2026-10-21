@@ -1,5 +1,5 @@
 from repositories.repository import GrupoRepository
-from services.comum import ErroValidacao
+from services.comum import ErroValidacao, texto_do_cliente
 from services.grupo.apoio import gerar_codigo_convite
 
 
@@ -11,8 +11,8 @@ class CriarGrupoService:
     @staticmethod
     def executar(id_usuario, dados):
         dados = dados or {}
-        nome = (dados.get("nome") or "").strip()
-        descricao = (dados.get("descricao") or "").strip() or None
+        nome = texto_do_cliente(dados.get("nome"), "nome")
+        descricao = texto_do_cliente(dados.get("descricao"), "descrição") or None
 
         if not nome:
             raise ErroValidacao("Informe o nome do grupo.")

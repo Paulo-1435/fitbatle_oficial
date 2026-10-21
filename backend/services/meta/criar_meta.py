@@ -1,7 +1,7 @@
 from datetime import date
 
 from repositories.repository import AtividadeRepository, MetaRepository
-from services.comum import ErroValidacao
+from services.comum import ErroValidacao, texto_do_cliente
 from services.meta.apoio import meta_com_progresso, validar_data_meta, validar_numero_meta
 
 
@@ -14,10 +14,10 @@ class CriarMetaService:
     @staticmethod
     def executar(id_usuario, dados):
         dados = dados or {}
-        titulo = (dados.get("titulo") or "").strip()
-        tipo = dados.get("tipo")
-        tipo_metrica = dados.get("tipo_metrica")
-        exercicio = (dados.get("exercicio") or "").strip() or None
+        titulo = texto_do_cliente(dados.get("titulo"), "título")
+        tipo = texto_do_cliente(dados.get("tipo"), "tipo")
+        tipo_metrica = texto_do_cliente(dados.get("tipo_metrica"), "tipo de métrica")
+        exercicio = texto_do_cliente(dados.get("exercicio"), "exercício") or None
         data_final = dados.get("data_final")
 
         if not titulo:

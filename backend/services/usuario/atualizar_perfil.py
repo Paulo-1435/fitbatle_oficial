@@ -3,7 +3,7 @@ import re
 from werkzeug.security import generate_password_hash
 
 from repositories.repository import UsuarioRepository
-from services.comum import ErroValidacao, numero_decimal
+from services.comum import ErroValidacao, numero_decimal, senha_do_cliente, texto_do_cliente
 from services.usuario.apoio import (
     EMAIL_REGEX,
     IDADE_MINIMA_CADASTRO,
@@ -41,11 +41,13 @@ class AtualizarPerfilService:
         if any(dados.get(campo) is not None for campo in CAMPOS_DO_RESPONSAVEL):
             raise ErroValidacao("Os dados do responsável legal não podem ser alterados pelo perfil.")
 
-        if dados.get("nome") is not None and len(dados["nome"].strip()) < 3:
-            raise ErroValidacao("O nome deve ter no mínimo 3 caracteres.")
+        if dados.get("nome") is not None:
+            dados["nome"] = texto_do_cliente(dados["nome"], "nome")
+            if len(dados["nome"]) < 3:
+                raise ErroValidacao("O nome deve ter no mínimo 3 caracteres.")
 
-        if dados.get("email"):
-            email = dados["email"].strip()
+        if dados.get("email") is not None:
+            email = texto_do_cliente(dados["email"], "e-mail")
             if not re.match(EMAIL_REGEX, email):
                 raise ErroValidacao("Informe um e-mail válido.")
             existente = UsuarioRepository.buscar_por_email(email)
@@ -53,12 +55,17 @@ class AtualizarPerfilService:
                 raise ErroValidacao("E-mail já cadastrado.", status=409)
             dados["email"] = email
 
-        if dados.get("senha"):
-            if len(dados["senha"]) < 8:
-                raise ErroValidacao("A senha deve ter no mínimo 8 caracteres.")
-            dados["senha"] = generate_password_hash(dados["senha"])
+        for campo, nome in (("cidade", "cidade"), ("estado", "estado"), ("descricao", "descrição")):
+            if dados.get(campo) is not None:
+                dados[campo] = texto_do_cliente(dados[campo], nome)
 
-        if dados.get("data_nascimento"):
+        if dados.get("senha"):
+            senha = senha_do_cliente(dados["senha"])
+            if len(senha) < 8:
+                raise ErroValidacao("A senha deve ter no mínimo 8 caracteres.")
+            dados["senha"] = generate_password_hash(senha)
+
+        if dados.get("data_nascimento") is not None:
             nascimento, idade = validar_data_nascimento(dados["data_nascimento"])
             if idade < IDADE_MINIMA_CADASTRO:
                 raise ErroValidacao(
@@ -70,6 +77,9 @@ class AtualizarPerfilService:
                 )
             dados["data_nascimento"] = nascimento
 
+        for campo in ("peso", "altura"):
+            if dados.get(campo) == "":
+                dados.pop(campo)
         if dados.get("peso") not in (None, ""):
             dados["peso"] = _validar_numero(dados["peso"], "peso", 20, 400)
         if dados.get("altura") not in (None, ""):

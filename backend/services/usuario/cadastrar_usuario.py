@@ -3,15 +3,15 @@ import re
 from werkzeug.security import generate_password_hash
 
 from repositories.repository import UsuarioRepository
-from services.comum import ErroValidacao
+from services.comum import ErroValidacao, senha_do_cliente, texto_do_cliente
 from services.privacidade.apoio import registrar_consentimentos_iniciais
 from services.usuario.apoio import EMAIL_REGEX, validar_data_nascimento, validar_faixa_etaria
 
 
 def _validar(dados):
-    nome = (dados.get("nome") or "").strip()
-    email = (dados.get("email") or "").strip()
-    senha = dados.get("senha") or ""
+    nome = texto_do_cliente(dados.get("nome"), "nome")
+    email = texto_do_cliente(dados.get("email"), "e-mail")
+    senha = senha_do_cliente(dados.get("senha") or "")
 
     if len(nome) < 3:
         raise ErroValidacao("O nome deve ter no mínimo 3 caracteres.")
@@ -24,9 +24,9 @@ def _validar(dados):
         "nome": nome,
         "email": email,
         "senha": senha,
-        "cidade": (dados.get("cidade") or None),
-        "estado": (dados.get("estado") or None),
-        "descricao": (dados.get("descricao") or None),
+        "cidade": texto_do_cliente(dados.get("cidade"), "cidade") or None,
+        "estado": texto_do_cliente(dados.get("estado"), "estado") or None,
+        "descricao": texto_do_cliente(dados.get("descricao"), "descrição") or None,
     }
 
 
@@ -52,6 +52,8 @@ class CadastrarUsuarioService:
             raise ErroValidacao("E-mail já cadastrado.", status=409)
 
         consentimentos = dados.get("consentimentos") or {}
+        if not isinstance(consentimentos, dict):
+            raise ErroValidacao("Os consentimentos devem ser enviados em formato de objeto.")
         limpos["perfil_publico"] = bool(consentimentos.get("ranking_publico", True))
 
         limpos["senha"] = generate_password_hash(limpos["senha"])

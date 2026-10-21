@@ -3,6 +3,7 @@ import os
 import secrets
 
 EXTENSOES_FOTO = {"png", "jpg", "jpeg", "gif", "webp"}
+VALOR_OBJETIVO_MAXIMO = 1000000
 
 
 def numero_decimal(valor, nome, maximo):
@@ -23,6 +24,30 @@ class ErroValidacao(Exception):
         super().__init__(mensagem)
         self.mensagem = mensagem
         self.status = status
+
+
+def texto_do_cliente(valor, nome):
+    if valor is None:
+        return ""
+    if not isinstance(valor, str):
+        raise ErroValidacao(f"O campo '{nome}' deve ser um texto.")
+    return valor.strip()
+
+
+def senha_do_cliente(valor):
+    if not isinstance(valor, str):
+        raise ErroValidacao("Informe a senha em formato de texto.")
+    return valor
+
+
+def inteiro_do_cliente(valor, nome):
+    if isinstance(valor, bool):
+        raise ErroValidacao(f"O campo '{nome}' deve ser um número inteiro.")
+    if isinstance(valor, int):
+        return valor
+    if isinstance(valor, str) and valor.strip().isdigit():
+        return int(valor)
+    raise ErroValidacao(f"O campo '{nome}' deve ser um número inteiro.")
 
 
 def _assinatura_confere(cabecalho, ext):
