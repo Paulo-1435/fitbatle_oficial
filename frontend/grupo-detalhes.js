@@ -128,7 +128,7 @@ function htmlLinhaTabela(item) {
       </div>
     </td>
     <td class="ranking-tabela__pontos">${item.pontuacao_total} xp</td>
-    <td>${eu ? '—' : '<a class="btn btn--secundario btn--pequeno" href="perfil-publico.html?id=${item.id_usuario}">Ver Perfil</a>'}</td>
+    <td>${eu ? '—' : '<a class="btn btn--secundario btn--pequeno" href="perfil-publico.html?id=' + item.id_usuario + '">Ver Perfil</a>'}</td>
   </tr>`;
 }
 
