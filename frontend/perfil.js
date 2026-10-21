@@ -28,9 +28,6 @@ const NOME_TIPO = {
 let usuarioLogado = null;
 let fotoSelecionada = null;
 
-const IDADE_MINIMA_EDICAO = 13;
-const IDADE_MAIORIDADE_EDICAO = 18;
-
 function dataDeHoje() {
   const hoje = new Date();
   const mes = String(hoje.getMonth() + 1).padStart(2, '0');
@@ -49,13 +46,11 @@ function calcularIdade(dataStr) {
   return idade;
 }
 
-function atualizarResponsavelPerfil() {
+function atualizarIdadeNoPerfil() {
   const dataNascimento = document.getElementById('editDataNascimento');
   const idadeCalculada = calcularIdade(dataNascimento.value);
   const dica = document.getElementById('editIdadeAtual');
   dica.textContent = idadeCalculada != null ? 'Idade: ' + idadeCalculada + ' anos' : '';
-  const menor = idadeCalculada != null && idadeCalculada >= IDADE_MINIMA_EDICAO && idadeCalculada < IDADE_MAIORIDADE_EDICAO;
-  document.getElementById('editResponsavelBox').hidden = !menor;
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -257,7 +252,7 @@ function configurarModais() {
   document.querySelectorAll('.modal-close').forEach(function (botao) { botao.innerHTML = ICONE_FECHAR; });
   ligar('closePerfil', 'click', function () { fecharOverlay('overlayPerfil'); });
   document.getElementById('editDataNascimento').max = dataDeHoje();
-  ligar('editDataNascimento', 'input', atualizarResponsavelPerfil);
+  ligar('editDataNascimento', 'input', atualizarIdadeNoPerfil);
 
   ligar('fotoBtn', 'click', function () { document.getElementById('fotoInput').click(); });
   ligar('fotoInput', 'change', function () {
@@ -358,14 +353,6 @@ function configurarModais() {
       altura: document.getElementById('editAltura').value || null
     };
 
-    if (dataNascimento && !document.getElementById('editResponsavelBox').hidden) {
-      corpo.responsavel = {
-        nome: document.getElementById('editResponsavelNome').value.trim(),
-        email: document.getElementById('editResponsavelEmail').value.trim()
-      };
-      corpo.autorizacao_responsavel = document.getElementById('editAutorizacaoResponsavel').checked;
-    }
-
     try {
       const resposta = await api(`/usuarios/${usuarioLogado.id}`, {
         method: 'PUT',
@@ -411,10 +398,7 @@ function abrirEditarPerfil() {
   document.getElementById('editEmail').value = u.email || '';
   document.getElementById('editBio').value = u.descricao || '';
   document.getElementById('editDataNascimento').value = u.data_nascimento || '';
-  document.getElementById('editResponsavelNome').value = '';
-  document.getElementById('editResponsavelEmail').value = '';
-  document.getElementById('editAutorizacaoResponsavel').checked = false;
-  atualizarResponsavelPerfil();
+  atualizarIdadeNoPerfil();
   document.getElementById('editCidade').value = u.cidade || '';
   document.getElementById('editPeso').value = u.peso != null ? u.peso : '';
   document.getElementById('editAltura').value = u.altura != null ? u.altura : '';

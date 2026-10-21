@@ -45,8 +45,7 @@ def _escapar_like(termo):
 
 _CAMPOS_EDITAVEIS = (
     "nome", "email", "data_nascimento", "peso", "altura",
-    "cidade", "estado", "foto", "descricao",
-    "responsavel_nome", "responsavel_email", "responsavel_autorizado_em",
+    "cidade", "estado", "descricao",
 )
 
 

@@ -235,36 +235,6 @@
   margin-top: var(--esp-2);
 }
 
-.perfil-responsavel {
-  display: flex;
-  flex-direction: column;
-  gap: var(--esp-3);
-  padding: var(--esp-4);
-  border: 1px solid var(--cor-borda);
-  border-radius: var(--raio-md);
-  background: var(--cor-superficie-2);
-}
-
-.perfil-responsavel[hidden] {
-  display: none;
-}
-
-.perfil-responsavel .mensagem-form {
-  margin: 0;
-}
-
-.perfil-check {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--esp-2);
-  color: var(--cor-texto-2);
-  font-size: var(--texto-sm);
-}
-
-.perfil-check input {
-  margin-top: 3px;
-}
-
 .perfil-abas {
   display: flex;
   gap: var(--esp-2);

@@ -1,5 +1,8 @@
+import io
 import os
+import shutil
 import sys
+import tempfile
 import unittest
 from datetime import date, timedelta
 from unittest import mock
@@ -665,6 +668,112 @@ class TestConteudoDeMenores(BaseTeste):
         donos = {item["usuario"]["id"] for item in self.feed(self.token_adulto)}
         self.assertIn(self.adulto["id"], donos)
         self.assertNotIn(self.menor["id"], donos)
+
+
+class TestCamposDoPerfil(BaseTeste):
+
+    def setUp(self):
+        super().setUp()
+        self.pasta_uploads = tempfile.mkdtemp()
+        self.app.config["UPLOAD_FOLDER"] = self.pasta_uploads
+        self.usuario, self.token = self.criar_usuario_logado("Ana Campos", idade=30)
+
+    def tearDown(self):
+        shutil.rmtree(self.pasta_uploads, ignore_errors=True)
+        super().tearDown()
+
+    def atualizar(self, corpo, token=None):
+        return self.cli.put(
+            f"/api/usuarios/{self.usuario['id']}", json=corpo, headers=self.auth(token or self.token)
+        )
+
+    def eu(self):
+        return self.cli.get("/api/eu", headers=self.auth(self.token)).get_json()["usuario"]
+
+    def test_foto_com_url_arbitraria_e_recusada(self):
+        resposta = self.atualizar({"foto": "http://x.example/a'); \"><img src=x onerror=\"window.__xss=1\">"})
+        self.assertEqual(resposta.status_code, 400)
+        self.assertIsNone(self.eu()["foto"])
+
+    def test_foto_com_caminho_de_upload_e_recusada_pelo_perfil(self):
+        resposta = self.atualizar({"foto": f"/uploads/usuario_{self.usuario['id']}_0123456789abcdef.png"})
+        self.assertEqual(resposta.status_code, 400)
+
+    def test_foto_nula_no_perfil_e_ignorada(self):
+        resposta = self.atualizar({"foto": None, "nome": "Ana Campos"})
+        self.assertEqual(resposta.status_code, 200, resposta.get_data(as_text=True))
+        self.assertIsNone(self.eu()["foto"])
+
+    def test_upload_de_foto_continua_gravando_no_formato_esperado(self):
+        png = b"\x89PNG\r\n\x1a\n" + b"\x00" * 16
+        resposta = self.cli.post(
+            f"/api/usuarios/{self.usuario['id']}/foto",
+            data={"foto": (io.BytesIO(png), "rosto.png")},
+            headers=self.auth(self.token),
+            content_type="multipart/form-data",
+        )
+        self.assertEqual(resposta.status_code, 200, resposta.get_data(as_text=True))
+        caminho = resposta.get_json()["usuario"]["foto"]
+        self.assertRegex(caminho, rf"^/uploads/usuario_{self.usuario['id']}_[0-9a-f]{{16}}\.png$")
+
+    def test_campos_que_o_cliente_nao_define_sao_ignorados(self):
+        resposta = self.atualizar({
+            "xp": 999999, "nivel": "elite", "admin": True, "id_usuario": 999,
+            "perfil_publico": False, "senha_hash": "x",
+        })
+        self.assertEqual(resposta.status_code, 200)
+        dados = self.eu()
+        self.assertEqual(dados["xp"], 0)
+        self.assertFalse(dados["admin"])
+        self.assertEqual(dados["id"], self.usuario["id"])
+
+
+class TestAutorizacaoDoResponsavel(BaseTeste):
+
+    def setUp(self):
+        super().setUp()
+        self.menor, self.token_menor = self.criar_usuario_logado(
+            "Lia Menor", idade=15, responsavel={"nome": "Responsavel Teste", "email": "resp.lia@teste.com"}
+        )
+        self.adulto, self.token_adulto = self.criar_usuario_logado("Bia Adulta", idade=30)
+
+    def atualizar(self, usuario, token, corpo):
+        return self.cli.put(f"/api/usuarios/{usuario['id']}", json=corpo, headers=self.auth(token))
+
+    def test_menor_nao_se_autoautoriza_pelo_perfil(self):
+        resposta = self.atualizar(self.menor, self.token_menor, {
+            "data_nascimento": data_nascimento_para_idade(14),
+            "responsavel": {"nome": "Eu Mesma", "email": "eu@teste.com"},
+            "autorizacao_responsavel": True,
+        })
+        self.assertEqual(resposta.status_code, 400)
+
+    def test_menor_nao_grava_autorizacao_do_responsavel_direto(self):
+        resposta = self.atualizar(self.menor, self.token_menor, {
+            "responsavel_autorizado_em": "2020-01-01T00:00:00+00:00",
+        })
+        self.assertEqual(resposta.status_code, 400)
+
+    def test_menor_nao_vira_adulto_pela_data_de_nascimento(self):
+        resposta = self.atualizar(self.menor, self.token_menor, {
+            "data_nascimento": data_nascimento_para_idade(30),
+        })
+        self.assertEqual(resposta.status_code, 400)
+        self.assertIn("menor", resposta.get_json()["erro"].lower())
+
+    def test_adulto_nao_vira_menor_pela_data_de_nascimento(self):
+        resposta = self.atualizar(self.adulto, self.token_adulto, {
+            "data_nascimento": data_nascimento_para_idade(15),
+            "responsavel": {"nome": "Responsavel Teste", "email": "resp.bia@teste.com"},
+            "autorizacao_responsavel": True,
+        })
+        self.assertEqual(resposta.status_code, 400)
+
+    def test_menor_corrige_data_dentro_da_faixa_de_menor(self):
+        resposta = self.atualizar(self.menor, self.token_menor, {
+            "data_nascimento": data_nascimento_para_idade(16),
+        })
+        self.assertEqual(resposta.status_code, 200, resposta.get_data(as_text=True))
 
 
 if __name__ == "__main__":

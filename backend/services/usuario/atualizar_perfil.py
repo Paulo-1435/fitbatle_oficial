@@ -6,9 +6,19 @@ from repositories.repository import UsuarioRepository
 from services.comum import ErroValidacao, numero_decimal
 from services.usuario.apoio import (
     EMAIL_REGEX,
+    IDADE_MINIMA_CADASTRO,
     buscar_usuario,
+    e_maior_de_idade,
     validar_data_nascimento,
-    validar_faixa_etaria,
+)
+from utils import IDADE_MAIORIDADE
+
+CAMPOS_DO_RESPONSAVEL = (
+    "responsavel",
+    "autorizacao_responsavel",
+    "responsavel_nome",
+    "responsavel_email",
+    "responsavel_autorizado_em",
 )
 
 
@@ -25,6 +35,11 @@ class AtualizarPerfilService:
     def executar(id_usuario, dados):
         usuario = buscar_usuario(id_usuario)
         dados = dict(dados or {})
+
+        if dados.get("foto") is not None:
+            raise ErroValidacao("A foto é trocada pelo envio de imagem, não pelos dados do perfil.")
+        if any(dados.get(campo) is not None for campo in CAMPOS_DO_RESPONSAVEL):
+            raise ErroValidacao("Os dados do responsável legal não podem ser alterados pelo perfil.")
 
         if dados.get("nome") is not None and len(dados["nome"].strip()) < 3:
             raise ErroValidacao("O nome deve ter no mínimo 3 caracteres.")
@@ -45,8 +60,15 @@ class AtualizarPerfilService:
 
         if dados.get("data_nascimento"):
             nascimento, idade = validar_data_nascimento(dados["data_nascimento"])
+            if idade < IDADE_MINIMA_CADASTRO:
+                raise ErroValidacao(
+                    "Não é permitido ter menos de 13 anos na plataforma (art. 14 da LGPD)."
+                )
+            if (idade >= IDADE_MAIORIDADE) != e_maior_de_idade(usuario):
+                raise ErroValidacao(
+                    "Não é possível mudar a faixa etária (menor ou maior de 18 anos) pelo perfil."
+                )
             dados["data_nascimento"] = nascimento
-            dados.update(validar_faixa_etaria(idade, dados))
 
         if dados.get("peso") not in (None, ""):
             dados["peso"] = _validar_numero(dados["peso"], "peso", 20, 400)
