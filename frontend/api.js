@@ -105,8 +105,10 @@ async function atualizarSessaoPelaApi() {
   return dados.usuario;
 }
 
+const ESCAPES_HTML = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+
 function esc(s) {
-  const div = document.createElement('div');
-  div.textContent = s == null ? '' : s;
-  return div.innerHTML;
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (caractere) {
+    return ESCAPES_HTML[caractere];
+  });
 }

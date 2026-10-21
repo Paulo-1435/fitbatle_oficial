@@ -143,6 +143,7 @@ function renderizarResultados(usuarios) {
       ${botao}
     </li>`;
   }).join('');
+  aplicarFotosNoAvatares(lista);
 
   lista.querySelectorAll('[data-convidar]').forEach(function (botao) {
     botao.addEventListener('click', function () { convidar(botao); });
@@ -150,9 +151,8 @@ function renderizarResultados(usuarios) {
 }
 
 function htmlAvatar(usuario) {
-  const foto = urlFoto(usuario.foto);
-  if (foto) {
-    return `<span class="avatar avatar--pequeno" aria-hidden="true" style="background-image:url('${foto.replace(/'/g, "%27")}')"></span>`;
+  if (urlFoto(usuario.foto)) {
+    return `<span class="avatar avatar--pequeno" aria-hidden="true"${atributoFoto(usuario)}></span>`;
   }
   return `<span class="avatar avatar--pequeno" aria-hidden="true">${esc(iniciais(usuario.nome))}</span>`;
 }

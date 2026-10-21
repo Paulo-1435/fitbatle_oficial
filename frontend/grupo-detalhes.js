@@ -71,15 +71,15 @@ async function carregarMembros() {
         <span class="badge${membro.papel === 'admin' ? ' badge--destaque' : ''}">${membro.papel === 'admin' ? 'Admin' : 'Membro'}</span>
       </li>`;
     }).join('');
+    aplicarFotosNoAvatares(lista);
   } catch (e) {
     lista.innerHTML = '<li class="estado-vazio">Não foi possível conectar à API.</li>';
   }
 }
 
 function htmlAvatar(usuario) {
-  const foto = urlFoto(usuario.foto);
-  if (foto) {
-    return `<span class="avatar" aria-hidden="true" style="background-image:url('${foto.replace(/'/g, "%27")}')"></span>`;
+  if (urlFoto(usuario.foto)) {
+    return `<span class="avatar" aria-hidden="true"${atributoFoto(usuario)}></span>`;
   }
   return `<span class="avatar" aria-hidden="true">${esc(iniciais(usuario.nome))}</span>`;
 }

@@ -77,6 +77,7 @@ async function carregarFeed() {
     }
 
     lista.innerHTML = itens.map(htmlCardFeed).join('');
+    aplicarFotosNoAvatares(lista);
   } catch (e) {
     lista.replaceChildren(criarElemento('p', { classe: 'estado-vazio', texto: 'Não foi possível carregar o feed. A API está rodando?' }));
   }
@@ -108,16 +109,15 @@ async function carregarTop3() {
 
 function htmlCardFeed(item) {
   const dono = item.usuario || {};
-  const foto = urlFoto(dono.foto);
-  const avatarEstilo = foto ? ` style="background-image:url('${foto.replace(/'/g, '%27')}')"` : '';
-  const avatarConteudo = foto ? '' : esc(iniciais(dono.nome));
+  const avatarAtributo = atributoFoto(dono);
+  const avatarConteudo = urlFoto(dono.foto) ? '' : esc(iniciais(dono.nome));
 
   let titulo;
   let metricasHtml = '';
 
   if (item.tipo_conteudo === 'atividade') {
     const emoji = EMOJI_TIPO[item.tipo] || '💪';
-    const nomeTipo = NOME_TIPO[item.tipo] || capitalizar(item.tipo);
+    const nomeTipo = esc(NOME_TIPO[item.tipo] || capitalizar(item.tipo));
     titulo = `${emoji} ${nomeTipo}${item.titulo ? ' — ' + esc(item.titulo) : ''}`;
 
     const metricas = [];
@@ -137,7 +137,8 @@ function htmlCardFeed(item) {
   }
 
   const descricao = item.descricao || item.texto || '';
-  const midia = item.foto ? `<img class="feed-card__midia" src="${urlFoto(item.foto)}" alt="Foto do treino de ${esc(dono.nome || '')}" >` : '';
+  const fotoMidia = urlFoto(item.foto);
+  const midia = fotoMidia ? `<img class="feed-card__midia" src="${esc(fotoMidia)}" alt="Foto do treino de ${esc(dono.nome || '')}">` : '';
 
   const textoCompartilhar = item.tipo_conteudo === 'atividade'
     ? `Registrei um treino de ${NOME_TIPO[item.tipo] || item.tipo}${item.titulo ? ' (' + item.titulo + ')' : ''} no FitBattle! 💪 #FitBattle`
@@ -146,7 +147,7 @@ function htmlCardFeed(item) {
   return `
     <article class="card card--interno feed-card" data-tipo-alvo="${item.tipo_conteudo}" data-id-alvo="${item.id}">
       <div class="feed-card__cabecalho">
-        <span class="avatar avatar--pequeno"${avatarEstilo} aria-hidden="true">${avatarConteudo}</span>
+        <span class="avatar avatar--pequeno"${avatarAtributo} aria-hidden="true">${avatarConteudo}</span>
         <div class="feed-card__quem">
           <span class="feed-card__nome">${esc(dono.nome || 'Usuário removido')}</span>
           <span class="feed-card__tempo">${dataRelativa(item.data_registro)}</span>
@@ -189,12 +190,11 @@ function feedMetrica(valor, unidade, rotulo) {
 
 function htmlComentario(c) {
   const dono = c.usuario || {};
-  const foto = urlFoto(dono.foto);
-  const avatarEstilo = foto ? ` style="background-image:url('${foto.replace(/'/g, '%27')}')"` : '';
-  const avatarConteudo = foto ? '' : esc(iniciais(dono.nome));
+  const avatarAtributo = atributoFoto(dono);
+  const avatarConteudo = urlFoto(dono.foto) ? '' : esc(iniciais(dono.nome));
 
   return `<div class="feed-comentario">
-    <span class="avatar avatar--pequeno"${avatarEstilo} aria-hidden="true">${avatarConteudo}</span>
+    <span class="avatar avatar--pequeno"${avatarAtributo} aria-hidden="true">${avatarConteudo}</span>
     <div class="feed-comentario__corpo">
       <div class="feed-comentario__nome">${esc(dono.nome || 'Usuário removido')}</div>
       <div class="feed-comentario__texto">${esc(c.texto)}</div>
@@ -278,6 +278,7 @@ async function carregarComentarios(card) {
       return;
     }
     lista.innerHTML = dados.map(htmlComentario).join('');
+    aplicarFotosNoAvatares(lista);
   } catch (e) {
     lista.replaceChildren(criarElemento('p', { classe: 'feed-card__texto', texto: 'Não foi possível carregar os comentários.' }));
   }
@@ -307,6 +308,7 @@ async function enviarComentario(form) {
     const lista = card.querySelector('[data-lista-comentarios]');
     if (lista.querySelector('.feed-card__texto')) lista.replaceChildren();
     lista.insertAdjacentHTML('beforeend', htmlComentario(dados.comentario));
+    aplicarFotosNoAvatares(lista);
 
     const contagem = card.querySelector('[data-contagem="comentarios"]');
     const atual = parseInt(contagem.textContent, 10) || 0;

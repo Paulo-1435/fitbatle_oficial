@@ -61,9 +61,22 @@ function iniciais(nome) {
   return (partes[0][0] + partes[partes.length - 1][0]).toUpperCase();
 }
 
+const PADRAO_CAMINHO_FOTO = /^\/uploads\/[A-Za-z0-9_-]+\.(png|jpe?g|gif|webp)$/i;
+
 function urlFoto(caminho) {
-  if (!caminho) return null;
-  return caminho.indexOf('http') === 0 ? caminho : ORIGEM_API + caminho;
+  if (typeof caminho !== 'string' || !PADRAO_CAMINHO_FOTO.test(caminho)) return null;
+  return ORIGEM_API + caminho;
+}
+
+function aplicarFotosNoAvatares(raiz) {
+  (raiz || document).querySelectorAll('[data-foto]').forEach(function (avatar) {
+    avatar.style.backgroundImage = 'url("' + avatar.getAttribute('data-foto') + '")';
+  });
+}
+
+function atributoFoto(usuario) {
+  const foto = urlFoto(usuario && usuario.foto);
+  return foto ? ' data-foto="' + esc(foto) + '"' : '';
 }
 
 function criarAvatar(usuario, opcoes) {
