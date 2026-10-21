@@ -797,6 +797,71 @@ class TestCamposDoPerfil(BaseTeste):
         self.assertEqual(dados["id"], self.usuario["id"])
 
 
+class TestTrocaDeEmailESenha(BaseTeste):
+
+    def setUp(self):
+        super().setUp()
+        self.usuario, self.token = self.criar_usuario_logado("Dora Troca", idade=30)
+        self.outro, self.token_outro = self.criar_usuario_logado("Eva Outra", idade=30)
+
+    def atualizar(self, corpo, token=None):
+        return self.cli.put(
+            f"/api/usuarios/{self.usuario['id']}", json=corpo, headers=self.auth(token or self.token)
+        )
+
+    def login(self, email, senha=SENHA):
+        return self.cli.post("/api/login", json={"email": email, "senha": senha})
+
+    def test_trocar_email_sem_senha_atual_recebe_400(self):
+        resposta = self.atualizar({"email": "nova.dora@teste.com"})
+        self.assertEqual(resposta.status_code, 400)
+        self.assertEqual(self.login(self.usuario["email"]).status_code, 200)
+
+    def test_trocar_email_com_senha_atual_errada_recebe_403(self):
+        resposta = self.atualizar({"email": "nova.dora@teste.com", "senha_atual": "errada123"})
+        self.assertEqual(resposta.status_code, 403)
+        self.assertEqual(self.login(self.usuario["email"]).status_code, 200)
+
+    def test_trocar_email_com_senha_atual_correta_funciona(self):
+        resposta = self.atualizar({"email": "nova.dora@teste.com", "senha_atual": SENHA})
+        self.assertEqual(resposta.status_code, 200, resposta.get_data(as_text=True))
+        self.assertEqual(self.login("nova.dora@teste.com").status_code, 200)
+
+    def test_trocar_senha_sem_senha_atual_recebe_400(self):
+        resposta = self.atualizar({"senha": "novasenha123"})
+        self.assertEqual(resposta.status_code, 400)
+        self.assertEqual(self.login(self.usuario["email"], SENHA).status_code, 200)
+
+    def test_trocar_senha_com_senha_atual_errada_recebe_403(self):
+        resposta = self.atualizar({"senha": "novasenha123", "senha_atual": "errada123"})
+        self.assertEqual(resposta.status_code, 403)
+        self.assertEqual(self.login(self.usuario["email"], SENHA).status_code, 200)
+
+    def test_trocar_senha_com_senha_atual_correta_funciona(self):
+        resposta = self.atualizar({"senha": "novasenha123", "senha_atual": SENHA})
+        self.assertEqual(resposta.status_code, 200, resposta.get_data(as_text=True))
+        self.assertEqual(self.login(self.usuario["email"], "novasenha123").status_code, 200)
+        self.assertEqual(self.login(self.usuario["email"], SENHA).status_code, 401)
+
+    def test_email_duplicado_recebe_409_e_nunca_500(self):
+        resposta = self.atualizar({"email": self.outro["email"], "senha_atual": SENHA})
+        self.assertEqual(resposta.status_code, 409)
+
+    def test_email_duplicado_que_chega_so_no_banco_recebe_409(self):
+        from repositories.repository import UsuarioRepository
+        with mock.patch.object(UsuarioRepository, "buscar_por_email", return_value=None):
+            resposta = self.atualizar({"email": self.outro["email"], "senha_atual": SENHA})
+        self.assertEqual(resposta.status_code, 409)
+
+    def test_mesmo_email_sem_senha_atual_nao_exige_confirmacao(self):
+        resposta = self.atualizar({"email": self.usuario["email"], "nome": "Dora Renomeada"})
+        self.assertEqual(resposta.status_code, 200, resposta.get_data(as_text=True))
+
+    def test_alterar_so_o_nome_nao_exige_senha_atual(self):
+        resposta = self.atualizar({"nome": "Dora Sem Senha"})
+        self.assertEqual(resposta.status_code, 200, resposta.get_data(as_text=True))
+
+
 class TestAutorizacaoDoResponsavel(BaseTeste):
 
     def setUp(self):

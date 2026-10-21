@@ -46,6 +46,16 @@ function calcularIdade(dataStr) {
   return idade;
 }
 
+function emailFoiAlterado() {
+  return document.getElementById('editEmail').value.trim() !== (usuarioLogado.email || '');
+}
+
+function atualizarCampoSenhaAtual() {
+  const alterado = emailFoiAlterado();
+  document.getElementById('campoSenhaAtual').hidden = !alterado;
+  if (!alterado) document.getElementById('editSenhaAtual').value = '';
+}
+
 function atualizarIdadeNoPerfil() {
   const dataNascimento = document.getElementById('editDataNascimento');
   const idadeCalculada = calcularIdade(dataNascimento.value);
@@ -253,6 +263,7 @@ function configurarModais() {
   ligar('closePerfil', 'click', function () { fecharOverlay('overlayPerfil'); });
   document.getElementById('editDataNascimento').max = dataDeHoje();
   ligar('editDataNascimento', 'input', atualizarIdadeNoPerfil);
+  ligar('editEmail', 'input', atualizarCampoSenhaAtual);
 
   ligar('fotoBtn', 'click', function () { document.getElementById('fotoInput').click(); });
   ligar('fotoInput', 'change', function () {
@@ -352,6 +363,7 @@ function configurarModais() {
       peso: document.getElementById('editPeso').value || null,
       altura: document.getElementById('editAltura').value || null
     };
+    if (emailFoiAlterado()) corpo.senha_atual = document.getElementById('editSenhaAtual').value;
 
     try {
       const resposta = await api(`/usuarios/${usuarioLogado.id}`, {
@@ -361,6 +373,7 @@ function configurarModais() {
       });
       const dados = await resposta.json();
       if (!resposta.ok) { erro.textContent = dados.erro || 'Não foi possível salvar.'; return; }
+      document.getElementById('editSenhaAtual').value = '';
 
       let usuarioFinal = dados.usuario;
 
@@ -396,6 +409,7 @@ function abrirEditarPerfil() {
   const u = usuarioLogado;
   document.getElementById('editNome').value = u.nome || '';
   document.getElementById('editEmail').value = u.email || '';
+  atualizarCampoSenhaAtual();
   document.getElementById('editBio').value = u.descricao || '';
   document.getElementById('editDataNascimento').value = u.data_nascimento || '';
   atualizarIdadeNoPerfil();

@@ -121,7 +121,11 @@ class UsuarioRepository:
                 setattr(usuario, campo, dados[campo])
         if dados.get("senha"):
             usuario.senha = dados["senha"]
-        db.session.commit()
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            return None
         return usuario
 
     @staticmethod

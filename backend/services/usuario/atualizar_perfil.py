@@ -1,6 +1,6 @@
 import re
 
-from werkzeug.security import generate_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from repositories.repository import UsuarioRepository
 from services.comum import ErroValidacao, numero_decimal, senha_do_cliente, texto_do_cliente
@@ -20,6 +20,13 @@ CAMPOS_DO_RESPONSAVEL = (
     "responsavel_email",
     "responsavel_autorizado_em",
 )
+
+
+def _confirmar_senha_atual(usuario, senha_atual):
+    if not senha_atual:
+        raise ErroValidacao("Informe a senha atual para trocar e-mail ou senha.")
+    if not check_password_hash(usuario.senha, senha_do_cliente(senha_atual)):
+        raise ErroValidacao("A senha atual não confere.", status=403)
 
 
 def _validar_numero(valor, nome, minimo, maximo):
@@ -46,10 +53,18 @@ class AtualizarPerfilService:
             if len(dados["nome"]) < 3:
                 raise ErroValidacao("O nome deve ter no mínimo 3 caracteres.")
 
+        email = None
         if dados.get("email") is not None:
             email = texto_do_cliente(dados["email"], "e-mail")
             if not re.match(EMAIL_REGEX, email):
                 raise ErroValidacao("Informe um e-mail válido.")
+
+        trocar_email = email is not None and email != usuario.email
+        trocar_senha = bool(dados.get("senha"))
+        if trocar_email or trocar_senha:
+            _confirmar_senha_atual(usuario, dados.get("senha_atual"))
+
+        if email is not None:
             existente = UsuarioRepository.buscar_por_email(email)
             if existente and existente.id_usuario != usuario.id_usuario:
                 raise ErroValidacao("E-mail já cadastrado.", status=409)
@@ -85,4 +100,7 @@ class AtualizarPerfilService:
         if dados.get("altura") not in (None, ""):
             dados["altura"] = _validar_numero(dados["altura"], "altura", 0.5, 2.7)
 
-        return UsuarioRepository.atualizar(usuario, dados)
+        atualizado = UsuarioRepository.atualizar(usuario, dados)
+        if atualizado is None:
+            raise ErroValidacao("E-mail já cadastrado.", status=409)
+        return atualizado
