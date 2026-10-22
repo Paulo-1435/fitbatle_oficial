@@ -20,14 +20,13 @@ schema não significa que a funcionalidade esteja implementada.
 - RF07 — Convidar via link/código ou busca direta
 - RF08 — Aceitar/recusar convites
 - RF09 — Ranking interno do grupo
-- RF10 — Ranking regional (cidade/região)
+- RF10 — Ranking regional, por "Da sua cidade" ou "Do seu estado" (a cidade é comparada sem diferença de caixa, acentos ou espaços nas pontas)
 - RF11 — Ranking global
 - RF12 — Cálculo automático de pontuação por atividade
 - RF13 — Atribuição automática de nível/categoria por XP (cinco categorias)
 - RF14 — Dashboard com XP por semana, treinos por semana, distribuição por tipo de treino, evolução da carga máxima por exercício, sequência atual e melhor sequência, e totais (gráficos em SVG/JS puro, sem biblioteca externa); só dados do próprio usuário
 - RF15 — Criar/gerenciar metas pessoais (curto/longo prazo)
-- RF16 — Desafios sazonais propostos pela administração (e-mails em `ADMIN_EMAILS`, únicos que criam/editam/encerram desafios); qualquer usuário logado participa ou desiste pela aba "Desafios" dentro de `metas.html`; progresso sempre calculado a partir dos treinos reais no período do desafio (`exercicio: "livre"` conta qualquer treino, senão filtra pelo título); ao atingir o objetivo credita `recompensa_xp` uma única vez (idempotente, avaliado ao registrar treino e também ao ler) e dispara notificação (RF18); cada usuário só vê/mexe na própria inscrição (prévia "1x1" em `desafio.html` continua só visual, "Em breve")
-- RF17 — Bloco "Em Andamento" com metas ativas e desafios em que o usuário está inscrito (percentual e status reais, link para o detalhe de cada um), em dois lugares: `dashboard.html` e na aba "Desafios" de `metas.html`
+- RF16 — Desafios sazonais propostos pela administração (e-mails em `ADMIN_EMAILS`, únicos que criam/editam/encerram desafios); qualquer usuário logado participa ou desiste pela aba "Desafios" dentro de `metas.html`; progresso sempre calculado a partir dos treinos reais no período do desafio (`exercicio: "livre"` conta qualquer treino, senão filtra pelo título); ao atingir o objetivo credita `recompensa_xp` uma única vez (idempotente, avaliado ao registrar treino e também ao ler) e dispara notificação (RF18); cada usuário só vê/mexe na própria inscrição- RF17 — Bloco "Em Andamento" com metas ativas e desafios em que o usuário está inscrito (percentual e status reais, link para o detalhe de cada um), em dois lugares: `dashboard.html` e na aba "Desafios" de `metas.html`
 - RF18 — Notificações in-app (sino no header com contador de não lidas, atualizado a cada 60s e pausado com a aba oculta; página `/notificacoes`) para convite recebido/aceito, curtida e comentário recebidos, meta concluída e subida de posição no ranking global — sempre condicionado ao consentimento "notificacoes", nunca autonotificação, sem duplicar ao curtir/descurtir; e-mail opcional por SMTP (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`), tolerante a falha e nunca bloqueando a requisição; push do navegador fora do escopo
 - RF19 — Busca de perfis (nome ou cidade, restrita a campos públicos, nunca menores de idade) e busca de grupos (entre os grupos dos quais o usuário já é membro, com entrada por código de convite na mesma tela)
 - RF20 — Compartilhar treino registrado, recorde pessoal, meta concluída e medalha conquistada em redes sociais externas (Web Share API, WhatsApp, X, Telegram ou copiar texto), condicionado ao consentimento "compartilhamento" e registrado na tabela `compartilhamento`. As medalhas são calculadas a partir dos dados reais (primeiro treino, constância de 10 e veterano de 50 atividades, semana perfeita de 7 dias seguidos, meta batida, maratonista de 42 km e uma medalha por categoria acima da inicial do RF13). Não alteram XP nem ranking. Ao conquistar uma medalha nova, o usuário recebe uma notificação, sem repetição, com o mesmo consentimento de notificações. Perfil próprio mostra todas, com progresso real; perfil público mostra só as conquistadas. A medalha "Campeão de desafio" não existe porque o sistema não calcula posição final em desafio concluído.
@@ -55,7 +54,7 @@ completo, ex.: `services.usuario.apoio`) e que a raiz de `services/` só tem
 Hoje (conferido direto na árvore de arquivos): 57 rotas registradas em
 `routers.py`, 60 classes `Service` de caso de uso em `services/` (uma por
 arquivo), 10 arquivos `apoio.py` (um por área que precisa de lógica
-compartilhada) e 285 testes.
+compartilhada) e 323 testes.
 
 | Caso de uso | Controller | Service | Repository |
 |---|---|---|---|
@@ -275,7 +274,7 @@ cd backend
 python -m unittest discover -s tests -t .
 ```
 
-285 testes atualmente, cobrindo autenticação/LGPD (incluindo as fronteiras de
+323 testes atualmente, cobrindo autenticação/LGPD (incluindo as fronteiras de
 13 e 18 anos), robustez (uploads, limite de login, concorrência),
 grupos/convites, metas, compartilhamento, busca restrita (nome, cidade,
 menores de idade, perfil revogado), rankings, dashboard (estado vazio,
@@ -352,6 +351,13 @@ mysql -u root -p fitbattle < backend/database/migracao_desafio_metrica.sql
 mysql -u root -p fitbattle < backend/database/migracao_medalha.sql
 ```
 
+`migracao_ranking_maiores.sql` só recria as views de ranking e busca, que
+passaram a excluir menores de idade. Pode ser rodada quantas vezes precisar:
+
+```bash
+mysql -u root -p fitbattle < backend/database/migracao_ranking_maiores.sql
+```
+
 Cada uma faz só um `ALTER TABLE` (a de metas adiciona as colunas novas e
 remove a antiga `progresso`; a de data de nascimento só adiciona a coluna
 `data_nascimento`) e preserva todas as linhas existentes. **Rode cada script
@@ -415,7 +421,7 @@ puro.
 | GET / POST | `/api/feed/<tipo>/<id>/comentarios` | Listar/criar comentário | Logado | — |
 | DELETE | `/api/comentarios/<id>` | Excluir comentário | Logado | — |
 | GET | `/api/ranking/global` | Ranking de todos por XP | Logado | RF11 |
-| GET | `/api/ranking/regional?cidade=` | Ranking por cidade | Logado | RF10 |
+| GET | `/api/ranking/regional?cidade=` ou `?estado=` | Ranking da cidade ou do estado (cidade comparada sem caixa, acentos e espaços nas pontas) | Logado | RF10 |
 | GET | `/api/ranking/exercicio?titulo=` | Ranking por carga num exercício específico | Logado | — |
 | GET | `/api/usuarios/<id>/ranking` | Posição do usuário nos rankings global/regional (própria, ou de outro perfil visível — mesma regra do `GET /api/usuarios/<id>`) | Logado | RF10, RF11, RF19 |
 | GET | `/api/usuarios/<id>/medalhas` | Medalhas do usuário: todas com progresso e data para o próprio; só as conquistadas para outro usuário (404 quando o perfil não é visível) | Logado | RF20 |
