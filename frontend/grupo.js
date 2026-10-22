@@ -53,10 +53,9 @@ async function carregarMeusGrupos() {
     if (grupos.length === 0) {
       lista.innerHTML = '';
       vazio.hidden = false;
-      return;
+    } else {
+      lista.innerHTML = grupos.map(htmlCartaoGrupo).join('');
     }
-
-    lista.innerHTML = grupos.map(htmlCartaoGrupo).join('');
   } catch (e) {
     lista.innerHTML = '';
     mostrarFalhaDeCarregamento(carregarMeusGrupos);
