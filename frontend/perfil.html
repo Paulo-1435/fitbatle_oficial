@@ -77,6 +77,27 @@
     </section>
 
     <section class="card card--interno">
+        <h2 class="perfil-secao-titulo">Alterar senha</h2>
+        <form id="formSenha" novalidate>
+            <div class="campo">
+                <label class="campo__rotulo" for="senhaAtual">Senha atual</label>
+                <input type="password" id="senhaAtual" class="input" autocomplete="current-password" required>
+            </div>
+            <div class="campo">
+                <label class="campo__rotulo" for="senhaNova">Nova senha</label>
+                <input type="password" id="senhaNova" class="input" autocomplete="new-password" minlength="8" required>
+                <span class="campo__auxiliar">Mínimo de 8 caracteres.</span>
+            </div>
+            <div class="campo">
+                <label class="campo__rotulo" for="senhaConfirmacao">Confirmar nova senha</label>
+                <input type="password" id="senhaConfirmacao" class="input" autocomplete="new-password" required>
+            </div>
+            <p class="mensagem-form" id="erroSenha" role="alert"></p>
+            <button type="submit" class="btn btn--primario" id="btnAlterarSenha">Alterar senha</button>
+        </form>
+    </section>
+
+    <section class="card card--interno">
         <div class="perfil-secao-cabecalho">
             <h2 class="perfil-secao-titulo">Meus treinos</h2>
             <button type="button" class="btn btn--primario btn--pequeno" id="btnNovoTreino">Novo treino</button>

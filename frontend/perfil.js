@@ -70,9 +70,53 @@ document.addEventListener('DOMContentLoaded', function () {
   configurarModais();
   configurarAvatar();
   configurarRanking();
+  configurarAlterarSenha();
 
   carregarTudo();
 });
+
+function configurarAlterarSenha() {
+  const formulario = document.getElementById('formSenha');
+  const erro = document.getElementById('erroSenha');
+  const botao = document.getElementById('btnAlterarSenha');
+
+  formulario.addEventListener('submit', async function (evento) {
+    evento.preventDefault();
+    erro.textContent = '';
+    erro.classList.remove('mensagem-form--ok');
+
+    const senhaNova = document.getElementById('senhaNova').value;
+    if (senhaNova !== document.getElementById('senhaConfirmacao').value) {
+      erro.textContent = 'A confirmação não confere com a nova senha.';
+      return;
+    }
+
+    botao.disabled = true;
+    try {
+      const resposta = await api('/usuarios/' + usuarioLogado.id, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          senha: senhaNova,
+          senha_atual: document.getElementById('senhaAtual').value
+        })
+      });
+      const dados = await resposta.json().catch(function () { return {}; });
+      if (!resposta.ok) {
+        erro.textContent = dados.erro || 'Não foi possível alterar a senha.';
+        return;
+      }
+      atualizarTokenDaSessao(dados.token);
+      formulario.reset();
+      erro.textContent = 'Senha alterada.';
+      erro.classList.add('mensagem-form--ok');
+    } catch (e) {
+      erro.textContent = 'Não foi possível falar com o servidor. Tente novamente.';
+    } finally {
+      botao.disabled = false;
+    }
+  });
+}
 
 function carregarTudo() {
   carregarPerfil();
