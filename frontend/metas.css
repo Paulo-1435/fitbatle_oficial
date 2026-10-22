@@ -158,8 +158,10 @@
 
 .meta-detalhe-cabecalho__acoes {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--esp-2);
   flex: none;
+  max-width: 100%;
 }
 
 .meta-stats {
