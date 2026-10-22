@@ -198,9 +198,10 @@ CREATE TABLE notificacao (
 CREATE TABLE compartilhamento (
     id_comp        INT AUTO_INCREMENT PRIMARY KEY,
     id_usuario     INT NOT NULL,
-    tipo_conteudo  ENUM('atividade','meta','desafio','recorde') NOT NULL,
+    tipo_conteudo  ENUM('atividade','meta','desafio','recorde','medalha') NOT NULL,
     id_atividade   INT NULL,
     id_meta        INT NULL,
+    chave_medalha  VARCHAR(40) NULL,
     rede_social    VARCHAR(40),
     data_comp      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_comp_usuario

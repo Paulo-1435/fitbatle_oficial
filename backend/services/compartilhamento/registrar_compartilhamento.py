@@ -5,8 +5,9 @@ from repositories.repository import (
     MetaRepository,
 )
 from services.comum import ErroValidacao, inteiro_do_cliente, texto_do_cliente
+from services.medalha.listar_medalhas import ListarMedalhasService
 
-TIPOS_CONTEUDO = {"atividade", "meta", "recorde"}
+TIPOS_CONTEUDO = {"atividade", "meta", "recorde", "medalha"}
 REDES_SOCIAIS = {"whatsapp", "x", "telegram", "web_share", "copiar"}
 
 
@@ -43,6 +44,19 @@ class RegistrarCompartilhamentoService:
                 raise ErroValidacao("Atividade não encontrada.", status=404)
             if atividade.id_usuario != id_usuario:
                 raise ErroValidacao("Você só pode compartilhar as suas próprias atividades.", status=403)
+        elif tipo_conteudo == "medalha":
+            chave_medalha = texto_do_cliente(dados.get("chave_medalha"), "chave_medalha")
+            if not chave_medalha:
+                raise ErroValidacao("Informe a medalha a compartilhar.")
+            medalha = ListarMedalhasService.executar(id_usuario, id_usuario)
+            encontrada = next((m for m in medalha if m["chave"] == chave_medalha), None)
+            if encontrada is None:
+                raise ErroValidacao("Medalha não encontrada.", status=404)
+            if not encontrada["conquistada"]:
+                raise ErroValidacao("Esta medalha ainda não foi conquistada.")
+            return CompartilhamentoRepository.criar(
+                id_usuario, tipo_conteudo, None, None, rede_social, chave_medalha
+            )
         else:
             id_meta = dados.get("id_meta")
             if not id_meta:
