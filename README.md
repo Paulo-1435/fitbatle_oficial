@@ -30,11 +30,7 @@ schema não significa que a funcionalidade esteja implementada.
 - RF17 — Bloco "Em Andamento" com metas ativas e desafios em que o usuário está inscrito (percentual e status reais, link para o detalhe de cada um), em dois lugares: `dashboard.html` e na aba "Desafios" de `metas.html`
 - RF18 — Notificações in-app (sino no header com contador de não lidas, atualizado a cada 60s e pausado com a aba oculta; página `/notificacoes`) para convite recebido/aceito, curtida e comentário recebidos, meta concluída e subida de posição no ranking global — sempre condicionado ao consentimento "notificacoes", nunca autonotificação, sem duplicar ao curtir/descurtir; e-mail opcional por SMTP (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`), tolerante a falha e nunca bloqueando a requisição; push do navegador fora do escopo
 - RF19 — Busca de perfis (nome ou cidade, restrita a campos públicos, nunca menores de idade) e busca de grupos (entre os grupos dos quais o usuário já é membro, com entrada por código de convite na mesma tela)
-- RF20 — Compartilhar treino registrado, recorde pessoal e meta concluída em redes sociais externas (Web Share API, WhatsApp, X, Telegram ou copiar texto), condicionado ao consentimento "compartilhamento" e registrado na tabela `compartilhamento` (medalhas não existem, continuam em "Em breve")
-
-### Em breve
-
-- RF20 (medalhas) — Medalhas de conquistas; não existe esse conceito em nenhuma tabela do sistema
+- RF20 — Compartilhar treino registrado, recorde pessoal, meta concluída e medalha conquistada em redes sociais externas (Web Share API, WhatsApp, X, Telegram ou copiar texto), condicionado ao consentimento "compartilhamento" e registrado na tabela `compartilhamento`. As medalhas são calculadas a partir dos dados reais (primeiro treino, constância de 10 e veterano de 50 atividades, semana perfeita de 7 dias seguidos, meta batida, maratonista de 42 km e uma medalha por categoria acima da inicial do RF13). Não alteram XP nem ranking. Ao conquistar uma medalha nova, o usuário recebe uma notificação, sem repetição, com o mesmo consentimento de notificações. Perfil próprio mostra todas, com progresso real; perfil público mostra só as conquistadas. A medalha "Campeão de desafio" não existe porque o sistema não calcula posição final em desafio concluído.
 
 ## Arquitetura em camadas
 
@@ -56,10 +52,10 @@ arquivo de `services/` importa o pacote de outra área direto (sempre o módulo
 completo, ex.: `services.usuario.apoio`) e que a raiz de `services/` só tem
 `__init__.py` e `comum.py` soltos.
 
-Hoje (conferido direto na árvore de arquivos): 56 rotas registradas em
-`routers.py`, 58 classes `Service` de caso de uso em `services/` (uma por
-arquivo), 9 arquivos `apoio.py` (um por área que precisa de lógica
-compartilhada) e 198 testes.
+Hoje (conferido direto na árvore de arquivos): 57 rotas registradas em
+`routers.py`, 60 classes `Service` de caso de uso em `services/` (uma por
+arquivo), 10 arquivos `apoio.py` (um por área que precisa de lógica
+compartilhada) e 285 testes.
 
 | Caso de uso | Controller | Service | Repository |
 |---|---|---|---|
@@ -87,6 +83,7 @@ compartilhada) e 198 testes.
 | Dashboard | `DashboardController.resumo` | `ConsultarDashboardService.executar` | `AtividadeRepository.pontuacoes_desde` (+ demais agregações) |
 | Notificações | `NotificacaoController.listar` | `ListarNotificacoesService.executar` | `NotificacaoRepository.listar_do_usuario` |
 | Desafios | `DesafioController.listar` | `ListarDesafiosAtivosService.executar` | `DesafioRepository.listar_ativos` |
+| Medalhas | `MedalhaController.listar` | `ListarMedalhasService.executar` | `AtividadeRepository.listar_do_usuario` / `MetaRepository.listar_do_usuario` |
 
 Busca de grupos (RF19) não tem linha própria porque não criou nenhum
 método novo: `frontend/busca.js` reaproveita o `GET /api/grupos`
@@ -116,7 +113,8 @@ Controller, Service ou Repository novo.
 │   │   ├── migracao_meta.sql             # atualiza um banco existente (ver "Atualizando o banco")
 │   │   ├── migracao_data_nascimento.sql  # idem, para a coluna data_nascimento
 │   │   ├── migracao_notificacao_alvo.sql # idem, para as colunas tipo_alvo/id_alvo de notificacao
-│   │   └── migracao_desafio_metrica.sql  # idem, para as colunas tipo_metrica/valor_objetivo de desafio
+│   │   ├── migracao_desafio_metrica.sql  # idem, para as colunas tipo_metrica/valor_objetivo de desafio
+│   │   └── migracao_medalha.sql          # idem, para o tipo 'medalha' e a coluna chave_medalha de compartilhamento
 │   ├── routers/
 │   │   └── routers.py          # mapeia as URLs para os Controllers
 │   ├── controllers/
@@ -162,6 +160,7 @@ Controller, Service ou Repository novo.
 └── frontend/
     ├── config.js                                         # window.FITBATTLE_API_URL (ver "Como rodar")
     ├── compartilhar.js                                   # menu de compartilhamento (RF20), compartilhado
+    ├── medalhas.js / medalhas.css                        # cartões de medalha, usados em perfil e perfil público (RF20)
     ├── busca.html / busca.js / busca.css                # busca de perfis e de grupos (RF19)
     ├── perfil-publico.html / perfil-publico.js / .css    # perfil de outro usuário, só leitura (RF19)
     ├── dashboard.html / dashboard.js / dashboard.css     # gráficos SVG/JS puro, só do próprio usuário (RF14)
@@ -266,7 +265,7 @@ cd backend
 python -m unittest discover -s tests -t .
 ```
 
-198 testes atualmente, cobrindo autenticação/LGPD (incluindo as fronteiras de
+285 testes atualmente, cobrindo autenticação/LGPD (incluindo as fronteiras de
 13 e 18 anos), robustez (uploads, limite de login, concorrência),
 grupos/convites, metas, compartilhamento, busca restrita (nome, cidade,
 menores de idade, perfil revogado), rankings, dashboard (estado vazio,
@@ -325,6 +324,7 @@ mysql -u root -p fitbattle < backend/database/migracao_meta.sql
 mysql -u root -p fitbattle < backend/database/migracao_data_nascimento.sql
 mysql -u root -p fitbattle < backend/database/migracao_notificacao_alvo.sql
 mysql -u root -p fitbattle < backend/database/migracao_desafio_metrica.sql
+mysql -u root -p fitbattle < backend/database/migracao_medalha.sql
 ```
 
 Cada uma faz só um `ALTER TABLE` (a de metas adiciona as colunas novas e
@@ -399,6 +399,7 @@ puro.
 | GET | `/api/ranking/regional?cidade=` | Ranking por cidade | Logado | RF10 |
 | GET | `/api/ranking/exercicio?titulo=` | Ranking por carga num exercício específico | Logado | — |
 | GET | `/api/usuarios/<id>/ranking` | Posição do usuário nos rankings global/regional (própria, ou de outro perfil visível — mesma regra do `GET /api/usuarios/<id>`) | Logado | RF10, RF11, RF19 |
+| GET | `/api/usuarios/<id>/medalhas` | Medalhas do usuário: todas com progresso e data para o próprio; só as conquistadas para outro usuário (404 quando o perfil não é visível) | Logado | RF20 |
 | GET | `/api/usuarios/<id>/consentimentos` | Lista os consentimentos LGPD | Dono | — |
 | PUT | `/api/usuarios/<id>/consentimentos/<chave>` | Revoga/reativa um consentimento opcional | Dono | — |
 | POST / GET | `/api/grupos` | Criar grupo / listar meus grupos | Logado | RF06 |
@@ -423,7 +424,7 @@ puro.
 | PUT | `/api/desafios/<id>/encerrar` | Encerra um desafio imediatamente (só administração) | Logado (admin) | RF16 |
 | POST | `/api/desafios/<id>/participar` | Inscreve o próprio usuário no desafio | Logado | RF16 |
 | DELETE | `/api/desafios/<id>/participar` | Desiste da própria inscrição no desafio | Logado | RF16 |
-| POST | `/api/compartilhamentos` | Registra o compartilhamento de uma atividade, recorde ou meta própria, exige o consentimento "compartilhamento" (403 sem ele) | Logado | RF20 |
+| POST | `/api/compartilhamentos` | Registra o compartilhamento de uma atividade, recorde, meta própria ou medalha conquistada (`chave_medalha`), exige o consentimento "compartilhamento" (403 sem ele) | Logado | RF20 |
 | GET | `/api/notificacoes` | Lista as notificações do próprio usuário (mais recentes primeiro) | Logado | RF18 |
 | GET | `/api/notificacoes/contagem` | Quantidade de notificações não lidas | Logado | RF18 |
 | PUT | `/api/notificacoes/lidas` | Marca todas as notificações do usuário como lidas | Logado | RF18 |
