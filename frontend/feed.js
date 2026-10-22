@@ -116,7 +116,7 @@ function htmlCardFeed(item) {
   if (item.tipo_conteudo === 'atividade') {
     const nomeTipo = esc(NOME_TIPO[item.tipo] || capitalizar(item.tipo));
     const icone = `<span data-icone="${nomeIconeDoTipo(item.tipo)}"></span>`;
-    titulo = `${icone} ${nomeTipo}${item.titulo ? ' — ' + esc(item.titulo) : ''}`;
+    titulo = `${icone} ${nomeTipo}${item.titulo ? ': ' + esc(item.titulo) : ''}`;
 
     const metricas = [];
     if (item.tempo_min != null) {

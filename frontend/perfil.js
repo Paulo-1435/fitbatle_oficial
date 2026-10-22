@@ -206,7 +206,7 @@ function renderizarTreinos(treinos) {
 function htmlCardTreino(t) {
   const icone = ICONE_TIPO[t.tipo] || ICONE_TIPO.outro;
   const nomeTipo = NOME_TIPO[t.tipo] || capitalizar(t.tipo);
-  const titulo = nomeTipo + (t.titulo ? ' — ' + esc(t.titulo).toUpperCase() : '');
+  const titulo = nomeTipo + (t.titulo ? ': ' + esc(t.titulo).toUpperCase() : '');
 
   const metricas = [];
   if (t.tempo_min != null) {
