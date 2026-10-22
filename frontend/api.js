@@ -40,11 +40,20 @@ function lerSessao() {
 }
 
 function salvarSessao(token, usuario, lembrar) {
-  const persistente = lembrar !== false;
+  const persistente = lembrar === true;
   const destino = persistente ? localStorage : (typeof sessionStorage !== 'undefined' ? sessionStorage : localStorage);
   limparSessao();
   try {
     destino.setItem(CHAVE_SESSAO, JSON.stringify({ token: token, usuario: usuario }));
+  } catch (e) {}
+}
+
+function atualizarTokenDaSessao(token) {
+  const armazenamento = armazenamentoDaSessao();
+  const sessao = lerSessao();
+  if (!armazenamento || !sessao) return;
+  try {
+    armazenamento.setItem(CHAVE_SESSAO, JSON.stringify({ token: token, usuario: sessao.usuario }));
   } catch (e) {}
 }
 
