@@ -15,14 +15,6 @@ FAIXAS_EMOJI = [
     (0x200D, 0x200D),
 ]
 
-SIMBOLOS_TIPOGRAFICOS_PENDENTES = {
-    0x2709,
-    0x2713,
-    0x2715,
-    0x270E,
-    0x2694,
-}
-
 
 def _arquivos_de_texto():
     for pasta in PASTAS_VARRIDAS:
@@ -39,8 +31,6 @@ def _arquivos_de_texto():
 
 
 def _e_emoji(codigo):
-    if codigo in SIMBOLOS_TIPOGRAFICOS_PENDENTES:
-        return False
     return any(inicio <= codigo <= fim for inicio, fim in FAIXAS_EMOJI)
 
 

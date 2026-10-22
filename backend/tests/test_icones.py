@@ -6,6 +6,7 @@ RAIZ = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 PASTA_FRONTEND = os.path.join(RAIZ, "frontend")
 PASTA_MOCKUPS = os.path.join(PASTA_FRONTEND, "mockups")
 ARQUIVO_ICONES = os.path.join(PASTA_FRONTEND, "icones.js")
+SIMBOLOS_SUBSTITUIDOS = {0x2713, 0x2715, 0x270E, 0x2709, 0x2694}
 
 
 def _arquivos_do_frontend():
@@ -45,6 +46,15 @@ class TestIcones(unittest.TestCase):
 
     def test_criacao_de_icones_nao_usa_innerhtml(self):
         self.assertNotIn("innerHTML", _texto(ARQUIVO_ICONES))
+
+    def test_simbolos_tipograficos_substituidos_por_icones_nao_aparecem(self):
+        encontrados = []
+        for caminho in _arquivos_do_frontend():
+            for numero, linha in enumerate(_texto(caminho).splitlines(), 1):
+                if any(ord(caractere) in SIMBOLOS_SUBSTITUIDOS for caractere in linha):
+                    relativo = os.path.relpath(caminho, RAIZ).replace(os.sep, "/")
+                    encontrados.append(ascii(f"{relativo}:{numero}"))
+        self.assertEqual(encontrados, [], "Símbolos substituídos por ícones ainda presentes: " + ", ".join(encontrados))
 
 
 if __name__ == "__main__":
