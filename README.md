@@ -239,7 +239,9 @@ Variáveis de ambiente aceitas (todas opcionais, já vêm com padrão):
 `DB_PORT` (3306), `DB_NAME` (fitbattle), `DB_URI` (sobrescreve as cinco
 anteriores, usado pelos testes com SQLite), `FITBATTLE_ENV`, `SECRET_KEY`,
 `FLASK_DEBUG`
-(desligado por padrão; defina como `1` só em desenvolvimento),
+(desligado por padrão; defina como `1` só em desenvolvimento), `TRUST_PROXY`
+(`1` faz o limite de tentativas de login usar o primeiro IP de `X-Forwarded-For`;
+ligue só atrás de um proxy que você controla),
 `CORS_EXTRA_ORIGENS` (origens extras separadas por vírgula, além de
 localhost/127.0.0.1/IPs de rede local, já liberados por padrão),
 `SMTP_HOST`/`SMTP_PORT`/`SMTP_USER`/`SMTP_PASSWORD`/`SMTP_FROM` (envio de
