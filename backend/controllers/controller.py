@@ -318,7 +318,7 @@ class RankingController:
     def ranking_regional():
         try:
             dados = ConsultarRankingRegionalService.executar(
-                request.args.get("cidade"), request.args.get("limite", 20)
+                request.args.get("cidade"), request.args.get("limite", 20), request.args.get("estado")
             )
             return jsonify(dados)
         except ErroValidacao as erro:

@@ -1,5 +1,25 @@
+import unicodedata
+
 LIMITE_PADRAO = 20
 LIMITE_MAXIMO = 100
+
+
+def normalizar_texto(valor):
+    texto = unicodedata.normalize("NFKD", str(valor or ""))
+    sem_acentos = "".join(caractere for caractere in texto if not unicodedata.combining(caractere))
+    return " ".join(sem_acentos.lower().split())
+
+
+def atribuir_posicoes(linhas):
+    ordenadas = sorted(linhas, key=lambda linha: -linha["pontuacao_total"])
+    posicao = 0
+    anterior = None
+    for indice, linha in enumerate(ordenadas, 1):
+        if linha["pontuacao_total"] != anterior:
+            posicao = indice
+            anterior = linha["pontuacao_total"]
+        linha["posicao"] = posicao
+    return ordenadas
 
 
 def normalizar_limite_ranking(valor):

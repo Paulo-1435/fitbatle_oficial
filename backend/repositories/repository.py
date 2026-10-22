@@ -508,12 +508,9 @@ class RankingRepository:
         return [_linha_ranking(linha) for linha in linhas]
 
     @staticmethod
-    def regional(cidade, limite):
-        sql = text(
-            f"SELECT {_COLUNAS_RANKING} FROM vw_ranking_regional "
-            "WHERE cidade = :cidade ORDER BY posicao LIMIT :lim"
-        )
-        linhas = db.session.execute(sql, {"cidade": cidade, "lim": limite}).mappings()
+    def regional_todos():
+        sql = text(f"SELECT {_COLUNAS_RANKING} FROM vw_ranking_regional")
+        linhas = db.session.execute(sql).mappings()
         return [_linha_ranking(linha) for linha in linhas]
 
     @staticmethod
