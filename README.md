@@ -318,6 +318,21 @@ branco (padrão de fábrica), o `api.js` usa a detecção automática de porta
 acima. Esse arquivo é carregado antes de `api.js` em toda página que faz
 chamadas à API.
 
+Depois de mudar `config.js`, regenere a Content-Security-Policy das páginas:
+
+```bash
+cd backend
+python gerar_csp.py
+python -m unittest tests.test_csp
+```
+
+A política fica em `backend/politica_csp.py`, é o único ponto de definição, e
+é gravada como `<meta http-equiv="Content-Security-Policy">` em cada página
+HTML. `script-src` não aceita `'unsafe-inline'`; `style-src` aceita, porque
+ainda há atributos `style` e um bloco `<style>` em `termos.html`. A origem da
+API lida de `config.js` entra em `connect-src` e `img-src`. Para o servidor de
+desenvolvimento em outra porta (5000), a política também libera `http://*:5000`.
+
 ## Atualizando o banco
 
 Duas situações bem diferentes — escolha a certa antes de rodar qualquer
