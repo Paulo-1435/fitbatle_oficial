@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 from urllib.parse import quote_plus
 
 from flask import Flask, jsonify, request, send_from_directory
@@ -29,19 +30,42 @@ def _origens_cors():
     return origens
 
 
-def criar_app():
-    app = Flask(__name__)
+SENHA_PADRAO_DESENVOLVIMENTO = "Fitbattle@123"
+
+
+def uri_do_banco():
+    uri = os.getenv("DB_URI")
+    if uri:
+        return uri
 
     usuario = os.getenv("DB_USER", "fitbattle")
-    senha = os.getenv("DB_PASSWORD", "Fitbattle@123")
+    senha = os.getenv("DB_PASSWORD")
     host = os.getenv("DB_HOST", "localhost")
     porta = os.getenv("DB_PORT", "3306")
     banco = os.getenv("DB_NAME", "fitbattle")
 
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DB_URI") or (
+    if not senha:
+        if os.getenv("FITBATTLE_ENV") == "production":
+            raise RuntimeError(
+                "Defina DB_PASSWORD: a aplicação não inicia em produção sem a senha do banco."
+            )
+        print(
+            "AVISO: DB_PASSWORD não definida; usando a senha padrão de desenvolvimento. "
+            "Não use esta configuração em produção.",
+            file=sys.stderr,
+        )
+        senha = SENHA_PADRAO_DESENVOLVIMENTO
+
+    return (
         f"mysql+pymysql://{quote_plus(usuario)}:{quote_plus(senha)}"
         f"@{host}:{porta}/{banco}"
     )
+
+
+def criar_app():
+    app = Flask(__name__)
+
+    app.config["SQLALCHEMY_DATABASE_URI"] = uri_do_banco()
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["SECRET_KEY"] = carregar_chave_secreta()
     app.config["UPLOAD_FOLDER"] = PASTA_UPLOAD

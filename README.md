@@ -235,9 +235,10 @@ usa o sistema — se fechar (ou o PC reiniciar), rode `python app.py` de novo.
 > para conectar.
 
 Variáveis de ambiente aceitas (todas opcionais, já vêm com padrão):
-`DB_USER` (fitbattle), `DB_PASSWORD` (Fitbattle@123), `DB_HOST` (localhost),
+`DB_USER` (fitbattle), `DB_PASSWORD`, `DB_HOST` (localhost),
 `DB_PORT` (3306), `DB_NAME` (fitbattle), `DB_URI` (sobrescreve as cinco
-anteriores, usado pelos testes com SQLite), `SECRET_KEY`, `FLASK_DEBUG`
+anteriores, usado pelos testes com SQLite), `FITBATTLE_ENV`, `SECRET_KEY`,
+`FLASK_DEBUG`
 (desligado por padrão; defina como `1` só em desenvolvimento),
 `CORS_EXTRA_ORIGENS` (origens extras separadas por vírgula, além de
 localhost/127.0.0.1/IPs de rede local, já liberados por padrão),
@@ -246,6 +247,14 @@ e-mail para as notificações do RF18; sem `SMTP_HOST` definido, as
 notificações continuam só in-app), `ADMIN_EMAILS` (e-mails separados por
 vírgula com permissão para criar, editar e encerrar desafios sazonais —
 RF16; sem essa variável, nenhum usuário é administrador).
+
+`DB_PASSWORD` não tem padrão no código de produção. Em desenvolvimento, se a
+variável faltar, a API usa a senha de exemplo `Fitbattle@123` e imprime um
+aviso no terminal. Com `FITBATTLE_ENV=production`, a API recusa iniciar se
+`DB_PASSWORD` não estiver definida (a exceção é `DB_URI`, que já traz a senha
+dentro da própria URI). O arquivo `backend/.env.example` lista todas as
+variáveis; a aplicação não carrega esse arquivo sozinha, então exporte as
+variáveis no ambiente ou use o gerenciador de variáveis da sua hospedagem.
 
 ### 3. Rodar com dados de exemplo (sem MySQL)
 
