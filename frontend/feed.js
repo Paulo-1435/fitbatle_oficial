@@ -33,6 +33,7 @@ function configurarBanner() {
 
 async function carregarBanner() {
   const subtitulo = document.getElementById('feedSubtitulo');
+  const chips = document.getElementById('feedChips');
 
   try {
     const resposta = await api(`/usuarios/${usuarioLogado.id}/atividades`);
