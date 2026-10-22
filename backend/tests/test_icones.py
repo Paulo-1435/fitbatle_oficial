@@ -44,6 +44,16 @@ class TestIcones(unittest.TestCase):
         faltando = sorted(usados - existentes)
         self.assertEqual(faltando, [], f"Ícones usados sem definição em icones.js: {faltando}")
 
+    def test_nomes_globais_de_icones_nao_colidem_com_outros_scripts(self):
+        nomes = set(re.findall(r"^(?:const|let|var|function) (\w+)", _texto(ARQUIVO_ICONES), re.M))
+        colisoes = []
+        for caminho in _arquivos_do_frontend():
+            if caminho == ARQUIVO_ICONES or not caminho.endswith(".js"):
+                continue
+            declarados = set(re.findall(r"^(?:const|let|var|function|class) (\w+)", _texto(caminho), re.M))
+            colisoes.extend(f"{os.path.basename(caminho)}:{nome}" for nome in sorted(nomes & declarados))
+        self.assertEqual(colisoes, [], "Nomes globais de icones.js já declarados em outros scripts: " + ", ".join(colisoes))
+
     def test_criacao_de_icones_nao_usa_innerhtml(self):
         self.assertNotIn("innerHTML", _texto(ARQUIVO_ICONES))
 

@@ -1,6 +1,6 @@
 const ICONE_NS = 'http://www.w3.org/2000/svg';
 
-const ICONES = {
+const TRACADOS_ICONES = {
   check: ['M5 12.5l4.5 4.5L19 7.5'],
   fechar: ['M6 6l12 12', 'M18 6L6 18'],
   editar: ['M4 20h4L18.5 9.5l-4-4L4 16v4', 'M13.5 6.5l4 4'],
@@ -23,7 +23,7 @@ const ICONE_POR_TIPO = {
 };
 
 function criarIcone(nome, opcoes) {
-  const formas = ICONES[nome] || ICONES.generico;
+  const formas = TRACADOS_ICONES[nome] || TRACADOS_ICONES.generico;
   const svg = document.createElementNS(ICONE_NS, 'svg');
   svg.setAttribute('viewBox', '0 0 24 24');
   svg.setAttribute('fill', 'none');
