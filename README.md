@@ -469,6 +469,43 @@ reatribuído pelas faixas em `FAIXAS_NIVEL`
 (`backend/services/atividade/apoio.py`): iniciante → intermediario → avancado →
 profissional → elite.
 
+#### Como a pontuação é calculada
+
+A pontuação de um treino é:
+
+pontuação = tempo em minutos + distância em km × 10 + (carga em kg × repetições) ÷ 100 + bônus do tipo
+
+O resultado é arredondado para o inteiro mais próximo e nunca fica abaixo de 10. Campos não informados valem zero.
+
+Bônus fixo por tipo de treino (somado à pontuação, não multiplica):
+
+| Tipo | Bônus |
+|---|---|
+| musculacao | 20 |
+| cardio | 15 |
+| yoga | 10 |
+| outro | 5 |
+
+Tetos (`backend/services/atividade/apoio.py`):
+
+- Por treino: 2000 XP. Um treino acima disso é recusado com erro 400 e não é gravado. Ele não é cortado para o limite.
+- Por dia: 3000 XP somados. O dia é contado no fuso fixo de Brasília (UTC-3). Se o novo treino fizer o total do dia passar de 3000, ele é recusado com erro 400 e não é gravado.
+
+Faixas de XP para cada categoria (`FAIXAS_NIVEL`):
+
+| Categoria | XP mínimo |
+|---|---|
+| iniciante | 0 |
+| intermediario | 1000 |
+| avancado | 3000 |
+| profissional | 7000 |
+| elite | 15000 |
+
+Exemplos:
+
+- Musculação com 40 min, 100 kg e 8 repetições: 40 + (100 × 8) ÷ 100 + 20 = 40 + 8 + 20 = **68**.
+- Cardio com 30 min e 5 km: 30 + 5 × 10 + 15 = 30 + 50 + 15 = **95**.
+
 ### Consentimento LGPD
 
 No cadastro, o frontend mostra uma caixa com as finalidades de tratamento já
