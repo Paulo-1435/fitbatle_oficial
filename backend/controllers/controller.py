@@ -27,6 +27,7 @@ from services import (
     ConsultarRankingPorExercicioService,
     ConsultarRankingRegionalService,
     ConsultarResumoRankingUsuarioService,
+    ListarMedalhasService,
     ContarNotificacoesNaoLidasService,
     ConvidarParaGrupoService,
     CriarComentarioService,
@@ -280,6 +281,16 @@ class ComentarioController:
         try:
             ExcluirComentarioService.executar(_id_logado(), id_comentario)
             return jsonify({"mensagem": "Comentário excluído.", "id": id_comentario})
+        except ErroValidacao as erro:
+            return jsonify({"erro": erro.mensagem}), erro.status
+
+
+class MedalhaController:
+
+    @staticmethod
+    def listar(id_usuario):
+        try:
+            return jsonify(ListarMedalhasService.executar(id_usuario, _id_logado()))
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status
 

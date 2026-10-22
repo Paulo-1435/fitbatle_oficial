@@ -1,0 +1,1 @@
+from services.medalha.listar_medalhas import ListarMedalhasService
