@@ -38,6 +38,13 @@ function ligarAbas() {
     }
     selecionarEscopo('regional');
   });
+  document.getElementById('abaEstado').addEventListener('click', function () {
+    if (!usuarioLogado.estado) {
+      mostrarToast('Informe seu estado em "Editar perfil" para ver o ranking do seu estado.');
+      return;
+    }
+    selecionarEscopo('estado');
+  });
 }
 
 function selecionarEscopo(escopo) {
@@ -46,12 +53,15 @@ function selecionarEscopo(escopo) {
 
   const global = document.getElementById('abaGlobal');
   const regional = document.getElementById('abaRegional');
+  const estado = document.getElementById('abaEstado');
   global.classList.toggle('aba--ativa', escopo === 'global');
   global.setAttribute('aria-selected', String(escopo === 'global'));
   regional.classList.toggle('aba--ativa', escopo === 'regional');
   regional.setAttribute('aria-selected', String(escopo === 'regional'));
+  estado.classList.toggle('aba--ativa', escopo === 'estado');
+  estado.setAttribute('aria-selected', String(escopo === 'estado'));
 
-  document.getElementById('tabelaRanking').classList.toggle('ranking-tabela--sem-local', escopo === 'regional');
+  document.getElementById('tabelaRanking').classList.toggle('ranking-tabela--sem-local', escopo !== 'global');
 
   atualizarRanking();
 }
@@ -106,7 +116,9 @@ async function carregarRanking(escopo) {
   try {
     const url = escopo === 'regional'
       ? '/ranking/regional?cidade=' + encodeURIComponent(usuarioLogado.cidade) + '&limite=' + LIMITE_TABELA
-      : '/ranking/global?limite=' + LIMITE_TABELA;
+      : escopo === 'estado'
+        ? '/ranking/regional?estado=' + encodeURIComponent(usuarioLogado.estado) + '&limite=' + LIMITE_TABELA
+        : '/ranking/global?limite=' + LIMITE_TABELA;
 
     const resposta = await api(url);
     const dados = await resposta.json();
@@ -233,7 +245,9 @@ function renderizarMinhaPosicao(dados, modo, contexto) {
   } else {
     rotulo.textContent = contexto.escopo === 'regional'
       ? 'Sua posição no ranking da sua cidade'
-      : 'Sua posição no ranking geral';
+      : contexto.escopo === 'estado'
+        ? 'Sua posição no ranking do seu estado'
+        : 'Sua posição no ranking geral';
   }
 
   if (!minhaLinha) {
