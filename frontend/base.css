@@ -504,6 +504,13 @@ textarea.input {
   color: var(--cor-sucesso);
 }
 
+.icone {
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+  vertical-align: -0.125em;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
