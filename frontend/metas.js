@@ -333,7 +333,7 @@ async function encerrarDesafio(id) {
 function editarDesafio(desafio) {
   idDesafioEmEdicao = desafio.id;
   document.getElementById('tituloFormDesafio').textContent = 'Editar desafio';
-  document.getElementById('btnSalvarDesafio').textContent = '✓ Salvar alterações';
+  document.getElementById('btnSalvarDesafio').replaceChildren(...montarComIcone('check', 'Salvar alterações'));
   document.getElementById('btnCancelarEdicaoDesafio').hidden = false;
   document.getElementById('desafioNome').value = desafio.nome;
   document.getElementById('desafioDescricao').value = desafio.descricao || '';
@@ -350,7 +350,7 @@ function cancelarEdicaoDesafio() {
   idDesafioEmEdicao = null;
   document.getElementById('formDesafio').reset();
   document.getElementById('tituloFormDesafio').textContent = 'Criar novo desafio';
-  document.getElementById('btnSalvarDesafio').textContent = '✓ Criar desafio';
+  document.getElementById('btnSalvarDesafio').replaceChildren(...montarComIcone('check', 'Criar desafio'));
   document.getElementById('btnCancelarEdicaoDesafio').hidden = true;
 }
 

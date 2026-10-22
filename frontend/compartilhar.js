@@ -3,7 +3,7 @@ function abrirAvisoCompartilhar() {
   overlay.className = 'overlay aberto';
   overlay.innerHTML =
     '<div class="modal-termo modal-termo--estreito">' +
-      '<button type="button" class="modal-close" aria-label="Fechar">✕</button>' +
+      '<button type="button" class="modal-close" aria-label="Fechar"><span data-icone="fechar"></span></button>' +
       '<h2 class="modal-title">Compartilhamento desativado</h2>' +
       '<p>Para compartilhar conquistas, ative o consentimento de compartilhamento na página de Privacidade.</p>' +
       '<div class="modal-actions">' +
@@ -11,6 +11,7 @@ function abrirAvisoCompartilhar() {
       '</div>' +
     '</div>';
   document.body.appendChild(overlay);
+  ativarIcones(overlay);
   function fechar() { overlay.remove(); }
   overlay.querySelector('.modal-close').addEventListener('click', fechar);
   overlay.addEventListener('click', function (evento) { if (evento.target === overlay) fechar(); });
@@ -23,7 +24,7 @@ function abrirMenuCompartilhar(opcoes) {
   overlay.className = 'overlay aberto';
   overlay.innerHTML =
     '<div class="modal-termo modal-termo--estreito">' +
-      '<button type="button" class="modal-close" aria-label="Fechar">✕</button>' +
+      '<button type="button" class="modal-close" aria-label="Fechar"><span data-icone="fechar"></span></button>' +
       '<h2 class="modal-title">Compartilhar</h2>' +
       '<div class="modal-actions">' +
         (typeof navigator.share === 'function'
@@ -36,6 +37,7 @@ function abrirMenuCompartilhar(opcoes) {
       '</div>' +
     '</div>';
   document.body.appendChild(overlay);
+  ativarIcones(overlay);
 
   function fechar() { overlay.remove(); }
   overlay.querySelector('.modal-close').addEventListener('click', fechar);

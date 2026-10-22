@@ -132,7 +132,7 @@ function renderizarResultados(usuarios) {
   lista.innerHTML = usuarios.map(function (usuario) {
     const local = [usuario.cidade, usuario.estado].filter(Boolean).join(' - ');
     const botao = usuario.convite_pendente
-      ? '<button type="button" class="btn btn--secundario btn--pequeno" disabled>✓ Convite Enviado</button>'
+      ? '<button type="button" class="btn btn--secundario btn--pequeno" disabled><span data-icone="check"></span> Convite Enviado</button>'
       : `<button type="button" class="btn btn--primario btn--pequeno" data-convidar="${usuario.id}">Enviar Convite</button>`;
     return `<li class="convite-resultado-item">
       ${htmlAvatar(usuario)}
@@ -143,6 +143,7 @@ function renderizarResultados(usuarios) {
       ${botao}
     </li>`;
   }).join('');
+  ativarIcones(lista);
   aplicarFotosNoAvatares(lista);
 
   lista.querySelectorAll('[data-convidar]').forEach(function (botao) {
@@ -172,7 +173,10 @@ async function convidar(botao) {
       botao.disabled = false;
       return;
     }
-    botao.outerHTML = '<button type="button" class="btn btn--secundario btn--pequeno" disabled>✓ Convite Enviado</button>';
+    botao.className = 'btn btn--secundario btn--pequeno';
+    botao.removeAttribute('data-convidar');
+    botao.replaceChildren(...montarComIcone('check', 'Convite Enviado'));
+    botao.disabled = true;
     mostrarToast('Convite enviado!');
   } catch (e) {
     mostrarToast('Não foi possível falar com o servidor. Tente novamente.');

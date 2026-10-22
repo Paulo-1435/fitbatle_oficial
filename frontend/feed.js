@@ -41,7 +41,10 @@ async function carregarBanner() {
     const sequencia = calcularSequencia(treinos);
 
     if (sequencia > 0) {
-      chips.prepend(criarElemento('span', { classe: 'badge badge--destaque', texto: 'Sequência de ' + sequencia + ' dia' + (sequencia > 1 ? 's' : '') }));
+      chips.prepend(criarElemento('span', { classe: 'badge badge--destaque' }, [
+        criarIcone('sequencia'),
+        document.createTextNode(' Sequência de ' + sequencia + ' dia' + (sequencia > 1 ? 's' : ''))
+      ]));
       subtitulo.textContent = 'Você está treinando há ' + sequencia + ' dia' + (sequencia > 1 ? 's' : '') + ' seguidos. Mantenha o ritmo!';
     } else if (treinos.length > 0) {
       subtitulo.textContent = 'Faz um tempo que você não registra um treino. Bora retomar?';
@@ -69,6 +72,7 @@ async function carregarFeed() {
     }
 
     lista.innerHTML = itens.map(htmlCardFeed).join('');
+    ativarIcones(lista);
     aplicarFotosNoAvatares(lista);
   } catch (e) {
     lista.replaceChildren();
@@ -111,7 +115,8 @@ function htmlCardFeed(item) {
 
   if (item.tipo_conteudo === 'atividade') {
     const nomeTipo = esc(NOME_TIPO[item.tipo] || capitalizar(item.tipo));
-    titulo = `${nomeTipo}${item.titulo ? ' — ' + esc(item.titulo) : ''}`;
+    const icone = `<span data-icone="${nomeIconeDoTipo(item.tipo)}"></span>`;
+    titulo = `${icone} ${nomeTipo}${item.titulo ? ' — ' + esc(item.titulo) : ''}`;
 
     const metricas = [];
     if (item.tempo_min != null) {

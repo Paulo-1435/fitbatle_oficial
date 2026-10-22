@@ -49,10 +49,10 @@ function unidade(desafio) {
 }
 
 function rotuloStatus(status) {
-  if (status === 'concluido') return '✓ Concluído';
-  if (status === 'desistiu') return 'Você desistiu';
-  if (status === 'inscrito') return '● Em Andamento';
-  return 'Não inscrito';
+  if (status === 'concluido') return montarComIcone('check', 'Concluído');
+  if (status === 'desistiu') return [document.createTextNode('Você desistiu')];
+  if (status === 'inscrito') return [document.createTextNode('● Em Andamento')];
+  return [document.createTextNode('Não inscrito')];
 }
 
 function renderizar(desafio) {
@@ -79,7 +79,7 @@ function renderizar(desafio) {
   document.getElementById('statAtualDesafio').textContent = formatarNumero(inscricao.valor_atual) + ' ' + un;
   document.getElementById('statObjetivoDesafio').textContent = formatarNumero(desafio.valor_objetivo) + ' ' + un;
   document.getElementById('statRecompensaDesafio').textContent = desafio.recompensa_xp ? '+' + desafio.recompensa_xp + ' XP' : 'Sem recompensa';
-  document.getElementById('statStatusDesafio').textContent = rotuloStatus(status);
+  document.getElementById('statStatusDesafio').replaceChildren(...rotuloStatus(status));
 
   document.getElementById('progressoPercentualTextoDesafio').textContent = inscricao.percentual + '% concluído';
   document.getElementById('barraProgressoDesafio').style.width = inscricao.percentual + '%';

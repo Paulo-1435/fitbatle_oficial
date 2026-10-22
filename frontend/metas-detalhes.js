@@ -43,10 +43,11 @@ function renderizar(meta) {
 
   const tagsHtml = [
     `<span class="badge">${meta.tipo === 'curto_prazo' ? 'Curto Prazo' : 'Longo Prazo'}</span>`,
-    `<span class="badge${meta.status === 'concluida' ? ' badge--sucesso' : ' badge--destaque'}">${meta.status === 'concluida' ? '✓ Concluída' : '● Em Andamento'}</span>`,
+    `<span class="badge${meta.status === 'concluida' ? ' badge--sucesso' : ' badge--destaque'}">${meta.status === 'concluida' ? '<span data-icone="check"></span> Concluída' : '● Em Andamento'}</span>`,
   ];
   if (meta.exercicio) tagsHtml.push(`<span class="badge">${esc(meta.exercicio)}</span>`);
   document.getElementById('metaTags').innerHTML = tagsHtml.join('');
+  ativarIcones(document.getElementById('metaTags'));
 
   const botaoCompartilhar = document.getElementById('btnCompartilharMeta');
   botaoCompartilhar.hidden = meta.status !== 'concluida';
@@ -84,7 +85,7 @@ function renderizar(meta) {
   document.getElementById('barraProgresso').style.width = meta.percentual + '%';
   document.getElementById('legendaInicio').textContent = formatarNumero(meta.valor_partida) + ' ' + un + ' (Inicial)';
   document.getElementById('legendaAtual').textContent = formatarNumero(meta.valor_atual) + ' ' + un + ' (Atual)';
-  document.getElementById('legendaMeta').textContent = formatarNumero(meta.valor_objetivo) + ' ' + un + ' (Meta)';
+  document.getElementById('legendaMeta').replaceChildren(...montarComIcone('meta', formatarNumero(meta.valor_objetivo) + ' ' + un + ' (Meta)'));
 
   const progresso = meta.valor_atual - meta.valor_partida;
   document.getElementById('calloutProgresso').textContent = progresso > 0
