@@ -54,7 +54,7 @@ function renderizar(meta) {
     abrirCompartilhar({
       tipoConteudo: 'meta',
       idMeta: meta.id,
-      texto: 'Bati minha meta "' + meta.titulo + '" no FitBattle! 🏆 #FitBattle'
+      texto: 'Bati minha meta "' + meta.titulo + '" no FitBattle! #FitBattle'
     });
   };
 
@@ -84,7 +84,7 @@ function renderizar(meta) {
   document.getElementById('barraProgresso').style.width = meta.percentual + '%';
   document.getElementById('legendaInicio').textContent = formatarNumero(meta.valor_partida) + ' ' + un + ' (Inicial)';
   document.getElementById('legendaAtual').textContent = formatarNumero(meta.valor_atual) + ' ' + un + ' (Atual)';
-  document.getElementById('legendaMeta').textContent = '🏁 ' + formatarNumero(meta.valor_objetivo) + ' ' + un + ' (Meta)';
+  document.getElementById('legendaMeta').textContent = formatarNumero(meta.valor_objetivo) + ' ' + un + ' (Meta)';
 
   const progresso = meta.valor_atual - meta.valor_partida;
   document.getElementById('calloutProgresso').textContent = progresso > 0

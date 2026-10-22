@@ -228,7 +228,7 @@ function htmlCardTreino(t) {
       <div class="activity-desc">${esc(t.descricao || '')}</div>
       <div class="activity-metrics">${metricas.join('')}</div>
       <div class="card-actions">
-        <button class="btn btn--fantasma btn--pequeno" data-compartilhar="${esc('Registrei um treino de ' + nomeTipo + (t.titulo ? ' (' + t.titulo + ')' : '') + ' no FitBattle! 💪 #FitBattle')}" data-compartilhar-id="${t.id}"><span class="perfil-icone">${ICONE_COMPARTILHAR}</span>Compartilhar</button>
+        <button class="btn btn--fantasma btn--pequeno" data-compartilhar="${esc('Registrei um treino de ' + nomeTipo + (t.titulo ? ' (' + t.titulo + ')' : '') + ' no FitBattle! #FitBattle')}" data-compartilhar-id="${t.id}"><span class="perfil-icone">${ICONE_COMPARTILHAR}</span>Compartilhar</button>
         <button class="btn btn--fantasma btn--pequeno perfil-acao-excluir" data-excluir="${t.id}"><span class="perfil-icone">${ICONE_LIXEIRA}</span>Excluir</button>
       </div>
     </div>`;

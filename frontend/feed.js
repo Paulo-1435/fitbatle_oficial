@@ -1,11 +1,5 @@
 const LIMITE_FEED = 30;
 
-const EMOJI_TIPO = {
-  musculacao: '🏋️',
-  cardio: '🏃',
-  yoga: '🧘',
-  outro: '💪'
-};
 const NOME_TIPO = {
   musculacao: 'Musculação',
   cardio: 'Cardio',
@@ -34,7 +28,7 @@ function primeiroNome(nome) {
 }
 
 function configurarBanner() {
-  document.getElementById('feedSaudacao').textContent = 'Bem-vindo de volta, ' + primeiroNome(usuarioLogado.nome) + '! 👋';
+  document.getElementById('feedSaudacao').textContent = 'Bem-vindo de volta, ' + primeiroNome(usuarioLogado.nome) + '!';
 }
 
 async function carregarBanner() {
@@ -47,7 +41,7 @@ async function carregarBanner() {
     const sequencia = calcularSequencia(treinos);
 
     if (sequencia > 0) {
-      chips.prepend(criarElemento('span', { classe: 'badge badge--destaque', texto: '🔥 Sequência de ' + sequencia + ' dia' + (sequencia > 1 ? 's' : '') }));
+      chips.prepend(criarElemento('span', { classe: 'badge badge--destaque', texto: 'Sequência de ' + sequencia + ' dia' + (sequencia > 1 ? 's' : '') }));
       subtitulo.textContent = 'Você está treinando há ' + sequencia + ' dia' + (sequencia > 1 ? 's' : '') + ' seguidos. Mantenha o ritmo!';
     } else if (treinos.length > 0) {
       subtitulo.textContent = 'Faz um tempo que você não registra um treino. Bora retomar?';
@@ -116,9 +110,8 @@ function htmlCardFeed(item) {
   let metricasHtml = '';
 
   if (item.tipo_conteudo === 'atividade') {
-    const emoji = EMOJI_TIPO[item.tipo] || '💪';
     const nomeTipo = esc(NOME_TIPO[item.tipo] || capitalizar(item.tipo));
-    titulo = `${emoji} ${nomeTipo}${item.titulo ? ' — ' + esc(item.titulo) : ''}`;
+    titulo = `${nomeTipo}${item.titulo ? ' — ' + esc(item.titulo) : ''}`;
 
     const metricas = [];
     if (item.tempo_min != null) {
@@ -141,7 +134,7 @@ function htmlCardFeed(item) {
   const midia = fotoMidia ? `<img class="feed-card__midia" src="${esc(fotoMidia)}" alt="Foto do treino de ${esc(dono.nome || '')}">` : '';
 
   const textoCompartilhar = item.tipo_conteudo === 'atividade'
-    ? `Registrei um treino de ${NOME_TIPO[item.tipo] || item.tipo}${item.titulo ? ' (' + item.titulo + ')' : ''} no FitBattle! 💪 #FitBattle`
+    ? `Registrei um treino de ${NOME_TIPO[item.tipo] || item.tipo}${item.titulo ? ' (' + item.titulo + ')' : ''} no FitBattle! #FitBattle`
     : (item.texto ? item.texto + ' #FitBattle' : 'Confira meu FitBattle! #FitBattle');
 
   return `

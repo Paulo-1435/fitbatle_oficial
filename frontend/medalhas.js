@@ -19,7 +19,7 @@ function botaoCompartilharMedalha(medalha) {
     abrirCompartilhar({
       tipoConteudo: 'medalha',
       chaveMedalha: medalha.chave,
-      texto: 'Conquistei a medalha ' + medalha.nome + ' no FitBattle! #FitBattle'
+      texto: 'Conquistei a medalha "' + medalha.nome + '" no FitBattle! #FitBattle'
     });
   });
   return botao;

@@ -263,7 +263,7 @@ function renderizarMinhaPosicao(dados, modo, contexto) {
 
   if (!acima) {
     legenda.textContent = minhaLinha.posicao === 1
-      ? 'Você está no topo do ranking! 🏆'
+      ? 'Você está no topo do ranking!'
       : 'Continue treinando para subir no ranking!';
     barraWrap.hidden = true;
     return;

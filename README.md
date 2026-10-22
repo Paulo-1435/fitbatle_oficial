@@ -348,7 +348,7 @@ usando a antiga coluna `idade` como base para o cálculo de idade
 **Você está num ambiente de desenvolvimento e topa perder todos os dados**
 → `DROP DATABASE fitbattle;` e rode `create_database.sql` de novo do zero.
 
-> ⚠️ **Isso apaga todos os usuários, treinos, grupos, metas e tudo o mais,
+> **Isso apaga todos os usuários, treinos, grupos, metas e tudo o mais,
 > sem volta.** Nunca rode isso contra um banco com dados reais.
 
 ## Notas importantes

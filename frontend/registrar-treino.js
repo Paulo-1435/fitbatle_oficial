@@ -185,9 +185,8 @@ function preencherResumo() {
   document.getElementById('resumoDuracao').textContent = duracaoAtual + ' min';
 
   const pontos = calcularPontosEstimados();
-  const recorde = ehNovoRecorde();
   document.getElementById('textoBotaoSalvar').textContent =
-    'Salvar e Compartilhar Treino (+' + pontos + ' Pontos)' + (recorde ? ' 🏆' : '');
+    'Salvar e Compartilhar Treino (+' + pontos + ' Pontos)';
 }
 
 function irParaPasso(numero) {
@@ -221,7 +220,7 @@ function configurarSubmissao() {
 
     const recorde = ehNovoRecorde();
     let descricao = document.getElementById('treinoDescricao').value.trim();
-    if (recorde) descricao = ('🏆 Novo recorde pessoal! ' + descricao).trim();
+    if (recorde) descricao = ('Novo recorde pessoal! ' + descricao).trim();
 
     const corpo = {
       tipo: 'musculacao',
@@ -248,7 +247,7 @@ function configurarSubmissao() {
       botao.hidden = true;
 
       if (recorde) {
-        const textoRecorde = 'Bati meu recorde pessoal: ' + formatarNumero(pesoAtual) + 'kg no ' + exercicioSelecionado + ' no FitBattle! 🏆 #FitBattle';
+        const textoRecorde = 'Bati meu recorde pessoal: ' + formatarNumero(pesoAtual) + 'kg no ' + exercicioSelecionado + ' no FitBattle! #FitBattle';
         const botaoRecorde = document.getElementById('btnCompartilharRecorde');
         botaoRecorde.hidden = false;
         botaoRecorde.onclick = function () {
@@ -258,7 +257,7 @@ function configurarSubmissao() {
             texto: textoRecorde
           });
         };
-        mostrarToast('Treino registrado! +' + dados.pontuacao_ganha + ' xp 🏆 Novo recorde pessoal!');
+        mostrarToast('Treino registrado! +' + dados.pontuacao_ganha + ' xp. Novo recorde pessoal!');
         return;
       }
 
