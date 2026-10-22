@@ -6,6 +6,8 @@ from services.atividade.apoio import (
     nivel_por_xp,
 )
 from services.comum import ErroValidacao, numero_decimal, texto_do_cliente
+from services.medalha.apoio import chaves_conquistadas
+from services.medalha.avisar_medalhas_novas import AvisarMedalhasNovasService
 from services.desafio.avaliar_desafios_do_usuario import AvaliarDesafiosDoUsuarioService
 from services.notificacao.apoio import gerar_notificacao
 from services.usuario.apoio import buscar_usuario
@@ -89,6 +91,7 @@ class RegistrarTreinoService:
         limpos = _validar(dados)
 
         posicao_antes = RankingRepository.minha_posicao_global(id_usuario)
+        medalhas_antes = chaves_conquistadas(usuario)
 
         limpos["pontuacao"] = calcular_pontuacao(limpos)
         _validar_teto(id_usuario, limpos["pontuacao"])
@@ -100,5 +103,6 @@ class RegistrarTreinoService:
 
         _notificar_subida_no_ranking(id_usuario, posicao_antes)
         AvaliarDesafiosDoUsuarioService.executar(id_usuario)
+        AvisarMedalhasNovasService.executar(id_usuario, medalhas_antes)
 
         return atividade, usuario

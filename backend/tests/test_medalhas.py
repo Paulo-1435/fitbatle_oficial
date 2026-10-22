@@ -226,5 +226,53 @@ class TestFusoLocal(BaseMedalhas):
         self.assertEqual(medalha["data_conquista"], (inicio + timedelta(days=6)).isoformat())
 
 
+class TestAvisoDeMedalhaNova(BaseMedalhas):
+
+    def treinar(self, usuario, token, quantidade=1):
+        ids = []
+        for _ in range(quantidade):
+            resposta = self.cli.post(
+                f"/api/usuarios/{usuario['id']}/atividades",
+                json={"tipo": "cardio", "titulo": "Corrida", "tempo_min": 20},
+                headers=self.auth(token),
+            )
+            self.assertEqual(resposta.status_code, 201, resposta.get_data(as_text=True))
+            ids.append(resposta.get_json()["atividade"]["id"])
+        return ids
+
+    def avisos(self, token):
+        resposta = self.cli.get("/api/notificacoes", headers=self.auth(token))
+        self.assertEqual(resposta.status_code, 200)
+        return [n["mensagem"] for n in resposta.get_json() if n["tipo"] == "medalha"]
+
+    def test_primeiro_treino_gera_um_aviso(self):
+        self.treinar(self.ana, self.token_ana)
+        self.assertEqual(self.avisos(self.token_ana), ['Você conquistou a medalha "Primeiro treino".'])
+
+    def test_treinos_seguintes_nao_repetem_o_aviso(self):
+        self.treinar(self.ana, self.token_ana, 3)
+        self.assertEqual(self.avisos(self.token_ana), ['Você conquistou a medalha "Primeiro treino".'])
+
+    def test_decimo_treino_gera_aviso_de_constancia_uma_vez(self):
+        self.treinar(self.ana, self.token_ana, 11)
+        avisos = self.avisos(self.token_ana)
+        self.assertEqual(avisos.count('Você conquistou a medalha "Constância".'), 1)
+        self.assertEqual(avisos.count('Você conquistou a medalha "Primeiro treino".'), 1)
+
+    def test_sem_consentimento_de_notificacoes_nao_gera_aviso(self):
+        self.cli.put(
+            f"/api/usuarios/{self.ana['id']}/consentimentos/notificacoes",
+            json={"aceito": False}, headers=self.auth(self.token_ana),
+        )
+        self.treinar(self.ana, self.token_ana)
+        self.assertEqual(self.avisos(self.token_ana), [])
+
+    def test_medalha_perdida_e_recuperada_nao_repete_o_aviso(self):
+        ids = self.treinar(self.ana, self.token_ana)
+        self.cli.delete(f"/api/atividades/{ids[0]}", headers=self.auth(self.token_ana))
+        self.treinar(self.ana, self.token_ana)
+        self.assertEqual(self.avisos(self.token_ana), ['Você conquistou a medalha "Primeiro treino".'])
+
+
 if __name__ == "__main__":
     unittest.main()

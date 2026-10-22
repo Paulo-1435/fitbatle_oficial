@@ -792,6 +792,10 @@ class NotificacaoRepository:
         return notificacao
 
     @staticmethod
+    def existe(id_usuario, tipo, mensagem):
+        return Notificacao.query.filter_by(id_usuario=id_usuario, tipo=tipo, mensagem=mensagem).first() is not None
+
+    @staticmethod
     def listar_do_usuario(id_usuario, limite=50):
         return (
             Notificacao.query.filter_by(id_usuario=id_usuario)

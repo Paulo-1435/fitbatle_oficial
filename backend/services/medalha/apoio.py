@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from repositories.repository import AtividadeRepository, MetaRepository
 from services.atividade.apoio import FAIXAS_NIVEL
 from services.meta.apoio import valor_atual_meta
 from utils import data_local
@@ -116,3 +117,13 @@ def _categoria(usuario, chave_nivel, minimo, ordenadas):
         f"categoria_{chave_nivel}", f"Categoria {nome}",
         f"Chegar à categoria {nome} com {minimo} XP.", xp, minimo, data,
     )
+
+
+def medalhas_do_usuario(usuario):
+    atividades = AtividadeRepository.listar_do_usuario(usuario.id_usuario)
+    metas = MetaRepository.listar_do_usuario(usuario.id_usuario)
+    return calcular_medalhas(usuario, atividades, metas_com_progresso(metas))
+
+
+def chaves_conquistadas(usuario):
+    return {medalha["chave"] for medalha in medalhas_do_usuario(usuario) if medalha["conquistada"]}

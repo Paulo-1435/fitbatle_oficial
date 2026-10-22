@@ -61,7 +61,7 @@ from services.notificacao import (
     MarcarNotificacaoLidaService,
     MarcarTodasNotificacoesLidasService,
 )
-from services.medalha import ListarMedalhasService
+from services.medalha import AvisarMedalhasNovasService, ListarMedalhasService
 from services.desafio import (
     AtualizarDesafioService,
     AvaliarDesafiosDoUsuarioService,
