@@ -63,11 +63,19 @@ def criar_app():
     def health():
         return jsonify({"status": "ok", "servico": "FitBattle API"})
 
+    @app.after_request
+    def cabecalhos_de_seguranca(resposta):
+        if request.path.startswith(("/api/", "/uploads/")):
+            resposta.headers["X-Content-Type-Options"] = "nosniff"
+            resposta.headers["X-Frame-Options"] = "DENY"
+            resposta.headers["Referrer-Policy"] = "no-referrer"
+            if "Authorization" in request.headers:
+                resposta.headers["Cache-Control"] = "no-store"
+        return resposta
+
     @app.get("/uploads/<path:nome>")
     def servir_upload(nome):
-        resposta = send_from_directory(app.config["UPLOAD_FOLDER"], nome)
-        resposta.headers["X-Content-Type-Options"] = "nosniff"
-        return resposta
+        return send_from_directory(app.config["UPLOAD_FOLDER"], nome)
 
     servir_frontend = os.environ.get("SERVIR_FRONTEND") == "1" and os.path.isdir(PASTA_FRONTEND)
 
