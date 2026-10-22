@@ -15,7 +15,6 @@ class BuscarPerfisService:
             raise ErroValidacao(
                 f"Digite ao menos {BuscarPerfisService.BUSCA_MINIMO_CARACTERES} letras para buscar."
             )
-        resultados = UsuarioRepository.buscar_publicos(
-            termo, id_solicitante, BuscarPerfisService.BUSCA_LIMITE
-        )
-        return [u for u in resultados if e_maior_de_idade(u)]
+        resultados = UsuarioRepository.buscar_publicos(termo, id_solicitante)
+        adultos = [u for u in resultados if e_maior_de_idade(u)]
+        return adultos[: BuscarPerfisService.BUSCA_LIMITE]

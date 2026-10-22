@@ -59,7 +59,7 @@ class UsuarioRepository:
         return query.order_by(Usuario.nome).all()
 
     @staticmethod
-    def buscar_publicos(termo, id_excluido, limite):
+    def buscar_publicos(termo, id_excluido):
         padrao = "%" + _escapar_like(termo) + "%"
         return (
             Usuario.query.join(
@@ -79,7 +79,6 @@ class UsuarioRepository:
                 ),
             )
             .order_by(Usuario.nome)
-            .limit(limite)
             .all()
         )
 
