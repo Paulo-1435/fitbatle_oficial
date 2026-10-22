@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: http://*:5000; connect-src 'self' http://*:5000; font-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FitBattle - Detalhes do Grupo</title>
@@ -19,7 +20,7 @@
 
   <a class="link-voltar" href="grupo.html">&larr; Voltar para Meus Grupos</a>
 
-  <section class="card grupo-cabecalho-detalhe">
+  <section class="card card--interno grupo-cabecalho-detalhe">
     <div class="grupo-cabecalho-detalhe__icone" id="iconeGrupo" aria-hidden="true"></div>
     <div class="grupo-cabecalho-detalhe__texto">
       <div class="grupo-cabecalho-detalhe__titulo">
@@ -69,13 +70,6 @@
         </ul>
       </div>
 
-      <div class="card card--interno grupo-aviso-em-breve">
-        <div>
-          <strong>Histórico de Treinos em Grupo</strong>
-          <span class="badge badge--placeholder">Em breve</span>
-        </div>
-        <p>Comparação direta de séries e visualização de logs coletivos serão disponibilizados em próximas atualizações.</p>
-      </div>
     </aside>
   </div>
 

@@ -53,12 +53,12 @@ async function carregarMeusGrupos() {
     if (grupos.length === 0) {
       lista.innerHTML = '';
       vazio.hidden = false;
-      return;
+    } else {
+      lista.innerHTML = grupos.map(htmlCartaoGrupo).join('');
     }
-
-    lista.innerHTML = grupos.map(htmlCartaoGrupo).join('');
   } catch (e) {
-    lista.innerHTML = '<p class="estado-vazio">Não foi possível conectar à API.</p>';
+    lista.innerHTML = '';
+    mostrarFalhaDeCarregamento(carregarMeusGrupos);
   }
 
   carregarDestaqueConvite();
@@ -142,7 +142,8 @@ async function carregarConvites() {
       botao.addEventListener('click', function () { responderConvite(botao, false); });
     });
   } catch (e) {
-    lista.innerHTML = '<p class="estado-vazio">Não foi possível conectar à API.</p>';
+    lista.innerHTML = '';
+    mostrarFalhaDeCarregamento(carregarConvites);
   }
 }
 
@@ -181,7 +182,7 @@ async function responderConvite(botao, aceito) {
     mostrarToast(aceito ? 'Convite aceito! Você entrou no grupo.' : 'Convite recusado.');
     carregarConvites();
   } catch (e) {
-    mostrarToast('Não foi possível conectar à API.');
+    mostrarToast('Não foi possível falar com o servidor. Tente novamente.');
     botao.disabled = false;
   }
 }

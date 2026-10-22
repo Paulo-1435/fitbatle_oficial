@@ -53,7 +53,7 @@ async function carregarGrupo() {
       carregarLink();
     }
   } catch (e) {
-    mostrarToast('Não foi possível conectar à API.');
+    mostrarToast('Não foi possível falar com o servidor. Tente novamente.');
   }
 }
 
@@ -68,7 +68,7 @@ async function carregarLink() {
 }
 
 function montarLink(codigo) {
-  return window.location.origin + '/entrar-grupo.html?codigo=' + codigo;
+  return new URL('entrar-grupo.html?codigo=' + encodeURIComponent(codigo), window.location.href).href;
 }
 
 async function regenerarLink() {
@@ -82,7 +82,7 @@ async function regenerarLink() {
     document.getElementById('linkConvite').value = montarLink(dados.codigo);
     mostrarToast('Novo link gerado. O anterior deixou de funcionar.');
   } catch (e) {
-    mostrarToast('Não foi possível conectar à API.');
+    mostrarToast('Não foi possível falar com o servidor. Tente novamente.');
   }
 }
 
@@ -113,7 +113,7 @@ async function buscar(termo) {
     renderizarResultados(dados);
   } catch (e) {
     if (minha === sequenciaBusca) {
-      document.getElementById('resultadosConvite').innerHTML = '<li class="estado-vazio">Não foi possível conectar à API.</li>';
+      document.getElementById('resultadosConvite').innerHTML = '<li class="estado-vazio">Não foi possível falar com o servidor. Tente novamente.</li>';
     }
   }
 }
@@ -132,7 +132,7 @@ function renderizarResultados(usuarios) {
   lista.innerHTML = usuarios.map(function (usuario) {
     const local = [usuario.cidade, usuario.estado].filter(Boolean).join(' - ');
     const botao = usuario.convite_pendente
-      ? '<button type="button" class="btn btn--secundario btn--pequeno" disabled>✓ Convite Enviado</button>'
+      ? '<button type="button" class="btn btn--secundario btn--pequeno" disabled><span data-icone="check"></span> Convite Enviado</button>'
       : `<button type="button" class="btn btn--primario btn--pequeno" data-convidar="${usuario.id}">Enviar Convite</button>`;
     return `<li class="convite-resultado-item">
       ${htmlAvatar(usuario)}
@@ -143,6 +143,8 @@ function renderizarResultados(usuarios) {
       ${botao}
     </li>`;
   }).join('');
+  ativarIcones(lista);
+  aplicarFotosNoAvatares(lista);
 
   lista.querySelectorAll('[data-convidar]').forEach(function (botao) {
     botao.addEventListener('click', function () { convidar(botao); });
@@ -150,9 +152,8 @@ function renderizarResultados(usuarios) {
 }
 
 function htmlAvatar(usuario) {
-  const foto = urlFoto(usuario.foto);
-  if (foto) {
-    return `<span class="avatar avatar--pequeno" aria-hidden="true" style="background-image:url('${foto.replace(/'/g, "%27")}')"></span>`;
+  if (urlFoto(usuario.foto)) {
+    return `<span class="avatar avatar--pequeno" aria-hidden="true"${atributoFoto(usuario)}></span>`;
   }
   return `<span class="avatar avatar--pequeno" aria-hidden="true">${esc(iniciais(usuario.nome))}</span>`;
 }
@@ -172,10 +173,13 @@ async function convidar(botao) {
       botao.disabled = false;
       return;
     }
-    botao.outerHTML = '<button type="button" class="btn btn--secundario btn--pequeno" disabled>✓ Convite Enviado</button>';
+    botao.className = 'btn btn--secundario btn--pequeno';
+    botao.removeAttribute('data-convidar');
+    botao.replaceChildren(...montarComIcone('check', 'Convite Enviado'));
+    botao.disabled = true;
     mostrarToast('Convite enviado!');
   } catch (e) {
-    mostrarToast('Não foi possível conectar à API.');
+    mostrarToast('Não foi possível falar com o servidor. Tente novamente.');
     botao.disabled = false;
   }
 }

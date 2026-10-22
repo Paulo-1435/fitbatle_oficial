@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: http://*:5000; connect-src 'self' http://*:5000; font-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FitBattle - Detalhes da Meta</title>
@@ -11,6 +12,7 @@
   <link rel="stylesheet" href="metas.css">
   <script src="config.js" defer></script>
   <script src="api.js" defer></script>
+  <script src="icones.js" defer></script>
   <script src="shell.js" defer></script>
   <script src="compartilhar.js" defer></script>
   <script src="metas-detalhes.js" defer></script>
@@ -30,9 +32,9 @@
       <span class="rotulo-mini" id="metaInfo"></span>
     </div>
     <div class="meta-detalhe-cabecalho__acoes">
-      <button type="button" class="btn btn--primario btn--pequeno" id="btnCompartilharMeta" hidden>🏆 Compartilhar conquista</button>
-      <button type="button" class="btn btn--secundario btn--pequeno" id="btnEditarMeta">✎ Editar Meta</button>
-      <button type="button" class="btn btn--secundario btn--pequeno" id="btnExcluirMeta">🗑 Excluir Meta</button>
+      <button type="button" class="btn btn--primario btn--pequeno" id="btnCompartilharMeta" hidden><span data-icone="compartilhar"></span> Compartilhar conquista</button>
+      <button type="button" class="btn btn--secundario btn--pequeno" id="btnEditarMeta"><span data-icone="editar"></span> Editar Meta</button>
+      <button type="button" class="btn btn--secundario btn--pequeno" id="btnExcluirMeta"><span data-icone="excluir"></span> Excluir Meta</button>
     </div>
   </section>
 

@@ -462,3 +462,8 @@
     font-size: 2.25rem;
   }
 }
+
+.rt-desafio-nome {
+  margin: 0 0 var(--esp-3);
+  font-weight: var(--peso-forte);
+}

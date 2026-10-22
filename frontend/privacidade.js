@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', function () {
   usuarioLogado = exigirLogin();
   if (!usuarioLogado) return;
 
-  aplicarFoto('avatarMini', usuarioLogado.foto);
   carregarConsentimentos();
 });
 
@@ -17,13 +16,15 @@ async function carregarConsentimentos() {
     const registros = await resposta.json();
     renderizarConsentimentos(registros);
   } catch (e) {
-    erro.textContent = 'Não foi possível carregar suas preferências. A API está rodando?';
+    mostrarFalhaDeCarregamento(carregarConsentimentos);
   }
 }
 
+const CHAVES_SEM_EFEITO = ['chat_publico', 'chat_privado_externo', 'localizacao'];
+
 function renderizarConsentimentos(registros) {
   const obrigatorios = registros.filter(function (r) { return r.obrigatorio; });
-  const opcionais = registros.filter(function (r) { return !r.obrigatorio; });
+  const opcionais = registros.filter(function (r) { return !r.obrigatorio && CHAVES_SEM_EFEITO.indexOf(r.chave) === -1; });
 
   const listaObrigatorios = document.getElementById('listaObrigatorios');
   const listaOpcionais = document.getElementById('listaOpcionais');
@@ -101,29 +102,8 @@ async function salvarConsentimento(chave, caixa, legenda) {
     mostrarToast('Preferência salva.');
   } catch (e) {
     caixa.checked = anterior;
-    mostrarToast('Não foi possível conectar à API.');
+    mostrarToast('Não foi possível falar com o servidor. Tente novamente.');
   } finally {
     caixa.disabled = false;
   }
 }
-
-function aplicarFoto(id, url) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  const src = urlFoto(url);
-  el.style.backgroundImage = src ? `url("${src}")` : 'none';
-}
-
-function urlFoto(caminho) {
-  if (!caminho) return null;
-  return caminho.indexOf('http') === 0 ? caminho : ORIGEM_API + caminho;
-}
-
-function mostrarToast(mensagem) {
-  const t = document.getElementById('toast');
-  t.textContent = mensagem;
-  t.classList.add('mostrar');
-  clearTimeout(mostrarToast._timer);
-  mostrarToast._timer = setTimeout(function () { t.classList.remove('mostrar'); }, 2600);
-}
-

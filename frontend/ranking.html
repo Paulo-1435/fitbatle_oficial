@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: http://*:5000; connect-src 'self' http://*:5000; font-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FitBattle - Ranking</title>
@@ -16,7 +17,7 @@
 <body data-pagina="ranking">
 <main>
 
-  <section class="card ranking-cabecalho">
+  <section class="card card--interno ranking-cabecalho">
     <div>
       <span class="badge badge--destaque" id="rankingAtualizado">● Atualizado agora</span>
       <h1>Ranking da Academia</h1>
@@ -28,14 +29,13 @@
     <div class="abas" role="tablist" aria-label="Escopo do ranking">
       <button type="button" class="aba aba--ativa" id="abaGlobal" role="tab" aria-selected="true">Geral</button>
       <button type="button" class="aba" id="abaRegional" role="tab" aria-selected="false">Da sua cidade</button>
+      <button type="button" class="aba" id="abaEstado" role="tab" aria-selected="false">Do seu estado</button>
     </div>
     <p class="ranking-filtros__nota" id="notaRegional" hidden>Informe sua cidade em "Editar perfil" para ver o ranking da sua região.</p>
   </div>
 
   <div class="ranking-filtros">
     <div class="abas abas--periodo">
-      <button type="button" class="aba" data-em-breve="Filtro por semana">Esta Semana</button>
-      <button type="button" class="aba" data-em-breve="Filtro por mês">Este Mês</button>
       <button type="button" class="aba aba--ativa" id="abaGeralPeriodo">Geral</button>
     </div>
     <div class="abas abas--exercicio">
@@ -43,7 +43,6 @@
       <button type="button" class="aba aba-exercicio" data-titulo="Supino Reto">Supino Reto</button>
       <button type="button" class="aba aba-exercicio" data-titulo="Agachamento Livre">Agachamento Livre</button>
       <button type="button" class="aba aba-exercicio" data-titulo="Levantamento Terra">Levantamento Terra</button>
-      <button type="button" class="aba" data-em-breve="Mais frequentes">Mais Frequentes</button>
     </div>
   </div>
 
@@ -51,13 +50,12 @@
     <p class="estado-vazio">Carregando o pódio...</p>
   </section>
 
-  <section class="card ranking-minha-posicao" id="minhaPosicao" hidden>
+  <section class="card card--interno ranking-minha-posicao" id="minhaPosicao" hidden>
     <div class="ranking-minha-posicao__topo">
       <div>
         <span class="rotulo-mini" id="minhaPosicaoRotulo">Sua posição atual</span>
         <div class="ranking-minha-posicao__valor" id="minhaPosicaoTexto">—</div>
       </div>
-      <button type="button" class="btn btn--secundario btn--pequeno" id="btnDesafiarProximo" hidden data-em-breve="Desafios 1x1">Desafiar</button>
     </div>
     <div class="barra ranking-minha-posicao__barra" id="minhaPosicaoBarraWrap" hidden>
       <div class="barra__preenchimento" id="minhaPosicaoBarra"></div>
@@ -78,7 +76,6 @@
             <th scope="col">Atleta</th>
             <th scope="col" id="colunaLocal">Cidade</th>
             <th scope="col" id="colunaMetrica">Pontuação</th>
-            <th scope="col">Ação</th>
           </tr>
         </thead>
         <tbody id="tabelaRankingCorpo">

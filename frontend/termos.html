@@ -1,9 +1,13 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: http://*:5000; connect-src 'self' http://*:5000; font-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FitBattle - Termo de Uso e Termo de Consentimento</title>
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="base.css">
+  <link rel="stylesheet" href="app-shell.css">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -31,9 +35,6 @@
       padding-bottom: 18px;
       margin-bottom: 24px;
     }
-    .logo-text { font-size: 22px; font-weight: 800; }
-    .logo-fit { color: #ffffff; }
-    .logo-battle { color: #1ec8ff; }
     .back-link {
       color: #1ec8ff;
       text-decoration: none;
@@ -89,7 +90,7 @@
   <div class="doc">
 
     <div class="doc-header">
-      <div class="logo-text"><span class="logo-fit">Fit</span><span class="logo-battle">Battle</span></div>
+      <a class="marca" href="login.html" aria-label="FitBattle, ir para o login"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg><span>Fit<span class="marca__battle">Battle</span></span></a>
       <a href="index.html" class="back-link">&larr; Voltar ao cadastro</a>
     </div>
 

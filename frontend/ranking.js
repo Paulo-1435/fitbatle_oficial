@@ -16,20 +16,11 @@ document.addEventListener('DOMContentLoaded', function () {
   usuarioLogado = exigirLogin();
   if (!usuarioLogado) return;
 
-  ligarAvisosEmBreve();
   ligarAbas();
   ligarAbasExercicio();
   configurarBotaoRegional();
   atualizarRanking();
 });
-
-function ligarAvisosEmBreve() {
-  document.body.addEventListener('click', function (evento) {
-    const alvo = evento.target.closest('[data-em-breve]');
-    if (!alvo) return;
-    mostrarToast(alvo.getAttribute('data-em-breve') + ' estará disponível em breve.');
-  });
-}
 
 function configurarBotaoRegional() {
   const semCidade = !usuarioLogado.cidade;
@@ -47,6 +38,13 @@ function ligarAbas() {
     }
     selecionarEscopo('regional');
   });
+  document.getElementById('abaEstado').addEventListener('click', function () {
+    if (!usuarioLogado.estado) {
+      mostrarToast('Informe seu estado em "Editar perfil" para ver o ranking do seu estado.');
+      return;
+    }
+    selecionarEscopo('estado');
+  });
 }
 
 function selecionarEscopo(escopo) {
@@ -55,12 +53,15 @@ function selecionarEscopo(escopo) {
 
   const global = document.getElementById('abaGlobal');
   const regional = document.getElementById('abaRegional');
+  const estado = document.getElementById('abaEstado');
   global.classList.toggle('aba--ativa', escopo === 'global');
   global.setAttribute('aria-selected', String(escopo === 'global'));
   regional.classList.toggle('aba--ativa', escopo === 'regional');
   regional.setAttribute('aria-selected', String(escopo === 'regional'));
+  estado.classList.toggle('aba--ativa', escopo === 'estado');
+  estado.setAttribute('aria-selected', String(escopo === 'estado'));
 
-  document.getElementById('tabelaRanking').classList.toggle('ranking-tabela--sem-local', escopo === 'regional');
+  document.getElementById('tabelaRanking').classList.toggle('ranking-tabela--sem-local', escopo !== 'global');
 
   atualizarRanking();
 }
@@ -115,7 +116,9 @@ async function carregarRanking(escopo) {
   try {
     const url = escopo === 'regional'
       ? '/ranking/regional?cidade=' + encodeURIComponent(usuarioLogado.cidade) + '&limite=' + LIMITE_TABELA
-      : '/ranking/global?limite=' + LIMITE_TABELA;
+      : escopo === 'estado'
+        ? '/ranking/regional?estado=' + encodeURIComponent(usuarioLogado.estado) + '&limite=' + LIMITE_TABELA
+        : '/ranking/global?limite=' + LIMITE_TABELA;
 
     const resposta = await api(url);
     const dados = await resposta.json();
@@ -128,7 +131,7 @@ async function carregarRanking(escopo) {
     renderizarTabela(dados, 'xp');
     renderizarMinhaPosicao(dados, 'xp', { escopo: escopo });
   } catch (e) {
-    mostrarErro('Não foi possível conectar à API.');
+    mostrarFalhaDeCarregamento(function () { carregarRanking(escopo); });
   }
 }
 
@@ -149,20 +152,20 @@ async function carregarRankingPorExercicio(titulo, cidade) {
     renderizarTabela(dados, 'exercicio', { vazio: 'Ninguém registrou este exercício ainda.' });
     renderizarMinhaPosicao(dados, 'exercicio', { titulo: titulo });
   } catch (e) {
-    mostrarErro('Não foi possível conectar à API.');
+    mostrarFalhaDeCarregamento(function () { carregarRankingPorExercicio(titulo, cidade); });
   }
 }
 
 function mostrarCarregando() {
   document.getElementById('podio').innerHTML = '<p class="estado-vazio">Carregando o pódio...</p>';
-  document.getElementById('tabelaRankingCorpo').innerHTML = '<tr><td colspan="5" class="estado-vazio">Carregando...</td></tr>';
+  document.getElementById('tabelaRankingCorpo').innerHTML = '<tr><td colspan="4" class="estado-vazio">Carregando...</td></tr>';
   document.getElementById('rankingContagem').textContent = '';
   document.getElementById('minhaPosicao').hidden = true;
 }
 
 function mostrarErro(mensagem) {
   document.getElementById('podio').innerHTML = '<p class="estado-vazio">' + esc(mensagem) + '</p>';
-  document.getElementById('tabelaRankingCorpo').innerHTML = '<tr><td colspan="5" class="estado-vazio">' + esc(mensagem) + '</td></tr>';
+  document.getElementById('tabelaRankingCorpo').innerHTML = '<tr><td colspan="4" class="estado-vazio">' + esc(mensagem) + '</td></tr>';
 }
 
 function valorMetrica(item, modo) {
@@ -203,7 +206,7 @@ function renderizarTabela(dados, modo, opcoes) {
   const contagem = document.getElementById('rankingContagem');
 
   if (dados.length === 0) {
-    corpo.innerHTML = '<tr><td colspan="5" class="estado-vazio">' + esc(opcoes.vazio || 'Ninguém no ranking ainda.') + '</td></tr>';
+    corpo.innerHTML = '<tr><td colspan="4" class="estado-vazio">' + esc(opcoes.vazio || 'Ninguém no ranking ainda.') + '</td></tr>';
     contagem.textContent = '';
     return;
   }
@@ -215,10 +218,6 @@ function renderizarTabela(dados, modo, opcoes) {
 function htmlLinhaTabela(item, modo) {
   const eu = usuarioLogado && item.id_usuario === usuarioLogado.id;
   const local = [item.cidade, item.estado].filter(Boolean).join(' - ') || '—';
-  const acao = eu
-    ? '—'
-    : '<button type="button" class="btn btn--secundario btn--pequeno" data-em-breve="Desafios 1x1">Desafiar</button>';
-
   return `<tr class="${eu ? 'linha--eu' : ''}">
     <td class="ranking-tabela__pos">${item.posicao}º</td>
     <td>
@@ -229,7 +228,6 @@ function htmlLinhaTabela(item, modo) {
     </td>
     <td>${esc(local)}</td>
     <td class="ranking-tabela__pontos">${textoMetrica(item, modo)}</td>
-    <td>${acao}</td>
   </tr>`;
 }
 
@@ -241,14 +239,15 @@ function renderizarMinhaPosicao(dados, modo, contexto) {
   const legenda = document.getElementById('minhaPosicaoLegenda');
   const barraWrap = document.getElementById('minhaPosicaoBarraWrap');
   const barra = document.getElementById('minhaPosicaoBarra');
-  const botaoDesafiar = document.getElementById('btnDesafiarProximo');
 
   if (modo === 'exercicio') {
     rotulo.textContent = 'Sua posição em ' + contexto.titulo;
   } else {
     rotulo.textContent = contexto.escopo === 'regional'
       ? 'Sua posição no ranking da sua cidade'
-      : 'Sua posição no ranking geral';
+      : contexto.escopo === 'estado'
+        ? 'Sua posição no ranking do seu estado'
+        : 'Sua posição no ranking geral';
   }
 
   if (!minhaLinha) {
@@ -257,7 +256,6 @@ function renderizarMinhaPosicao(dados, modo, contexto) {
       document.getElementById('minhaPosicaoTexto').textContent = '—';
       legenda.textContent = 'O ranking público é só para maiores de 18 anos.';
       barraWrap.hidden = true;
-      botaoDesafiar.hidden = true;
       return;
     }
     if (modo === 'exercicio') {
@@ -265,7 +263,6 @@ function renderizarMinhaPosicao(dados, modo, contexto) {
       document.getElementById('minhaPosicaoTexto').textContent = '—';
       legenda.textContent = 'Você ainda não registrou ' + contexto.titulo + '. Registre um treino para entrar no ranking!';
       barraWrap.hidden = true;
-      botaoDesafiar.hidden = true;
     } else {
       secao.hidden = true;
     }
@@ -280,10 +277,9 @@ function renderizarMinhaPosicao(dados, modo, contexto) {
 
   if (!acima) {
     legenda.textContent = minhaLinha.posicao === 1
-      ? 'Você está no topo do ranking! 🏆'
+      ? 'Você está no topo do ranking!'
       : 'Continue treinando para subir no ranking!';
     barraWrap.hidden = true;
-    botaoDesafiar.hidden = true;
     return;
   }
 
@@ -300,8 +296,6 @@ function renderizarMinhaPosicao(dados, modo, contexto) {
     ? `Faltam ${formatarNumero(faltam)} ${unidade} para ultrapassar ${acima.nome} (#${acima.posicao})`
     : `Você empatou com ${acima.nome} (#${acima.posicao})`;
 
-  botaoDesafiar.hidden = false;
-  botaoDesafiar.textContent = 'Desafiar #' + acima.posicao;
 }
 
 function nivelDeXp(xp) {

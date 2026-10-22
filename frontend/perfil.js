@@ -8,12 +8,16 @@ const FAIXAS_NIVEL = [
   [15000, 'elite']
 ];
 
-const EMOJI_TIPO = {
-  musculacao: '🏋️',
-  cardio: '🏃',
-  yoga: '🧘',
-  outro: '💪'
+const ICONE_TIPO = {
+  musculacao: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6v12M18 6v12M3 9v6M21 9v6M6 12h12"/></svg>',
+  cardio: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 0 0-7.1 7.1L12 21.5l8.8-8.8a5 5 0 0 0 0-7.1z"/></svg>',
+  yoga: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><path d="M12 8v5M7 13h10M9 21l3-8 3 8"/></svg>',
+  outro: '<svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'
 };
+const ICONE_EDITAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
+const ICONE_FECHAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+const ICONE_COMPARTILHAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>';
+const ICONE_LIXEIRA = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>';
 const NOME_TIPO = {
   musculacao: 'Musculação',
   cardio: 'Cardio',
@@ -23,9 +27,6 @@ const NOME_TIPO = {
 
 let usuarioLogado = null;
 let fotoSelecionada = null;
-
-const IDADE_MINIMA_EDICAO = 13;
-const IDADE_MAIORIDADE_EDICAO = 18;
 
 function dataDeHoje() {
   const hoje = new Date();
@@ -45,28 +46,95 @@ function calcularIdade(dataStr) {
   return idade;
 }
 
-function atualizarResponsavelPerfil() {
+function emailFoiAlterado() {
+  return document.getElementById('editEmail').value.trim() !== (usuarioLogado.email || '');
+}
+
+function atualizarCampoSenhaAtual() {
+  const alterado = emailFoiAlterado();
+  document.getElementById('campoSenhaAtual').hidden = !alterado;
+  if (!alterado) document.getElementById('editSenhaAtual').value = '';
+}
+
+function atualizarIdadeNoPerfil() {
   const dataNascimento = document.getElementById('editDataNascimento');
   const idadeCalculada = calcularIdade(dataNascimento.value);
   const dica = document.getElementById('editIdadeAtual');
   dica.textContent = idadeCalculada != null ? 'Idade: ' + idadeCalculada + ' anos' : '';
-  const menor = idadeCalculada != null && idadeCalculada >= IDADE_MINIMA_EDICAO && idadeCalculada < IDADE_MAIORIDADE_EDICAO;
-  document.getElementById('editResponsavelBox').hidden = !menor;
 }
 
 document.addEventListener('DOMContentLoaded', function () {
   usuarioLogado = exigirLogin();
   if (!usuarioLogado) return;
 
-  configurarMenu();
   configurarModais();
   configurarAvatar();
   configurarRanking();
+  configurarAlterarSenha();
 
+  carregarTudo();
+});
+
+function configurarAlterarSenha() {
+  const formulario = document.getElementById('formSenha');
+  const erro = document.getElementById('erroSenha');
+  const botao = document.getElementById('btnAlterarSenha');
+
+  formulario.addEventListener('submit', async function (evento) {
+    evento.preventDefault();
+    erro.textContent = '';
+    erro.classList.remove('mensagem-form--ok');
+
+    const senhaNova = document.getElementById('senhaNova').value;
+    if (senhaNova !== document.getElementById('senhaConfirmacao').value) {
+      erro.textContent = 'A confirmação não confere com a nova senha.';
+      return;
+    }
+
+    botao.disabled = true;
+    try {
+      const resposta = await api('/usuarios/' + usuarioLogado.id, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          senha: senhaNova,
+          senha_atual: document.getElementById('senhaAtual').value
+        })
+      });
+      const dados = await resposta.json().catch(function () { return {}; });
+      if (!resposta.ok) {
+        erro.textContent = dados.erro || 'Não foi possível alterar a senha.';
+        return;
+      }
+      atualizarTokenDaSessao(dados.token);
+      formulario.reset();
+      erro.textContent = 'Senha alterada.';
+      erro.classList.add('mensagem-form--ok');
+    } catch (e) {
+      erro.textContent = 'Não foi possível falar com o servidor. Tente novamente.';
+    } finally {
+      botao.disabled = false;
+    }
+  });
+}
+
+function carregarTudo() {
   carregarPerfil();
   carregarTreinos();
   carregarRankingLocal();
-});
+  carregarMedalhas();
+}
+
+async function carregarMedalhas() {
+  const lista = document.getElementById('listaMedalhas');
+  try {
+    const resposta = await api(`/usuarios/${usuarioLogado.id}/medalhas`);
+    if (!resposta.ok) throw new Error('falha');
+    renderizarMedalhas(lista, await resposta.json(), { compartilhavel: true });
+  } catch (e) {
+    mostrarFalhaDeCarregamento(carregarTudo);
+  }
+}
 
 function configurarAvatar() {
   ligar('avatarLarge', 'click', function () {
@@ -76,10 +144,6 @@ function configurarAvatar() {
     } else {
       abrirEditarPerfil();
     }
-  });
-
-  ligar('avatarMini', 'click', function () {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
   ligar('closeFoto', 'click', function () { fecharOverlay('overlayFoto'); });
@@ -101,7 +165,7 @@ async function carregarPerfil() {
     atualizarUsuarioDaSessao(u);
     preencherPerfil(u);
   } catch (e) {
-    mostrarToast('Não foi possível carregar o perfil. A API está rodando?');
+    mostrarFalhaDeCarregamento(carregarTudo);
   }
 }
 
@@ -114,16 +178,14 @@ function preencherPerfil(u) {
   texto('pAltura', u.altura ? formatarNumero(u.altura) + ' m' : '—');
   texto('pIdade', u.idade != null ? u.idade : '—');
 
-  aplicarFoto('avatarLarge', u.foto);
-  aplicarFoto('avatarMini', u.foto);
+  aplicarFotoOuIniciais('avatarLarge', u);
 
   const nivel = calcularNivel(u.xp || 0);
   texto('levelNome', nivel.nome);
   document.getElementById('levelBar').style.width = nivel.pct + '%';
-  document.getElementById('levelMarker').style.left = nivel.pct + '%';
   document.getElementById('levelFooter').textContent = nivel.falta > 0
-    ? `Faltam ${nivel.falta} xp para o próximo nível ↑`
-    : 'Nível máximo alcançado 🏆';
+    ? `Faltam ${nivel.falta} xp para o próximo nível.`
+    : 'Nível máximo alcançado.';
 }
 
 async function carregarTreinos() {
@@ -136,7 +198,7 @@ async function carregarTreinos() {
     document.getElementById('statTreinos').textContent = treinos.length;
     document.getElementById('statSequencia').textContent = calcularSequencia(treinos) + 'd';
   } catch (e) {
-    mostrarToast('Não foi possível carregar os treinos.');
+    mostrarFalhaDeCarregamento(carregarTudo);
   }
 }
 
@@ -148,6 +210,7 @@ async function carregarRankingLocal() {
     const pos = dados.regional && dados.regional.posicao;
     document.getElementById('statRanking').textContent = pos ? pos + 'º' : '—';
   } catch (e) {
+    mostrarFalhaDeCarregamento(carregarTudo);
   }
 }
 
@@ -185,9 +248,9 @@ function renderizarTreinos(treinos) {
 }
 
 function htmlCardTreino(t) {
-  const emoji = EMOJI_TIPO[t.tipo] || '💪';
+  const icone = ICONE_TIPO[t.tipo] || ICONE_TIPO.outro;
   const nomeTipo = NOME_TIPO[t.tipo] || capitalizar(t.tipo);
-  const titulo = nomeTipo + (t.titulo ? ' — ' + esc(t.titulo).toUpperCase() : '');
+  const titulo = nomeTipo + (t.titulo ? ': ' + esc(t.titulo).toUpperCase() : '');
 
   const metricas = [];
   if (t.tempo_min != null) {
@@ -203,14 +266,14 @@ function htmlCardTreino(t) {
 
   return `
     <div class="activity-card">
-      <div class="activity-title">${emoji} ${titulo}
+      <div class="activity-title"><span class="perfil-icone">${icone}</span>${titulo}
         <span class="activity-time">${dataRelativa(t.data_registro)}</span>
       </div>
       <div class="activity-desc">${esc(t.descricao || '')}</div>
       <div class="activity-metrics">${metricas.join('')}</div>
       <div class="card-actions">
-        <button class="action-btn" data-compartilhar="${esc('Registrei um treino de ' + nomeTipo + (t.titulo ? ' (' + t.titulo + ')' : '') + ' no FitBattle! 💪 #FitBattle')}" data-compartilhar-id="${t.id}">🔗 Compartilhar</button>
-        <button class="action-btn excluir" data-excluir="${t.id}">🗑️ Excluir</button>
+        <button class="btn btn--fantasma btn--pequeno" data-compartilhar="${esc('Registrei um treino de ' + nomeTipo + (t.titulo ? ' (' + t.titulo + ')' : '') + ' no FitBattle! #FitBattle')}" data-compartilhar-id="${t.id}"><span class="perfil-icone">${ICONE_COMPARTILHAR}</span>Compartilhar</button>
+        <button class="btn btn--fantasma btn--pequeno perfil-acao-excluir" data-excluir="${t.id}"><span class="perfil-icone">${ICONE_LIXEIRA}</span>Excluir</button>
       </div>
     </div>`;
 }
@@ -256,10 +319,12 @@ function configurarModais() {
   ligar('treinoTipo', 'change', ajustarCamposTreino);
   ligar('closeTreino', 'click', function () { fecharOverlay('overlayTreino'); });
   ligar('btnEditarPerfil', 'click', abrirEditarPerfil);
-  ligar('btnEditarPerfilMenu', 'click', abrirEditarPerfil);
+  document.getElementById('iconeEditar').innerHTML = ICONE_EDITAR;
+  document.querySelectorAll('.modal-close').forEach(function (botao) { botao.innerHTML = ICONE_FECHAR; });
   ligar('closePerfil', 'click', function () { fecharOverlay('overlayPerfil'); });
   document.getElementById('editDataNascimento').max = dataDeHoje();
-  ligar('editDataNascimento', 'input', atualizarResponsavelPerfil);
+  ligar('editDataNascimento', 'input', atualizarIdadeNoPerfil);
+  ligar('editEmail', 'input', atualizarCampoSenhaAtual);
 
   ligar('fotoBtn', 'click', function () { document.getElementById('fotoInput').click(); });
   ligar('fotoInput', 'change', function () {
@@ -340,7 +405,7 @@ function configurarModais() {
       carregarTreinos();
       carregarRankingLocal();
     } catch (err) {
-      erro.textContent = 'Não foi possível conectar à API.';
+      erro.textContent = 'Não foi possível falar com o servidor. Tente novamente.';
     }
   });
 
@@ -359,14 +424,7 @@ function configurarModais() {
       peso: document.getElementById('editPeso').value || null,
       altura: document.getElementById('editAltura').value || null
     };
-
-    if (dataNascimento && !document.getElementById('editResponsavelBox').hidden) {
-      corpo.responsavel = {
-        nome: document.getElementById('editResponsavelNome').value.trim(),
-        email: document.getElementById('editResponsavelEmail').value.trim()
-      };
-      corpo.autorizacao_responsavel = document.getElementById('editAutorizacaoResponsavel').checked;
-    }
+    if (emailFoiAlterado()) corpo.senha_atual = document.getElementById('editSenhaAtual').value;
 
     try {
       const resposta = await api(`/usuarios/${usuarioLogado.id}`, {
@@ -376,6 +434,7 @@ function configurarModais() {
       });
       const dados = await resposta.json();
       if (!resposta.ok) { erro.textContent = dados.erro || 'Não foi possível salvar.'; return; }
+      document.getElementById('editSenhaAtual').value = '';
 
       let usuarioFinal = dados.usuario;
 
@@ -402,7 +461,7 @@ function configurarModais() {
       fecharOverlay('overlayPerfil');
       mostrarToast('Perfil atualizado.');
     } catch (err) {
-      erro.textContent = 'Não foi possível conectar à API.';
+      erro.textContent = 'Não foi possível falar com o servidor. Tente novamente.';
     }
   });
 }
@@ -411,12 +470,10 @@ function abrirEditarPerfil() {
   const u = usuarioLogado;
   document.getElementById('editNome').value = u.nome || '';
   document.getElementById('editEmail').value = u.email || '';
+  atualizarCampoSenhaAtual();
   document.getElementById('editBio').value = u.descricao || '';
   document.getElementById('editDataNascimento').value = u.data_nascimento || '';
-  document.getElementById('editResponsavelNome').value = '';
-  document.getElementById('editResponsavelEmail').value = '';
-  document.getElementById('editAutorizacaoResponsavel').checked = false;
-  atualizarResponsavelPerfil();
+  atualizarIdadeNoPerfil();
   document.getElementById('editCidade').value = u.cidade || '';
   document.getElementById('editPeso').value = u.peso != null ? u.peso : '';
   document.getElementById('editAltura').value = u.altura != null ? u.altura : '';
@@ -425,44 +482,9 @@ function abrirEditarPerfil() {
   fotoSelecionada = null;
   document.getElementById('fotoInput').value = '';
   document.getElementById('fotoNome').textContent = 'JPG, PNG ou WEBP (até 3 MB)';
-  aplicarFoto('avatarPreview', u.foto);
+  aplicarFotoOuIniciais('avatarPreview', u);
 
   abrirOverlay('overlayPerfil');
-}
-
-function configurarMenu() {
-  const sidebar = document.getElementById('configSidebar');
-  const main = document.getElementById('mainContent');
-
-  function abrir() {
-    sidebar.classList.remove('escondida');
-    main.classList.remove('menu-fechado');
-  }
-  function fechar() {
-    sidebar.classList.add('escondida');
-    main.classList.add('menu-fechado');
-  }
-
-  fechar();
-
-  document.getElementById('toggleMenuBtn').addEventListener('click', function () {
-    if (sidebar.classList.contains('escondida')) abrir();
-    else fechar();
-  });
-  document.getElementById('closeMenuBtn').addEventListener('click', fechar);
-
-  document.querySelectorAll('.menu-em-breve').forEach(function (a) {
-    a.addEventListener('click', function (e) {
-      e.preventDefault();
-      mostrarToast('Essa área ainda está em desenvolvimento.');
-    });
-  });
-
-  document.getElementById('btnSair').addEventListener('click', sair);
-
-  ligar('btnProgresso', 'click', function () {
-    mostrarToast('Relatório de progresso: em breve.');
-  });
 }
 
 function sair() {
@@ -470,7 +492,7 @@ function sair() {
 }
 
 function configurarRanking() {
-  ligar('btnRanking', 'click', abrirRanking);
+  ligar('btnVerRanking', 'click', abrirRanking);
   ligar('closeRanking', 'click', function () { fecharOverlay('overlayRanking'); });
 
   document.querySelectorAll('.ranking-aba').forEach(function (aba) {
@@ -528,7 +550,7 @@ async function carregarRanking(escopo) {
         '</div>';
     }).join('');
   } catch (e) {
-    lista.innerHTML = '<p class="rank-vazio">Não foi possível conectar à API.</p>';
+    lista.innerHTML = '<p class="rank-vazio">Não foi possível falar com o servidor. Tente novamente.</p>';
   }
 }
 
@@ -582,9 +604,17 @@ function ligar(id, evento, fn) {
   if (el) el.addEventListener(evento, fn);
 }
 
-function urlFoto(caminho) {
-  if (!caminho) return null;
-  return caminho.indexOf('http') === 0 ? caminho : ORIGEM_API + caminho;
+
+function aplicarFotoOuIniciais(id, usuario) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (usuario.foto) {
+    aplicarFoto(id, usuario.foto);
+    el.textContent = '';
+  } else {
+    el.style.backgroundImage = 'none';
+    el.textContent = iniciais(usuario.nome);
+  }
 }
 
 function aplicarFoto(id, url) {
@@ -596,14 +626,6 @@ function aplicarFoto(id, url) {
 
 function abrirOverlay(id) { document.getElementById(id).classList.add('aberto'); }
 function fecharOverlay(id) { document.getElementById(id).classList.remove('aberto'); }
-
-function mostrarToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('mostrar');
-  clearTimeout(mostrarToast._timer);
-  mostrarToast._timer = setTimeout(function () { t.classList.remove('mostrar'); }, 2600);
-}
 
 
 function capitalizar(s) {

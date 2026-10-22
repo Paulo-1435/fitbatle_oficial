@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function () {
       mostrarMensagemForm(mensagem, 'Bem-vindo, ' + dados.usuario.nome + '! Redirecionando...', true);
       setTimeout(function () { window.location.href = PAGINA_INICIAL; }, ATRASO_REDIRECIONAR_MS);
     } catch (e) {
-      erro('Não foi possível conectar à API. Verifique se o backend está rodando (python app.py).');
+      erro('Não foi possível falar com o servidor. Tente novamente.');
     } finally {
       botao.disabled = false;
       rotuloBotao.textContent = 'Entrar no FitBattle';

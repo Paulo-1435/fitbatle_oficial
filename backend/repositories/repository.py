@@ -1,3 +1,5 @@
+from datetime import date
+
 from sqlalchemy import func, text
 from sqlalchemy.exc import IntegrityError
 
@@ -18,8 +20,23 @@ from models.model import (
     Postagem,
     Usuario,
 )
+from utils import IDADE_MAIORIDADE, limite_nascimento_maioridade
 
 _COLUNAS_RANKING = "id_usuario, nome, cidade, estado, pontuacao_total, posicao"
+
+
+def _clausula_maior_de_idade_ou_proprio(id_solicitante):
+    limite = limite_nascimento_maioridade(date.today())
+    maior = db.or_(
+        Usuario.data_nascimento <= limite,
+        db.and_(
+            Usuario.data_nascimento.is_(None),
+            db.or_(Usuario.idade.is_(None), Usuario.idade >= IDADE_MAIORIDADE),
+        ),
+    )
+    if id_solicitante is None:
+        return maior
+    return db.or_(Usuario.id_usuario == id_solicitante, maior)
 
 
 def _escapar_like(termo):
@@ -28,8 +45,7 @@ def _escapar_like(termo):
 
 _CAMPOS_EDITAVEIS = (
     "nome", "email", "data_nascimento", "peso", "altura",
-    "cidade", "estado", "foto", "descricao",
-    "responsavel_nome", "responsavel_email", "responsavel_autorizado_em",
+    "cidade", "estado", "descricao",
 )
 
 
@@ -43,7 +59,7 @@ class UsuarioRepository:
         return query.order_by(Usuario.nome).all()
 
     @staticmethod
-    def buscar_publicos(termo, id_excluido, limite):
+    def buscar_publicos(termo, id_excluido):
         padrao = "%" + _escapar_like(termo) + "%"
         return (
             Usuario.query.join(
@@ -63,7 +79,6 @@ class UsuarioRepository:
                 ),
             )
             .order_by(Usuario.nome)
-            .limit(limite)
             .all()
         )
 
@@ -105,7 +120,11 @@ class UsuarioRepository:
                 setattr(usuario, campo, dados[campo])
         if dados.get("senha"):
             usuario.senha = dados["senha"]
-        db.session.commit()
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            return None
         return usuario
 
     @staticmethod
@@ -157,10 +176,10 @@ class AtividadeRepository:
         db.session.commit()
 
     @staticmethod
-    def listar_publicas(limite):
+    def listar_publicas(limite, id_solicitante=None):
         return (
             Atividade.query.join(Usuario, Atividade.id_usuario == Usuario.id_usuario)
-            .filter(Usuario.perfil_publico.is_(True))
+            .filter(Usuario.perfil_publico.is_(True), _clausula_maior_de_idade_ou_proprio(id_solicitante))
             .order_by(Atividade.data_registro.desc())
             .limit(limite)
             .all()
@@ -221,6 +240,15 @@ class AtividadeRepository:
             .order_by(Atividade.data_registro.asc())
             .all()
         )
+
+    @staticmethod
+    def pontuacao_total_desde(id_usuario, desde_utc):
+        total = (
+            db.session.query(func.coalesce(func.sum(Atividade.pontuacao), 0))
+            .filter(Atividade.id_usuario == id_usuario, Atividade.data_registro >= desde_utc)
+            .scalar()
+        )
+        return int(total)
 
     @staticmethod
     def pontuacoes_desde(id_usuario, desde_utc):
@@ -296,10 +324,10 @@ class PostagemRepository:
         db.session.commit()
 
     @staticmethod
-    def listar_publicas(limite):
+    def listar_publicas(limite, id_solicitante=None):
         return (
             Postagem.query.join(Usuario, Postagem.id_usuario == Usuario.id_usuario)
-            .filter(Usuario.perfil_publico.is_(True))
+            .filter(Usuario.perfil_publico.is_(True), _clausula_maior_de_idade_ou_proprio(id_solicitante))
             .order_by(Postagem.data_registro.desc())
             .limit(limite)
             .all()
@@ -370,6 +398,11 @@ class CurtidaRepository:
         Curtida.query.filter_by(tipo_alvo=tipo_alvo, id_alvo=id_alvo).delete()
         db.session.commit()
 
+    @staticmethod
+    def excluir_do_usuario(id_usuario):
+        Curtida.query.filter_by(id_usuario=id_usuario).delete()
+        db.session.commit()
+
 
 class ComentarioRepository:
 
@@ -414,6 +447,11 @@ class ComentarioRepository:
     @staticmethod
     def excluir_do_alvo(tipo_alvo, id_alvo):
         Comentario.query.filter_by(tipo_alvo=tipo_alvo, id_alvo=id_alvo).delete()
+        db.session.commit()
+
+    @staticmethod
+    def excluir_do_usuario(id_usuario):
+        Comentario.query.filter_by(id_usuario=id_usuario).delete()
         db.session.commit()
 
 
@@ -470,12 +508,9 @@ class RankingRepository:
         return [_linha_ranking(linha) for linha in linhas]
 
     @staticmethod
-    def regional(cidade, limite):
-        sql = text(
-            f"SELECT {_COLUNAS_RANKING} FROM vw_ranking_regional "
-            "WHERE cidade = :cidade ORDER BY posicao LIMIT :lim"
-        )
-        linhas = db.session.execute(sql, {"cidade": cidade, "lim": limite}).mappings()
+    def regional_todos():
+        sql = text(f"SELECT {_COLUNAS_RANKING} FROM vw_ranking_regional")
+        linhas = db.session.execute(sql).mappings()
         return [_linha_ranking(linha) for linha in linhas]
 
     @staticmethod
@@ -690,10 +725,6 @@ class DesafioRepository:
         )
 
     @staticmethod
-    def listar_todos():
-        return Desafio.query.order_by(Desafio.data_inicio.desc()).all()
-
-    @staticmethod
     def salvar(desafio):
         db.session.add(desafio)
         db.session.commit()
@@ -727,12 +758,13 @@ class DesafioUsuarioRepository:
 class CompartilhamentoRepository:
 
     @staticmethod
-    def criar(id_usuario, tipo_conteudo, id_atividade, id_meta, rede_social):
+    def criar(id_usuario, tipo_conteudo, id_atividade, id_meta, rede_social, chave_medalha=None):
         registro = Compartilhamento(
             id_usuario=id_usuario,
             tipo_conteudo=tipo_conteudo,
             id_atividade=id_atividade,
             id_meta=id_meta,
+            chave_medalha=chave_medalha,
             rede_social=rede_social,
         )
         db.session.add(registro)
@@ -754,6 +786,10 @@ class NotificacaoRepository:
         db.session.add(notificacao)
         db.session.commit()
         return notificacao
+
+    @staticmethod
+    def existe(id_usuario, tipo, mensagem):
+        return Notificacao.query.filter_by(id_usuario=id_usuario, tipo=tipo, mensagem=mensagem).first() is not None
 
     @staticmethod
     def listar_do_usuario(id_usuario, limite=50):

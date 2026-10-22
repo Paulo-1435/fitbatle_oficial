@@ -128,6 +128,50 @@ class TestCompartilharMeta(BaseCompartilhamento):
         self.assertEqual(resposta.status_code, 400)
 
 
+class TestCompartilharMedalha(BaseCompartilhamento):
+
+    def compartilhar(self, token, chave=None, **extra):
+        corpo = {"tipo_conteudo": "medalha", "rede_social": "whatsapp", **extra}
+        if chave is not None:
+            corpo["chave_medalha"] = chave
+        return self.cli.post("/api/compartilhamentos", json=corpo, headers=self.auth(token))
+
+    def test_compartilha_medalha_conquistada_e_grava_a_chave(self):
+        self.registrar_treino(self.token_ana)
+        resposta = self.compartilhar(self.token_ana, "primeiro_treino")
+        self.assertEqual(resposta.status_code, 201, resposta.get_data(as_text=True))
+        registro = resposta.get_json()["compartilhamento"]
+        self.assertEqual(registro["tipo_conteudo"], "medalha")
+        self.assertEqual(registro["chave_medalha"], "primeiro_treino")
+        self.assertIsNone(registro["id_atividade"])
+        self.assertIsNone(registro["id_meta"])
+
+    def test_medalha_nao_conquistada_devolve_400(self):
+        resposta = self.compartilhar(self.token_ana, "primeiro_treino")
+        self.assertEqual(resposta.status_code, 400)
+
+    def test_medalha_conquistada_por_outro_usuario_devolve_400(self):
+        self.registrar_treino(self.token_ana)
+        resposta = self.compartilhar(self.token_bia, "primeiro_treino")
+        self.assertEqual(resposta.status_code, 400)
+
+    def test_medalha_inexistente_devolve_404(self):
+        self.registrar_treino(self.token_ana)
+        resposta = self.compartilhar(self.token_ana, "medalha_que_nao_existe")
+        self.assertEqual(resposta.status_code, 404)
+
+    def test_medalha_sem_chave_devolve_400(self):
+        self.registrar_treino(self.token_ana)
+        resposta = self.compartilhar(self.token_ana)
+        self.assertEqual(resposta.status_code, 400)
+
+    def test_medalha_sem_consentimento_devolve_403(self):
+        self.registrar_treino(self.token_ana)
+        self.desativar_consentimento(self.token_ana, self.ana)
+        resposta = self.compartilhar(self.token_ana, "primeiro_treino")
+        self.assertEqual(resposta.status_code, 403)
+
+
 class TestValidacaoCompartilhamento(BaseCompartilhamento):
 
     def test_tipo_conteudo_invalido_devolve_400(self):

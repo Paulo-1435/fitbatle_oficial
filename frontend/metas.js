@@ -63,7 +63,8 @@ async function carregarMetas() {
     renderizarRecentes();
     atualizarEmAndamentoGeral();
   } catch (e) {
-    grade.innerHTML = '<p class="estado-vazio">Não foi possível conectar à API.</p>';
+    grade.innerHTML = '';
+    mostrarFalhaDeCarregamento(function () { carregarMetas(); carregarDesafios(); });
   }
 }
 
@@ -205,7 +206,8 @@ async function carregarDesafios() {
     renderizarDesafios();
     atualizarEmAndamentoGeral();
   } catch (e) {
-    grade.innerHTML = '<p class="estado-vazio">Não foi possível conectar à API.</p>';
+    grade.innerHTML = '';
+    mostrarFalhaDeCarregamento(function () { carregarMetas(); carregarDesafios(); });
   }
 }
 
@@ -300,7 +302,7 @@ async function participarDesafio(id) {
     mostrarToast('Inscrição confirmada!');
     carregarDesafios();
   } catch (e) {
-    mostrarToast('Não foi possível conectar à API.');
+    mostrarToast('Não foi possível falar com o servidor. Tente novamente.');
   }
 }
 
@@ -312,7 +314,7 @@ async function desistirDesafio(id) {
     mostrarToast('Você desistiu do desafio.');
     carregarDesafios();
   } catch (e) {
-    mostrarToast('Não foi possível conectar à API.');
+    mostrarToast('Não foi possível falar com o servidor. Tente novamente.');
   }
 }
 
@@ -324,14 +326,14 @@ async function encerrarDesafio(id) {
     mostrarToast('Desafio encerrado.');
     carregarDesafios();
   } catch (e) {
-    mostrarToast('Não foi possível conectar à API.');
+    mostrarToast('Não foi possível falar com o servidor. Tente novamente.');
   }
 }
 
 function editarDesafio(desafio) {
   idDesafioEmEdicao = desafio.id;
   document.getElementById('tituloFormDesafio').textContent = 'Editar desafio';
-  document.getElementById('btnSalvarDesafio').textContent = '✓ Salvar alterações';
+  document.getElementById('btnSalvarDesafio').replaceChildren(...montarComIcone('check', 'Salvar alterações'));
   document.getElementById('btnCancelarEdicaoDesafio').hidden = false;
   document.getElementById('desafioNome').value = desafio.nome;
   document.getElementById('desafioDescricao').value = desafio.descricao || '';
@@ -348,7 +350,7 @@ function cancelarEdicaoDesafio() {
   idDesafioEmEdicao = null;
   document.getElementById('formDesafio').reset();
   document.getElementById('tituloFormDesafio').textContent = 'Criar novo desafio';
-  document.getElementById('btnSalvarDesafio').textContent = '✓ Criar desafio';
+  document.getElementById('btnSalvarDesafio').replaceChildren(...montarComIcone('check', 'Criar desafio'));
   document.getElementById('btnCancelarEdicaoDesafio').hidden = true;
 }
 
@@ -380,7 +382,7 @@ async function enviarFormDesafio(evento) {
     cancelarEdicaoDesafio();
     carregarDesafios();
   } catch (e) {
-    erro.textContent = 'Não foi possível conectar à API.';
+    erro.textContent = 'Não foi possível falar com o servidor. Tente novamente.';
   }
 }
 

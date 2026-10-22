@@ -65,7 +65,7 @@ async function enviarFormulario(evento) {
     mostrarToast('Meta criada!');
     window.location.href = 'metas-detalhes.html?id=' + dados.meta.id;
   } catch (e) {
-    erro.textContent = 'Não foi possível conectar à API.';
+    erro.textContent = 'Não foi possível falar com o servidor. Tente novamente.';
   } finally {
     botao.disabled = false;
   }

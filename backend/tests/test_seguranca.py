@@ -1,5 +1,8 @@
+import io
 import os
+import shutil
 import sys
+import tempfile
 import unittest
 from datetime import date, timedelta
 from unittest import mock
@@ -605,6 +608,306 @@ class TestDataDeNascimento(BaseTeste):
         for resultado in busca.get_json():
             self.assertNotIn("data_nascimento", resultado)
             self.assertNotIn("idade", resultado)
+
+
+class TestConteudoDeMenores(BaseTeste):
+
+    def setUp(self):
+        super().setUp()
+        self.menor, self.token_menor = self.criar_usuario_logado(
+            "Miguel Menor", idade=15, responsavel={"nome": "Responsavel Teste", "email": "resp.menor@teste.com"}
+        )
+        self.adulto, self.token_adulto = self.criar_usuario_logado("Ana Adulta", idade=30)
+
+    def registrar_treino(self, usuario, token, titulo):
+        resposta = self.cli.post(
+            f"/api/usuarios/{usuario['id']}/atividades",
+            json={"tipo": "cardio", "titulo": titulo, "tempo_min": 20},
+            headers={"Authorization": "Bearer " + token},
+        )
+        self.assertEqual(resposta.status_code, 201, resposta.get_data(as_text=True))
+        return resposta.get_json()["atividade"]
+
+    def feed(self, token):
+        resposta = self.cli.get("/api/feed", headers={"Authorization": "Bearer " + token})
+        self.assertEqual(resposta.status_code, 200)
+        return resposta.get_json()
+
+    def test_adulto_nao_le_treino_de_menor_por_id(self):
+        atividade = self.registrar_treino(self.menor, self.token_menor, "Corrida do menor")
+        resposta = self.cli.get(
+            f"/api/atividades/{atividade['id']}", headers={"Authorization": "Bearer " + self.token_adulto}
+        )
+        self.assertEqual(resposta.status_code, 404)
+
+    def test_feed_de_adulto_nao_traz_itens_do_menor(self):
+        self.registrar_treino(self.menor, self.token_menor, "Corrida do menor")
+        self.registrar_treino(self.adulto, self.token_adulto, "Treino da adulta")
+        donos = {item["usuario"]["id"] for item in self.feed(self.token_adulto)}
+        self.assertIn(self.adulto["id"], donos)
+        self.assertNotIn(self.menor["id"], donos)
+
+    def test_menor_ve_o_proprio_treino_por_id_e_no_feed(self):
+        atividade = self.registrar_treino(self.menor, self.token_menor, "Corrida do menor")
+        resposta = self.cli.get(
+            f"/api/atividades/{atividade['id']}", headers={"Authorization": "Bearer " + self.token_menor}
+        )
+        self.assertEqual(resposta.status_code, 200)
+        donos = {item["usuario"]["id"] for item in self.feed(self.token_menor)}
+        self.assertIn(self.menor["id"], donos)
+
+    def postar(self, token, texto):
+        resposta = self.cli.post(
+            "/api/postagens", data={"texto": texto},
+            headers={"Authorization": "Bearer " + token}, content_type="multipart/form-data",
+        )
+        self.assertEqual(resposta.status_code, 201, resposta.get_data(as_text=True))
+        postagem = resposta.get_json()["postagem"]
+        return postagem.get("id") or postagem.get("id_postagem")
+
+    def acao_de_adulto(self, metodo, caminho, corpo=None):
+        return self.cli.open(caminho, method=metodo, json=corpo, headers=self.auth(self.token_adulto))
+
+    def test_adulto_nao_curte_treino_de_menor(self):
+        atividade = self.registrar_treino(self.menor, self.token_menor, "Corrida do menor")
+        resposta = self.acao_de_adulto("POST", f"/api/feed/atividade/{atividade['id']}/curtir")
+        self.assertEqual(resposta.status_code, 404)
+
+    def test_adulto_nao_comenta_nem_lista_comentarios_de_treino_de_menor(self):
+        atividade = self.registrar_treino(self.menor, self.token_menor, "Corrida do menor")
+        caminho = f"/api/feed/atividade/{atividade['id']}/comentarios"
+        self.assertEqual(self.acao_de_adulto("POST", caminho, {"texto": "Oi"}).status_code, 404)
+        self.assertEqual(self.acao_de_adulto("GET", caminho).status_code, 404)
+
+    def test_adulto_nao_curte_nem_comenta_postagem_de_menor(self):
+        postagem = self.postar(self.token_menor, "Post do menor")
+        self.assertEqual(
+            self.acao_de_adulto("POST", f"/api/feed/postagem/{postagem}/curtir").status_code, 404
+        )
+        self.assertEqual(
+            self.acao_de_adulto("POST", f"/api/feed/postagem/{postagem}/comentarios", {"texto": "Oi"}).status_code, 404
+        )
+
+    def test_adulto_nao_exclui_comentario_em_conteudo_de_menor(self):
+        atividade = self.registrar_treino(self.menor, self.token_menor, "Corrida do menor")
+        comentario = self.cli.post(
+            f"/api/feed/atividade/{atividade['id']}/comentarios",
+            json={"texto": "Comentario de teste"},
+            headers=self.auth(self.token_menor),
+        ).get_json()["comentario"]["id"]
+        resposta = self.acao_de_adulto("DELETE", f"/api/comentarios/{comentario}")
+        self.assertEqual(resposta.status_code, 404)
+
+    def test_menor_curte_comenta_lista_e_exclui_o_proprio_conteudo(self):
+        atividade = self.registrar_treino(self.menor, self.token_menor, "Corrida do menor")
+        caminho = f"/api/feed/atividade/{atividade['id']}/comentarios"
+        curtida = self.cli.post(
+            f"/api/feed/atividade/{atividade['id']}/curtir", headers=self.auth(self.token_menor)
+        )
+        self.assertEqual(curtida.status_code, 200)
+        comentario = self.cli.post(caminho, json={"texto": "Bom treino"}, headers=self.auth(self.token_menor))
+        self.assertEqual(comentario.status_code, 201)
+        lista = self.cli.get(caminho, headers=self.auth(self.token_menor)).get_json()
+        self.assertIn("Bom treino", [c["texto"] for c in lista])
+        excluido = self.cli.delete(
+            f"/api/comentarios/{comentario.get_json()['comentario']['id']}", headers=self.auth(self.token_menor)
+        )
+        self.assertEqual(excluido.status_code, 200)
+
+    def test_menor_ve_os_proprios_comentarios_em_postagem(self):
+        postagem = self.postar(self.token_menor, "Post do menor")
+        self.cli.post(
+            f"/api/feed/postagem/{postagem}/comentarios", json={"texto": "Comentario no proprio post"},
+            headers=self.auth(self.token_menor),
+        )
+        lista = self.cli.get(
+            f"/api/feed/postagem/{postagem}/comentarios", headers=self.auth(self.token_menor)
+        ).get_json()
+        self.assertEqual(len(lista), 1)
+
+    def test_postagem_de_menor_nao_aparece_no_feed_de_adulto(self):
+        self.cli.post(
+            "/api/postagens", data={"texto": "Post do menor"},
+            headers={"Authorization": "Bearer " + self.token_menor}, content_type="multipart/form-data",
+        )
+        self.cli.post(
+            "/api/postagens", data={"texto": "Post da adulta"},
+            headers={"Authorization": "Bearer " + self.token_adulto}, content_type="multipart/form-data",
+        )
+        donos = {item["usuario"]["id"] for item in self.feed(self.token_adulto)}
+        self.assertIn(self.adulto["id"], donos)
+        self.assertNotIn(self.menor["id"], donos)
+
+
+class TestCamposDoPerfil(BaseTeste):
+
+    def setUp(self):
+        super().setUp()
+        self.pasta_uploads = tempfile.mkdtemp()
+        self.app.config["UPLOAD_FOLDER"] = self.pasta_uploads
+        self.usuario, self.token = self.criar_usuario_logado("Ana Campos", idade=30)
+
+    def tearDown(self):
+        shutil.rmtree(self.pasta_uploads, ignore_errors=True)
+        super().tearDown()
+
+    def atualizar(self, corpo, token=None):
+        return self.cli.put(
+            f"/api/usuarios/{self.usuario['id']}", json=corpo, headers=self.auth(token or self.token)
+        )
+
+    def eu(self):
+        return self.cli.get("/api/eu", headers=self.auth(self.token)).get_json()["usuario"]
+
+    def test_foto_com_url_arbitraria_e_recusada(self):
+        resposta = self.atualizar({"foto": "http://x.example/a'); \"><img src=x onerror=\"window.__xss=1\">"})
+        self.assertEqual(resposta.status_code, 400)
+        self.assertIsNone(self.eu()["foto"])
+
+    def test_foto_com_caminho_de_upload_e_recusada_pelo_perfil(self):
+        resposta = self.atualizar({"foto": f"/uploads/usuario_{self.usuario['id']}_0123456789abcdef.png"})
+        self.assertEqual(resposta.status_code, 400)
+
+    def test_foto_nula_no_perfil_e_ignorada(self):
+        resposta = self.atualizar({"foto": None, "nome": "Ana Campos"})
+        self.assertEqual(resposta.status_code, 200, resposta.get_data(as_text=True))
+        self.assertIsNone(self.eu()["foto"])
+
+    def test_upload_de_foto_continua_gravando_no_formato_esperado(self):
+        png = b"\x89PNG\r\n\x1a\n" + b"\x00" * 16
+        resposta = self.cli.post(
+            f"/api/usuarios/{self.usuario['id']}/foto",
+            data={"foto": (io.BytesIO(png), "rosto.png")},
+            headers=self.auth(self.token),
+            content_type="multipart/form-data",
+        )
+        self.assertEqual(resposta.status_code, 200, resposta.get_data(as_text=True))
+        caminho = resposta.get_json()["usuario"]["foto"]
+        self.assertRegex(caminho, rf"^/uploads/usuario_{self.usuario['id']}_[0-9a-f]{{16}}\.png$")
+
+    def test_campos_que_o_cliente_nao_define_sao_ignorados(self):
+        resposta = self.atualizar({
+            "xp": 999999, "nivel": "elite", "admin": True, "id_usuario": 999,
+            "perfil_publico": False, "senha_hash": "x",
+        })
+        self.assertEqual(resposta.status_code, 200)
+        dados = self.eu()
+        self.assertEqual(dados["xp"], 0)
+        self.assertFalse(dados["admin"])
+        self.assertEqual(dados["id"], self.usuario["id"])
+
+
+class TestTrocaDeEmailESenha(BaseTeste):
+
+    def setUp(self):
+        super().setUp()
+        self.usuario, self.token = self.criar_usuario_logado("Dora Troca", idade=30)
+        self.outro, self.token_outro = self.criar_usuario_logado("Eva Outra", idade=30)
+
+    def atualizar(self, corpo, token=None):
+        return self.cli.put(
+            f"/api/usuarios/{self.usuario['id']}", json=corpo, headers=self.auth(token or self.token)
+        )
+
+    def login(self, email, senha=SENHA):
+        return self.cli.post("/api/login", json={"email": email, "senha": senha})
+
+    def test_trocar_email_sem_senha_atual_recebe_400(self):
+        resposta = self.atualizar({"email": "nova.dora@teste.com"})
+        self.assertEqual(resposta.status_code, 400)
+        self.assertEqual(self.login(self.usuario["email"]).status_code, 200)
+
+    def test_trocar_email_com_senha_atual_errada_recebe_403(self):
+        resposta = self.atualizar({"email": "nova.dora@teste.com", "senha_atual": "errada123"})
+        self.assertEqual(resposta.status_code, 403)
+        self.assertEqual(self.login(self.usuario["email"]).status_code, 200)
+
+    def test_trocar_email_com_senha_atual_correta_funciona(self):
+        resposta = self.atualizar({"email": "nova.dora@teste.com", "senha_atual": SENHA})
+        self.assertEqual(resposta.status_code, 200, resposta.get_data(as_text=True))
+        self.assertEqual(self.login("nova.dora@teste.com").status_code, 200)
+
+    def test_trocar_senha_sem_senha_atual_recebe_400(self):
+        resposta = self.atualizar({"senha": "novasenha123"})
+        self.assertEqual(resposta.status_code, 400)
+        self.assertEqual(self.login(self.usuario["email"], SENHA).status_code, 200)
+
+    def test_trocar_senha_com_senha_atual_errada_recebe_403(self):
+        resposta = self.atualizar({"senha": "novasenha123", "senha_atual": "errada123"})
+        self.assertEqual(resposta.status_code, 403)
+        self.assertEqual(self.login(self.usuario["email"], SENHA).status_code, 200)
+
+    def test_trocar_senha_com_senha_atual_correta_funciona(self):
+        resposta = self.atualizar({"senha": "novasenha123", "senha_atual": SENHA})
+        self.assertEqual(resposta.status_code, 200, resposta.get_data(as_text=True))
+        self.assertEqual(self.login(self.usuario["email"], "novasenha123").status_code, 200)
+        self.assertEqual(self.login(self.usuario["email"], SENHA).status_code, 401)
+
+    def test_email_duplicado_recebe_409_e_nunca_500(self):
+        resposta = self.atualizar({"email": self.outro["email"], "senha_atual": SENHA})
+        self.assertEqual(resposta.status_code, 409)
+
+    def test_email_duplicado_que_chega_so_no_banco_recebe_409(self):
+        from repositories.repository import UsuarioRepository
+        with mock.patch.object(UsuarioRepository, "buscar_por_email", return_value=None):
+            resposta = self.atualizar({"email": self.outro["email"], "senha_atual": SENHA})
+        self.assertEqual(resposta.status_code, 409)
+
+    def test_mesmo_email_sem_senha_atual_nao_exige_confirmacao(self):
+        resposta = self.atualizar({"email": self.usuario["email"], "nome": "Dora Renomeada"})
+        self.assertEqual(resposta.status_code, 200, resposta.get_data(as_text=True))
+
+    def test_alterar_so_o_nome_nao_exige_senha_atual(self):
+        resposta = self.atualizar({"nome": "Dora Sem Senha"})
+        self.assertEqual(resposta.status_code, 200, resposta.get_data(as_text=True))
+
+
+class TestAutorizacaoDoResponsavel(BaseTeste):
+
+    def setUp(self):
+        super().setUp()
+        self.menor, self.token_menor = self.criar_usuario_logado(
+            "Lia Menor", idade=15, responsavel={"nome": "Responsavel Teste", "email": "resp.lia@teste.com"}
+        )
+        self.adulto, self.token_adulto = self.criar_usuario_logado("Bia Adulta", idade=30)
+
+    def atualizar(self, usuario, token, corpo):
+        return self.cli.put(f"/api/usuarios/{usuario['id']}", json=corpo, headers=self.auth(token))
+
+    def test_menor_nao_se_autoautoriza_pelo_perfil(self):
+        resposta = self.atualizar(self.menor, self.token_menor, {
+            "data_nascimento": data_nascimento_para_idade(14),
+            "responsavel": {"nome": "Eu Mesma", "email": "eu@teste.com"},
+            "autorizacao_responsavel": True,
+        })
+        self.assertEqual(resposta.status_code, 400)
+
+    def test_menor_nao_grava_autorizacao_do_responsavel_direto(self):
+        resposta = self.atualizar(self.menor, self.token_menor, {
+            "responsavel_autorizado_em": "2020-01-01T00:00:00+00:00",
+        })
+        self.assertEqual(resposta.status_code, 400)
+
+    def test_menor_nao_vira_adulto_pela_data_de_nascimento(self):
+        resposta = self.atualizar(self.menor, self.token_menor, {
+            "data_nascimento": data_nascimento_para_idade(30),
+        })
+        self.assertEqual(resposta.status_code, 400)
+        self.assertIn("menor", resposta.get_json()["erro"].lower())
+
+    def test_adulto_nao_vira_menor_pela_data_de_nascimento(self):
+        resposta = self.atualizar(self.adulto, self.token_adulto, {
+            "data_nascimento": data_nascimento_para_idade(15),
+            "responsavel": {"nome": "Responsavel Teste", "email": "resp.bia@teste.com"},
+            "autorizacao_responsavel": True,
+        })
+        self.assertEqual(resposta.status_code, 400)
+
+    def test_menor_corrige_data_dentro_da_faixa_de_menor(self):
+        resposta = self.atualizar(self.menor, self.token_menor, {
+            "data_nascimento": data_nascimento_para_idade(16),
+        })
+        self.assertEqual(resposta.status_code, 200, resposta.get_data(as_text=True))
 
 
 if __name__ == "__main__":

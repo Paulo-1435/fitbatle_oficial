@@ -3,7 +3,7 @@ function abrirAvisoCompartilhar() {
   overlay.className = 'overlay aberto';
   overlay.innerHTML =
     '<div class="modal-termo modal-termo--estreito">' +
-      '<button type="button" class="modal-close" aria-label="Fechar">✕</button>' +
+      '<button type="button" class="modal-close" aria-label="Fechar"><span data-icone="fechar"></span></button>' +
       '<h2 class="modal-title">Compartilhamento desativado</h2>' +
       '<p>Para compartilhar conquistas, ative o consentimento de compartilhamento na página de Privacidade.</p>' +
       '<div class="modal-actions">' +
@@ -11,6 +11,7 @@ function abrirAvisoCompartilhar() {
       '</div>' +
     '</div>';
   document.body.appendChild(overlay);
+  ativarIcones(overlay);
   function fechar() { overlay.remove(); }
   overlay.querySelector('.modal-close').addEventListener('click', fechar);
   overlay.addEventListener('click', function (evento) { if (evento.target === overlay) fechar(); });
@@ -18,12 +19,12 @@ function abrirAvisoCompartilhar() {
 
 function abrirMenuCompartilhar(opcoes) {
   const texto = opcoes.texto;
-  const url = opcoes.url || window.location.origin;
+  const url = opcoes.url || new URL('feed.html', window.location.href).href;
   const overlay = document.createElement('div');
   overlay.className = 'overlay aberto';
   overlay.innerHTML =
     '<div class="modal-termo modal-termo--estreito">' +
-      '<button type="button" class="modal-close" aria-label="Fechar">✕</button>' +
+      '<button type="button" class="modal-close" aria-label="Fechar"><span data-icone="fechar"></span></button>' +
       '<h2 class="modal-title">Compartilhar</h2>' +
       '<div class="modal-actions">' +
         (typeof navigator.share === 'function'
@@ -36,6 +37,7 @@ function abrirMenuCompartilhar(opcoes) {
       '</div>' +
     '</div>';
   document.body.appendChild(overlay);
+  ativarIcones(overlay);
 
   function fechar() { overlay.remove(); }
   overlay.querySelector('.modal-close').addEventListener('click', fechar);
@@ -54,13 +56,13 @@ function abrirMenuCompartilhar(opcoes) {
         }
         mostrarToast('Texto copiado.');
       }
-      registrarCompartilhamento(opcoes.tipoConteudo, opcoes.idAtividade, opcoes.idMeta, rede);
+      registrarCompartilhamento(opcoes.tipoConteudo, opcoes.idAtividade, opcoes.idMeta, rede, opcoes.chaveMedalha);
       fechar();
     });
   });
 }
 
-async function registrarCompartilhamento(tipoConteudo, idAtividade, idMeta, redeSocial) {
+async function registrarCompartilhamento(tipoConteudo, idAtividade, idMeta, redeSocial, chaveMedalha) {
   try {
     await api('/compartilhamentos', {
       method: 'POST',
@@ -69,6 +71,7 @@ async function registrarCompartilhamento(tipoConteudo, idAtividade, idMeta, rede
         tipo_conteudo: tipoConteudo,
         id_atividade: idAtividade || null,
         id_meta: idMeta || null,
+        chave_medalha: chaveMedalha || null,
         rede_social: redeSocial
       })
     });
@@ -86,6 +89,6 @@ async function abrirCompartilhar(opcoes) {
     if (!compartilhamento || !compartilhamento.aceito) return abrirAvisoCompartilhar();
     abrirMenuCompartilhar(opcoes);
   } catch (erro) {
-    mostrarToast('Não foi possível conectar à API.');
+    mostrarToast('Não foi possível falar com o servidor. Tente novamente.');
   }
 }

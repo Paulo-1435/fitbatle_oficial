@@ -88,18 +88,6 @@ button {
   background: var(--cor-destaque-suave);
 }
 
-.visualmente-oculto {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
 .link-pular {
   position: absolute;
   left: var(--esp-4);
@@ -188,16 +176,6 @@ button {
   background: #2d3546;
 }
 
-.btn--contorno {
-  background: transparent;
-  border-color: var(--cor-destaque-borda);
-  color: var(--cor-destaque);
-}
-
-.btn--contorno:hover {
-  background: var(--cor-destaque-suave);
-}
-
 .btn--fantasma {
   background: transparent;
   color: var(--cor-texto-2);
@@ -244,12 +222,6 @@ button {
   background: var(--cor-destaque-suave);
   color: var(--cor-destaque);
   border: 1px solid var(--cor-destaque-borda);
-}
-
-.badge--ouro {
-  background: rgba(245, 192, 74, 0.14);
-  color: var(--cor-ouro);
-  border: 1px solid rgba(245, 192, 74, 0.4);
 }
 
 .badge--sucesso {
@@ -396,10 +368,6 @@ button {
   text-transform: uppercase;
 }
 
-.rotulo-mini--bloco {
-  display: block;
-}
-
 .rotulo-mini--destaque {
   color: var(--cor-destaque);
 }
@@ -534,6 +502,14 @@ textarea.input {
 
 .mensagem-form--ok {
   color: var(--cor-sucesso);
+}
+
+.icone {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+  vertical-align: -0.125em;
 }
 
 @media (prefers-reduced-motion: reduce) {

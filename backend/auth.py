@@ -1,3 +1,4 @@
+import hashlib
 import os
 import secrets
 from functools import wraps
@@ -38,8 +39,12 @@ def _serializador():
     return URLSafeTimedSerializer(current_app.config["SECRET_KEY"], salt=SALT_TOKEN)
 
 
-def gerar_token(id_usuario):
-    return _serializador().dumps({"id": id_usuario})
+def fragmento_da_senha(senha_hash):
+    return hashlib.sha256((senha_hash or "").encode("utf-8")).hexdigest()[:8]
+
+
+def gerar_token(id_usuario, senha_hash=None):
+    return _serializador().dumps({"id": id_usuario, "s": fragmento_da_senha(senha_hash)})
 
 
 def ler_token(token):
@@ -49,7 +54,7 @@ def ler_token(token):
         return None
     if not isinstance(dados, dict) or not isinstance(dados.get("id"), int):
         return None
-    return dados["id"]
+    return dados
 
 
 def _token_do_cabecalho():
@@ -70,9 +75,9 @@ def protegido(view, dono=False):
         from repositories.repository import UsuarioRepository
 
         token = _token_do_cabecalho()
-        id_usuario = ler_token(token) if token else None
-        usuario = UsuarioRepository.buscar_por_id(id_usuario) if id_usuario else None
-        if usuario is None:
+        dados = ler_token(token) if token else None
+        usuario = UsuarioRepository.buscar_por_id(dados["id"]) if dados else None
+        if usuario is None or dados.get("s") != fragmento_da_senha(usuario.senha):
             return _nao_autenticado()
 
         g.usuario_atual = usuario

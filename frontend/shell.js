@@ -9,7 +9,6 @@ const ITENS_NAVEGACAO = [
   { id: 'dashboard', rotulo: 'Dashboard', href: 'dashboard.html' },
   { id: 'ranking', rotulo: 'Ranking', href: 'ranking.html' },
   { id: 'registrar', rotulo: 'Registrar Treino', href: 'registrar-treino.html' },
-  { id: 'desafios', rotulo: '1v1', href: 'desafio.html' },
   { id: 'grupo', rotulo: 'Grupo', href: 'grupo.html' },
   { id: 'metas', rotulo: 'Metas', href: 'metas.html' },
   { id: 'perfil', rotulo: 'Perfil', href: 'perfil.html' }
@@ -61,9 +60,22 @@ function iniciais(nome) {
   return (partes[0][0] + partes[partes.length - 1][0]).toUpperCase();
 }
 
+const PADRAO_CAMINHO_FOTO = /^\/uploads\/[A-Za-z0-9_-]+\.(png|jpe?g|gif|webp)$/i;
+
 function urlFoto(caminho) {
-  if (!caminho) return null;
-  return caminho.indexOf('http') === 0 ? caminho : ORIGEM_API + caminho;
+  if (typeof caminho !== 'string' || !PADRAO_CAMINHO_FOTO.test(caminho)) return null;
+  return ORIGEM_API + caminho;
+}
+
+function aplicarFotosNoAvatares(raiz) {
+  (raiz || document).querySelectorAll('[data-foto]').forEach(function (avatar) {
+    avatar.style.backgroundImage = 'url("' + avatar.getAttribute('data-foto') + '")';
+  });
+}
+
+function atributoFoto(usuario) {
+  const foto = urlFoto(usuario && usuario.foto);
+  return foto ? ' data-foto="' + esc(foto) + '"' : '';
 }
 
 function criarAvatar(usuario, opcoes) {
@@ -126,9 +138,9 @@ function montarBusca() {
     classe: 'busca__campo',
     type: 'search',
     id: 'busca-global',
-    placeholder: 'Buscar amigos ou treinos...',
+    placeholder: 'Buscar pessoas por nome ou cidade',
     autocomplete: 'off',
-    'aria-label': 'Buscar amigos ou treinos'
+    'aria-label': 'Buscar pessoas por nome ou cidade'
   });
   const resultados = criarElemento('ul', { classe: 'menu-flutuante busca__resultados', hidden: true });
   const caixa = criarElemento('div', { classe: 'busca' }, [criarElemento('span', { html: ICONES.busca }).firstChild, campo, resultados]);
@@ -177,7 +189,7 @@ function montarBusca() {
       if (!resposta.ok) return mostrarAviso('Não foi possível buscar agora.');
       mostrarResultados(await resposta.json());
     } catch (e) {
-      if (minha === sequencia) mostrarAviso('Não foi possível conectar à API.');
+      if (minha === sequencia) mostrarAviso('Não foi possível falar com o servidor. Tente novamente.');
     }
   }
 
@@ -206,9 +218,10 @@ function montarBusca() {
 function montarNavegacao(paginaAtiva) {
   const links = ITENS_NAVEGACAO.map(function (item) {
     return criarElemento('a', {
-      classe: 'nav-principal__link',
+      classe: 'nav-principal__link' + (item.breve ? ' nav-principal__link--breve' : ''),
       href: item.href,
       texto: item.rotulo,
+      title: item.breve ? item.rotulo + ' (em breve)' : false,
       'aria-current': item.id === paginaAtiva ? 'page' : false
     });
   });
@@ -406,7 +419,7 @@ function montarFooter() {
     return link;
   }
 
-  const marca = criarElemento('a', { classe: 'marca marca--pequena', href: 'feed.html' }, [
+  const marca = criarElemento('a', { classe: 'marca', href: 'feed.html' }, [
     criarElemento('span', { html: ICONES.raio }).firstChild,
     criarElemento('span', {}, [
       document.createTextNode('Fit'),

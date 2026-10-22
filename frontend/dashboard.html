@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: http://*:5000; connect-src 'self' http://*:5000; font-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FitBattle - Dashboard</title>
@@ -17,7 +18,7 @@
 <body data-pagina="dashboard">
 <main>
 
-  <section class="card">
+  <section class="card card--interno">
     <h1>Dashboard</h1>
     <div class="dashboard-totais" id="dashboardTotais">
       <div class="dashboard-stat"><dt>Treinos</dt><dd id="statTreinos">—</dd></div>

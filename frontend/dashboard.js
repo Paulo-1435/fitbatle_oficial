@@ -8,8 +8,7 @@ const NOME_TIPO_DASHBOARD = {
 document.addEventListener('DOMContentLoaded', function () {
   const usuario = exigirLogin();
   if (!usuario) return;
-  carregarDashboard();
-  carregarEmAndamentoDashboard();
+  carregarDashboardCompleto();
 });
 
 async function carregarEmAndamentoDashboard() {
@@ -49,8 +48,14 @@ async function carregarEmAndamentoDashboard() {
       </div>`;
     }).join('');
   } catch (e) {
-    container.innerHTML = '<p class="estado-vazio">Não foi possível conectar à API.</p>';
+    container.innerHTML = '';
+    mostrarFalhaDeCarregamento(carregarDashboardCompleto);
   }
+}
+
+function carregarDashboardCompleto() {
+  carregarDashboard();
+  carregarEmAndamentoDashboard();
 }
 
 async function carregarDashboard(exercicio) {
@@ -63,7 +68,7 @@ async function carregarDashboard(exercicio) {
     }
     renderizarDashboard(await resposta.json());
   } catch (erro) {
-    mostrarToast('Não foi possível conectar à API.');
+    mostrarFalhaDeCarregamento(carregarDashboardCompleto);
   }
 }
 

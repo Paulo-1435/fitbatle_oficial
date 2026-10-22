@@ -337,6 +337,7 @@ class Compartilhamento(db.Model):
         db.Integer,
         db.ForeignKey("meta.id_meta", ondelete="SET NULL"),
     )
+    chave_medalha = db.Column(db.String(40))
     rede_social = db.Column(db.String(40))
     data_comp = db.Column(db.DateTime, nullable=False, default=agora)
 
@@ -347,6 +348,7 @@ class Compartilhamento(db.Model):
             "tipo_conteudo": self.tipo_conteudo,
             "id_atividade": self.id_atividade,
             "id_meta": self.id_meta,
+            "chave_medalha": self.chave_medalha,
             "rede_social": self.rede_social,
             "data_comp": iso_utc(self.data_comp),
         }

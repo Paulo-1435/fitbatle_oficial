@@ -184,22 +184,6 @@
   margin-top: var(--esp-3);
 }
 
-.grupo-cartao__avatares {
-  display: flex;
-}
-
-.grupo-cartao__avatares .avatar {
-  width: 28px;
-  height: 28px;
-  margin-left: -8px;
-  border: 2px solid var(--cor-superficie);
-  font-size: 0.6875rem;
-}
-
-.grupo-cartao__avatares .avatar:first-child {
-  margin-left: 0;
-}
-
 .convite-cartao {
   padding: var(--esp-4);
   margin-bottom: var(--esp-4);
@@ -485,6 +469,10 @@
   .grupo-cartao {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .grupo-cartao__corpo {
+    width: 100%;
   }
 
   .convite-opcao__topo {

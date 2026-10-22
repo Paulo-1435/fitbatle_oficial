@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function () {
       mostrarToast('Grupo criado!');
       window.location.href = 'grupo-detalhes.html?id=' + dados.grupo.id;
     } catch (e) {
-      erro.textContent = 'Não foi possível conectar à API.';
+      erro.textContent = 'Não foi possível falar com o servidor. Tente novamente.';
     } finally {
       botao.disabled = false;
     }

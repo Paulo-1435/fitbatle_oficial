@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', function () {
       return erro('A senha deve ter no mínimo 8 caracteres.', senha);
     }
     if (!aceitePagina.checked) {
-      return erro('Marque a caixa para concordar com as regras da academia e as políticas do ranking.', aceitePagina);
+      return erro('Marque a caixa para concordar com os Termos de Uso e a Política de Privacidade.', aceitePagina);
     }
 
     dadosPendentes = {
@@ -218,7 +218,7 @@ document.addEventListener('DOMContentLoaded', function () {
       botaoCadastrar.disabled = true;
       setTimeout(function () { window.location.href = PAGINA_LOGIN; }, ATRASO_REDIRECIONAR_MS);
     } catch (e) {
-      erroModal.textContent = 'Não foi possível conectar à API. Verifique se o backend está rodando (python app.py).';
+      erroModal.textContent = 'Não foi possível falar com o servidor. Tente novamente.';
     } finally {
       btnConfirmar.disabled = false;
       btnConfirmar.textContent = 'Confirmar cadastro';

@@ -289,6 +289,20 @@ class TestConclusaoRecompensaENotificacao(BaseDesafio):
         ]
         self.assertEqual(len(notificacoes), 1)
 
+    def test_participar_de_desafio_ja_concluido_e_409_sem_novo_xp(self):
+        desafio = self.criar_desafio(tipo_metrica="treinos", exercicio="livre", valor_objetivo=1, recompensa_xp=50)
+        self.cli.post(f"/api/desafios/{desafio['id']}/participar", headers=self.auth(self.token_ana))
+        self.treinar(self.token_ana, self.ana)
+        xp_antes = self.cli.get(f"/api/usuarios/{self.ana['id']}", headers=self.auth(self.token_ana)).get_json()["xp"]
+
+        resposta = self.cli.post(f"/api/desafios/{desafio['id']}/participar", headers=self.auth(self.token_ana))
+        self.assertEqual(resposta.status_code, 409)
+        self.assertIn("concluiu", resposta.get_json()["erro"])
+
+        xp_depois = self.cli.get(f"/api/usuarios/{self.ana['id']}", headers=self.auth(self.token_ana)).get_json()["xp"]
+        self.assertEqual(xp_depois, xp_antes)
+        self.assertEqual(self.listar(self.token_ana)[0]["minha_inscricao"]["status"], "concluido")
+
     def test_conclusao_avaliada_ao_ler_tambem(self):
         desafio = self.criar_desafio(tipo_metrica="treinos", exercicio="livre", valor_objetivo=1, recompensa_xp=0)
         self.cli.post(f"/api/desafios/{desafio['id']}/participar", headers=self.auth(self.token_ana))
@@ -305,3 +319,18 @@ class TestConclusaoRecompensaENotificacao(BaseDesafio):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestValidacaoNumericaDeDesafio(BaseDesafio):
+
+    def test_desafio_com_valor_objetivo_nan_e_400(self):
+        resposta = self.cli.post(
+            "/api/desafios", json=self.corpo_desafio(valor_objetivo="nan"), headers=self.auth(self.token_admin)
+        )
+        self.assertEqual(resposta.status_code, 400)
+
+    def test_desafio_com_valor_objetivo_acima_do_maximo_e_400(self):
+        resposta = self.cli.post(
+            "/api/desafios", json=self.corpo_desafio(valor_objetivo=1e308), headers=self.auth(self.token_admin)
+        )
+        self.assertEqual(resposta.status_code, 400)

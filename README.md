@@ -20,21 +20,16 @@ schema não significa que a funcionalidade esteja implementada.
 - RF07 — Convidar via link/código ou busca direta
 - RF08 — Aceitar/recusar convites
 - RF09 — Ranking interno do grupo
-- RF10 — Ranking regional (cidade/região)
+- RF10 — Ranking regional, por "Da sua cidade" ou "Do seu estado" (a cidade é comparada sem diferença de caixa, acentos ou espaços nas pontas)
 - RF11 — Ranking global
 - RF12 — Cálculo automático de pontuação por atividade
 - RF13 — Atribuição automática de nível/categoria por XP (cinco categorias)
 - RF14 — Dashboard com XP por semana, treinos por semana, distribuição por tipo de treino, evolução da carga máxima por exercício, sequência atual e melhor sequência, e totais (gráficos em SVG/JS puro, sem biblioteca externa); só dados do próprio usuário
 - RF15 — Criar/gerenciar metas pessoais (curto/longo prazo)
-- RF16 — Desafios sazonais propostos pela administração (e-mails em `ADMIN_EMAILS`, únicos que criam/editam/encerram desafios); qualquer usuário logado participa ou desiste pela aba "Desafios" dentro de `metas.html`; progresso sempre calculado a partir dos treinos reais no período do desafio (`exercicio: "livre"` conta qualquer treino, senão filtra pelo título); ao atingir o objetivo credita `recompensa_xp` uma única vez (idempotente, avaliado ao registrar treino e também ao ler) e dispara notificação (RF18); cada usuário só vê/mexe na própria inscrição (prévia "1x1" em `desafio.html` continua só visual, "Em breve")
-- RF17 — Bloco "Em Andamento" com metas ativas e desafios em que o usuário está inscrito (percentual e status reais, link para o detalhe de cada um), em dois lugares: `dashboard.html` e na aba "Desafios" de `metas.html`
+- RF16 — Desafios sazonais propostos pela administração (e-mails em `ADMIN_EMAILS`, únicos que criam/editam/encerram desafios); qualquer usuário logado participa ou desiste pela aba "Desafios" dentro de `metas.html`; progresso sempre calculado a partir dos treinos reais no período do desafio (`exercicio: "livre"` conta qualquer treino, senão filtra pelo título); ao atingir o objetivo credita `recompensa_xp` uma única vez (idempotente, avaliado ao registrar treino e também ao ler) e dispara notificação (RF18); cada usuário só vê/mexe na própria inscrição- RF17 — Bloco "Em Andamento" com metas ativas e desafios em que o usuário está inscrito (percentual e status reais, link para o detalhe de cada um), em dois lugares: `dashboard.html` e na aba "Desafios" de `metas.html`
 - RF18 — Notificações in-app (sino no header com contador de não lidas, atualizado a cada 60s e pausado com a aba oculta; página `/notificacoes`) para convite recebido/aceito, curtida e comentário recebidos, meta concluída e subida de posição no ranking global — sempre condicionado ao consentimento "notificacoes", nunca autonotificação, sem duplicar ao curtir/descurtir; e-mail opcional por SMTP (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`), tolerante a falha e nunca bloqueando a requisição; push do navegador fora do escopo
 - RF19 — Busca de perfis (nome ou cidade, restrita a campos públicos, nunca menores de idade) e busca de grupos (entre os grupos dos quais o usuário já é membro, com entrada por código de convite na mesma tela)
-- RF20 — Compartilhar treino registrado, recorde pessoal e meta concluída em redes sociais externas (Web Share API, WhatsApp, X, Telegram ou copiar texto), condicionado ao consentimento "compartilhamento" e registrado na tabela `compartilhamento` (medalhas não existem, continuam em "Em breve")
-
-### Em breve
-
-- RF20 (medalhas) — Medalhas de conquistas; não existe esse conceito em nenhuma tabela do sistema
+- RF20 — Compartilhar treino registrado, recorde pessoal, meta concluída e medalha conquistada em redes sociais externas (Web Share API, WhatsApp, X, Telegram ou copiar texto), condicionado ao consentimento "compartilhamento" e registrado na tabela `compartilhamento`. As medalhas são calculadas a partir dos dados reais (primeiro treino, constância de 10 e veterano de 50 atividades, semana perfeita de 7 dias seguidos, meta batida, maratonista de 42 km e uma medalha por categoria acima da inicial do RF13). Não alteram XP nem ranking. Ao conquistar uma medalha nova, o usuário recebe uma notificação, sem repetição, com o mesmo consentimento de notificações. Perfil próprio mostra todas, com progresso real; perfil público mostra só as conquistadas. A medalha "Campeão de desafio" não existe porque o sistema não calcula posição final em desafio concluído.
 
 ## Arquitetura em camadas
 
@@ -46,35 +41,52 @@ como `auth.py`); `services/` nunca importa `database` nem `models` diretamente, 
 arquivo (não só roda os testes — lê o código-fonte) e falha se alguma camada importar
 o que não devia.
 
+`services/` é uma pasta por área (`usuario/`, `atividade/`, `grupo/`, ...), com um
+arquivo por caso de uso — uma única classe pública terminada em `Service`, com um
+único método público estático `executar(...)`. Lógica compartilhada entre casos de
+uso da mesma área fica em `<área>/apoio.py` (só funções, sem classe); o que é
+exclusivo de um caso de uso fica privado no próprio arquivo. `test_arquitetura.py`
+(classe `TestServicesPorCasoDeUso`) verifica isso por AST e também que nenhum
+arquivo de `services/` importa o pacote de outra área direto (sempre o módulo
+completo, ex.: `services.usuario.apoio`) e que a raiz de `services/` só tem
+`__init__.py` e `comum.py` soltos.
+
+Hoje (conferido direto na árvore de arquivos): 57 rotas registradas em
+`routers.py`, 60 classes `Service` de caso de uso em `services/` (uma por
+arquivo), 10 arquivos `apoio.py` (um por área que precisa de lógica
+compartilhada) e 323 testes.
+
 | Caso de uso | Controller | Service | Repository |
 |---|---|---|---|
-| Cadastro | `UsuarioController.cadastrar` | `UsuarioService.cadastrar` | `UsuarioRepository.criar` |
-| Login | `UsuarioController.login` | `UsuarioService.autenticar` | `UsuarioRepository.buscar_por_email` |
-| Perfil (editar) | `UsuarioController.atualizar` | `UsuarioService.atualizar` | `UsuarioRepository.salvar` |
-| Busca de perfis | `UsuarioController.busca` | `UsuarioService.buscar_por_termo` | `UsuarioRepository.buscar_publicos` |
-| Registrar treino | `AtividadeController.registrar` | `AtividadeService.registrar` | `AtividadeRepository.criar` |
-| Histórico de atividades | `AtividadeController.historico` | `AtividadeService.historico` | `AtividadeRepository.listar_do_usuario` |
-| Ranking global | `RankingController.ranking_global` | `RankingService.global_` | `RankingRepository.global_` |
-| Ranking regional | `RankingController.ranking_regional` | `RankingService.regional` | `RankingRepository.regional` |
-| Ranking por exercício | `RankingController.ranking_por_exercicio` | `RankingService.por_exercicio` | `RankingRepository.por_exercicio` |
-| Ranking interno do grupo | `GrupoController.ranking` | `GrupoService.ranking` | `RankingRepository.grupo` |
-| Grupos | `GrupoController.criar` | `GrupoService.criar` | `GrupoRepository.criar` |
-| Convidar para grupo | `GrupoController.convidar` | `GrupoService.convidar` | `ConviteRepository.criar` |
-| Convites (responder) | `ConviteController.responder` | `ConviteService.responder` | `ConviteRepository.buscar_por_id` |
-| Metas | `MetaController.criar` | `MetaService.criar` | `MetaRepository.criar` |
-| Feed (listagem) | `FeedController.listar` | `FeedService.listar` | `AtividadeRepository.listar_publicas` + `PostagemRepository.listar_publicas` |
-| Postagem | `PostagemController.criar` | `PostagemService.criar` | `PostagemRepository.criar` |
-| Curtida | `CurtidaController.alternar` | `CurtidaService.alternar` | `CurtidaRepository.curtir` |
-| Comentário | `ComentarioController.criar` | `ComentarioService.criar` | `ComentarioRepository.criar` |
-| Consentimentos | `ConsentimentoController.atualizar` | `ConsentimentoService.atualizar` | `ConsentimentoRepository.buscar` |
-| Compartilhamento | `CompartilhamentoController.registrar` | `CompartilhamentoService.registrar` | `CompartilhamentoRepository.criar` |
-| Dashboard | `DashboardController.resumo` | `DashboardService.resumo` | `AtividadeRepository.pontuacao_por_dia` (+ demais agregações) |
-| Notificações | `NotificacaoController.listar` | `NotificacaoService.listar` | `NotificacaoRepository.listar_do_usuario` |
-| Desafios | `DesafioController.listar` | `DesafioService.listar_ativos` | `DesafioRepository.listar_ativos` |
+| Cadastro | `UsuarioController.cadastrar` | `CadastrarUsuarioService.executar` | `UsuarioRepository.criar` |
+| Login | `UsuarioController.login` | `AutenticarUsuarioService.executar` | `UsuarioRepository.buscar_por_email` |
+| Perfil (ver) | `UsuarioController.buscar` | `ConsultarPerfilService.executar` | — (via `usuario/apoio.py`) |
+| Perfil (editar) | `UsuarioController.atualizar` | `AtualizarPerfilService.executar` | `UsuarioRepository.atualizar` |
+| Busca de perfis | `UsuarioController.busca` | `BuscarPerfisService.executar` | `UsuarioRepository.buscar_publicos` |
+| Registrar treino | `AtividadeController.registrar` | `RegistrarTreinoService.executar` | `AtividadeRepository.criar` |
+| Histórico de atividades | `AtividadeController.historico` | `ConsultarHistoricoTreinosService.executar` | `AtividadeRepository.listar_do_usuario` |
+| Ranking global | `RankingController.ranking_global` | `ConsultarRankingGlobalService.executar` | `RankingRepository.global_` |
+| Ranking regional | `RankingController.ranking_regional` | `ConsultarRankingRegionalService.executar` | `RankingRepository.regional` |
+| Ranking por exercício | `RankingController.ranking_por_exercicio` | `ConsultarRankingPorExercicioService.executar` | `RankingRepository.por_exercicio` |
+| Ranking interno do grupo | `GrupoController.ranking` | `ConsultarRankingGrupoService.executar` | `RankingRepository.grupo` |
+| Grupos | `GrupoController.criar` | `CriarGrupoService.executar` | `GrupoRepository.criar` |
+| Convidar para grupo | `GrupoController.convidar` | `ConvidarParaGrupoService.executar` | `ConviteRepository.criar` |
+| Convites (responder) | `ConviteController.responder` | `ResponderConviteService.executar` | `ConviteRepository.buscar_por_id` |
+| Metas | `MetaController.criar` | `CriarMetaService.executar` | `MetaRepository.criar` |
+| Feed (listagem) | `FeedController.listar` | `ListarFeedService.executar` | `AtividadeRepository`/`PostagemRepository`/`CurtidaRepository`/`ComentarioRepository` |
+| Postagem | `PostagemController.criar` | `CriarPostagemService.executar` | `PostagemRepository.criar` |
+| Curtida | `CurtidaController.alternar` | `AlternarCurtidaService.executar` | `CurtidaRepository.buscar`/`curtir`/`descurtir` |
+| Comentário | `ComentarioController.criar` | `CriarComentarioService.executar` | `ComentarioRepository.criar` |
+| Consentimentos | `ConsentimentoController.atualizar` | `AtualizarConsentimentoService.executar` | `ConsentimentoRepository.buscar`/`salvar` |
+| Compartilhamento | `CompartilhamentoController.registrar` | `RegistrarCompartilhamentoService.executar` | `CompartilhamentoRepository`/`AtividadeRepository`/`ConsentimentoRepository` |
+| Dashboard | `DashboardController.resumo` | `ConsultarDashboardService.executar` | `AtividadeRepository.pontuacoes_desde` (+ demais agregações) |
+| Notificações | `NotificacaoController.listar` | `ListarNotificacoesService.executar` | `NotificacaoRepository.listar_do_usuario` |
+| Desafios | `DesafioController.listar` | `ListarDesafiosAtivosService.executar` | `DesafioRepository.listar_ativos` |
+| Medalhas | `MedalhaController.listar` | `ListarMedalhasService.executar` | `AtividadeRepository.listar_do_usuario` / `MetaRepository.listar_do_usuario` |
 
 Busca de grupos (RF19) não tem linha própria porque não criou nenhum
 método novo: `frontend/busca.js` reaproveita o `GET /api/grupos`
-(mesmo `GrupoController.listar_meus` → `GrupoService.listar_meus` já
+(mesmo `GrupoController.listar_meus` → `ListarMeusGruposService.executar` já
 usado em `grupo.html`) e filtra pelo nome só no navegador.
 
 RF17 (bloco "Em Andamento") também não tem linha própria: é agregação
@@ -100,29 +112,33 @@ Controller, Service ou Repository novo.
 │   │   ├── migracao_meta.sql             # atualiza um banco existente (ver "Atualizando o banco")
 │   │   ├── migracao_data_nascimento.sql  # idem, para a coluna data_nascimento
 │   │   ├── migracao_notificacao_alvo.sql # idem, para as colunas tipo_alvo/id_alvo de notificacao
-│   │   └── migracao_desafio_metrica.sql  # idem, para as colunas tipo_metrica/valor_objetivo de desafio
+│   │   ├── migracao_desafio_metrica.sql  # idem, para as colunas tipo_metrica/valor_objetivo de desafio
+│   │   └── migracao_medalha.sql          # idem, para o tipo 'medalha' e a coluna chave_medalha de compartilhamento
 │   ├── routers/
 │   │   └── routers.py          # mapeia as URLs para os Controllers
 │   ├── controllers/
 │   │   └── controller.py       # Usuario/Atividade/Postagem/Feed/Curtida/Comentario/
 │   │                            # Ranking/Consentimento/Grupo/Convite/MetaController
-│   ├── services/                # regra de negócio, um módulo por domínio
+│   ├── services/                # regra de negócio; uma pasta por área, um arquivo por caso de uso
 │   │   ├── comum.py             # ErroValidacao, upload/validação de imagem
-│   │   ├── usuario.py           # UsuarioService, limitador de tentativas de login
-│   │   ├── privacidade.py       # ConsentimentoService (LGPD)
-│   │   ├── atividade.py         # AtividadeService, cálculo de XP/nível
-│   │   ├── postagem.py          # PostagemService
-│   │   ├── feed.py              # FeedService
-│   │   ├── curtida.py           # CurtidaService
-│   │   ├── comentario.py        # ComentarioService
-│   │   ├── ranking.py           # RankingService
-│   │   ├── grupo.py             # GrupoService
-│   │   ├── convite.py           # ConviteService
-│   │   ├── meta.py              # MetaService
-│   │   ├── compartilhamento.py  # CompartilhamentoService
-│   │   ├── dashboard.py         # DashboardService
-│   │   ├── desafio.py           # DesafioService
-│   │   └── notificacao.py       # NotificacaoService, e-mail opcional por SMTP
+│   │   ├── usuario/              # cadastro, login, perfil, foto, conta, estatísticas
+│   │   │   ├── apoio.py           # buscar_usuario, validações de idade/e-mail compartilhadas
+│   │   │   └── limitador_login.py # _LimitadorLogin (tentativas de login), em memória
+│   │   ├── privacidade/           # consentimentos LGPD (apoio.py: registrar_consentimentos_iniciais)
+│   │   ├── atividade/             # registrar/consultar/excluir treino, histórico
+│   │   │   └── apoio.py           # cálculo de pontuação e de nível por XP (FAIXAS_NIVEL)
+│   │   ├── postagem/              # criar/excluir postagem
+│   │   ├── feed/                  # feed combinado (treinos + postagens)
+│   │   ├── curtida/               # curtir/descurtir
+│   │   ├── comentario/            # criar/listar/excluir comentário
+│   │   ├── ranking/                # global, regional, por exercício, resumo do usuário
+│   │   ├── grupo/                  # criar, convidar, entrar por código, ranking interno
+│   │   ├── convite/                # listar recebidos, responder
+│   │   ├── meta/                   # criar/consultar/atualizar/excluir/listar metas
+│   │   ├── compartilhamento/       # registrar compartilhamento externo
+│   │   ├── dashboard/              # resumo agregado do próprio usuário
+│   │   ├── desafio/                # criar/atualizar/encerrar/participar/desistir, avaliação automática
+│   │   └── notificacao/            # gerar/listar/marcar lida, e-mail opcional por SMTP
 │   ├── repositories/
 │   │   └── repository.py       # único ponto de acesso ao banco
 │   ├── models/
@@ -143,6 +159,7 @@ Controller, Service ou Repository novo.
 └── frontend/
     ├── config.js                                         # window.FITBATTLE_API_URL (ver "Como rodar")
     ├── compartilhar.js                                   # menu de compartilhamento (RF20), compartilhado
+    ├── medalhas.js / medalhas.css                        # cartões de medalha, usados em perfil e perfil público (RF20)
     ├── busca.html / busca.js / busca.css                # busca de perfis e de grupos (RF19)
     ├── perfil-publico.html / perfil-publico.js / .css    # perfil de outro usuário, só leitura (RF19)
     ├── dashboard.html / dashboard.js / dashboard.css     # gráficos SVG/JS puro, só do próprio usuário (RF14)
@@ -155,7 +172,6 @@ Controller, Service ou Repository novo.
     ├── desafio-detalhes.html / desafio-detalhes.js       # detalhe de 1 desafio sazonal (RF16)
     ├── ranking.html / ranking.js                         # rankings
     ├── privacidade.html / privacidade.js                 # consentimentos LGPD
-    ├── desafio.html / desafio.js                         # prévia visual do "1x1", sem API (Em breve)
     ├── mockups/                                          # telas de outro integrante do grupo,
     │                                                      # não referenciadas pelo app (perfil-A/B/C.html)
     └── api.js, shell.js, auth-comum.js, tokens.css, ...  # compartilhados entre as páginas
@@ -217,10 +233,13 @@ usa o sistema — se fechar (ou o PC reiniciar), rode `python app.py` de novo.
 > para conectar.
 
 Variáveis de ambiente aceitas (todas opcionais, já vêm com padrão):
-`DB_USER` (fitbattle), `DB_PASSWORD` (Fitbattle@123), `DB_HOST` (localhost),
+`DB_USER` (fitbattle), `DB_PASSWORD`, `DB_HOST` (localhost),
 `DB_PORT` (3306), `DB_NAME` (fitbattle), `DB_URI` (sobrescreve as cinco
-anteriores, usado pelos testes com SQLite), `SECRET_KEY`, `FLASK_DEBUG`
-(desligado por padrão; defina como `1` só em desenvolvimento),
+anteriores, usado pelos testes com SQLite), `FITBATTLE_ENV`, `SECRET_KEY`,
+`FLASK_DEBUG`
+(desligado por padrão; defina como `1` só em desenvolvimento), `TRUST_PROXY`
+(`1` faz o limite de tentativas de login usar o primeiro IP de `X-Forwarded-For`;
+ligue só atrás de um proxy que você controla),
 `CORS_EXTRA_ORIGENS` (origens extras separadas por vírgula, além de
 localhost/127.0.0.1/IPs de rede local, já liberados por padrão),
 `SMTP_HOST`/`SMTP_PORT`/`SMTP_USER`/`SMTP_PASSWORD`/`SMTP_FROM` (envio de
@@ -228,6 +247,14 @@ e-mail para as notificações do RF18; sem `SMTP_HOST` definido, as
 notificações continuam só in-app), `ADMIN_EMAILS` (e-mails separados por
 vírgula com permissão para criar, editar e encerrar desafios sazonais —
 RF16; sem essa variável, nenhum usuário é administrador).
+
+`DB_PASSWORD` não tem padrão no código de produção. Em desenvolvimento, se a
+variável faltar, a API usa a senha de exemplo `Fitbattle@123` e imprime um
+aviso no terminal. Com `FITBATTLE_ENV=production`, a API recusa iniciar se
+`DB_PASSWORD` não estiver definida (a exceção é `DB_URI`, que já traz a senha
+dentro da própria URI). O arquivo `backend/.env.example` lista todas as
+variáveis; a aplicação não carrega esse arquivo sozinha, então exporte as
+variáveis no ambiente ou use o gerenciador de variáveis da sua hospedagem.
 
 ### 3. Rodar com dados de exemplo (sem MySQL)
 
@@ -247,12 +274,13 @@ cd backend
 python -m unittest discover -s tests -t .
 ```
 
-151 testes atualmente, cobrindo autenticação/LGPD (incluindo as fronteiras de
+323 testes atualmente, cobrindo autenticação/LGPD (incluindo as fronteiras de
 13 e 18 anos), robustez (uploads, limite de login, concorrência),
 grupos/convites, metas, compartilhamento, busca restrita (nome, cidade,
 menores de idade, perfil revogado), rankings, dashboard (estado vazio,
 totais, sequências, evolução de carga, isolamento entre usuários) e a
-análise estática das camadas.
+análise estática das camadas (incluindo a regra de uma classe `Service` por
+caso de uso, um método `executar` e os imports entre áreas de `services/`).
 
 ## Como rodar em 2 servidores
 
@@ -290,6 +318,21 @@ branco (padrão de fábrica), o `api.js` usa a detecção automática de porta
 acima. Esse arquivo é carregado antes de `api.js` em toda página que faz
 chamadas à API.
 
+Depois de mudar `config.js`, regenere a Content-Security-Policy das páginas:
+
+```bash
+cd backend
+python gerar_csp.py
+python -m unittest tests.test_csp
+```
+
+A política fica em `backend/politica_csp.py`, é o único ponto de definição, e
+é gravada como `<meta http-equiv="Content-Security-Policy">` em cada página
+HTML. `script-src` não aceita `'unsafe-inline'`; `style-src` aceita, porque
+ainda há atributos `style` e um bloco `<style>` em `termos.html`. A origem da
+API lida de `config.js` entra em `connect-src` e `img-src`. Para o servidor de
+desenvolvimento em outra porta (5000), a política também libera `http://*:5000`.
+
 ## Atualizando o banco
 
 Duas situações bem diferentes — escolha a certa antes de rodar qualquer
@@ -305,6 +348,14 @@ mysql -u root -p fitbattle < backend/database/migracao_meta.sql
 mysql -u root -p fitbattle < backend/database/migracao_data_nascimento.sql
 mysql -u root -p fitbattle < backend/database/migracao_notificacao_alvo.sql
 mysql -u root -p fitbattle < backend/database/migracao_desafio_metrica.sql
+mysql -u root -p fitbattle < backend/database/migracao_medalha.sql
+```
+
+`migracao_ranking_maiores.sql` só recria as views de ranking e busca, que
+passaram a excluir menores de idade. Pode ser rodada quantas vezes precisar:
+
+```bash
+mysql -u root -p fitbattle < backend/database/migracao_ranking_maiores.sql
 ```
 
 Cada uma faz só um `ALTER TABLE` (a de metas adiciona as colunas novas e
@@ -328,20 +379,14 @@ usando a antiga coluna `idade` como base para o cálculo de idade
 **Você está num ambiente de desenvolvimento e topa perder todos os dados**
 → `DROP DATABASE fitbattle;` e rode `create_database.sql` de novo do zero.
 
-> ⚠️ **Isso apaga todos os usuários, treinos, grupos, metas e tudo o mais,
+> **Isso apaga todos os usuários, treinos, grupos, metas e tudo o mais,
 > sem volta.** Nunca rode isso contra um banco com dados reais.
 
 ## Notas importantes
 
-**Desafio 1x1 (`frontend/desafio.html`) é só uma prévia visual.** O próprio
-HTML avisa isso ("dados de exemplo fixos do design"); o `desafio.js` não faz
-nenhuma chamada à API. Não é o mesmo conceito dos desafios sazonais do RF16
-(esses são reais, veja a aba "Desafios" em `metas.html`); o "1x1" continua
-sem data prevista de implementação.
-
 **A API precisa rodar com exatamente 1 worker do gunicorn em produção.** O
 limitador de tentativas de login (`_LimitadorLogin`, em
-`backend/services/usuario.py`) guarda o contador em memória, por processo —
+`backend/services/usuario/limitador_login.py`) guarda o contador em memória, por processo —
 com mais de um worker, cada processo teria seu próprio contador e o limite
 deixaria de funcionar de verdade. `backend/gunicorn.conf.py` já fixa
 `workers = 1` (usando `threads = 4` / `worker_class = "gthread"` para
@@ -376,9 +421,10 @@ puro.
 | GET / POST | `/api/feed/<tipo>/<id>/comentarios` | Listar/criar comentário | Logado | — |
 | DELETE | `/api/comentarios/<id>` | Excluir comentário | Logado | — |
 | GET | `/api/ranking/global` | Ranking de todos por XP | Logado | RF11 |
-| GET | `/api/ranking/regional?cidade=` | Ranking por cidade | Logado | RF10 |
+| GET | `/api/ranking/regional?cidade=` ou `?estado=` | Ranking da cidade ou do estado (cidade comparada sem caixa, acentos e espaços nas pontas) | Logado | RF10 |
 | GET | `/api/ranking/exercicio?titulo=` | Ranking por carga num exercício específico | Logado | — |
 | GET | `/api/usuarios/<id>/ranking` | Posição do usuário nos rankings global/regional (própria, ou de outro perfil visível — mesma regra do `GET /api/usuarios/<id>`) | Logado | RF10, RF11, RF19 |
+| GET | `/api/usuarios/<id>/medalhas` | Medalhas do usuário: todas com progresso e data para o próprio; só as conquistadas para outro usuário (404 quando o perfil não é visível) | Logado | RF20 |
 | GET | `/api/usuarios/<id>/consentimentos` | Lista os consentimentos LGPD | Dono | — |
 | PUT | `/api/usuarios/<id>/consentimentos/<chave>` | Revoga/reativa um consentimento opcional | Dono | — |
 | POST / GET | `/api/grupos` | Criar grupo / listar meus grupos | Logado | RF06 |
@@ -403,7 +449,7 @@ puro.
 | PUT | `/api/desafios/<id>/encerrar` | Encerra um desafio imediatamente (só administração) | Logado (admin) | RF16 |
 | POST | `/api/desafios/<id>/participar` | Inscreve o próprio usuário no desafio | Logado | RF16 |
 | DELETE | `/api/desafios/<id>/participar` | Desiste da própria inscrição no desafio | Logado | RF16 |
-| POST | `/api/compartilhamentos` | Registra o compartilhamento de uma atividade, recorde ou meta própria, exige o consentimento "compartilhamento" (403 sem ele) | Logado | RF20 |
+| POST | `/api/compartilhamentos` | Registra o compartilhamento de uma atividade, recorde, meta própria ou medalha conquistada (`chave_medalha`), exige o consentimento "compartilhamento" (403 sem ele) | Logado | RF20 |
 | GET | `/api/notificacoes` | Lista as notificações do próprio usuário (mais recentes primeiro) | Logado | RF18 |
 | GET | `/api/notificacoes/contagem` | Quantidade de notificações não lidas | Logado | RF18 |
 | PUT | `/api/notificacoes/lidas` | Marca todas as notificações do usuário como lidas | Logado | RF18 |
@@ -420,7 +466,7 @@ A cada treino registrado, a pontuação é calculada automaticamente a partir
 de tempo, distância, carga e repetições, mais um bônus por tipo de
 exercício. Essa pontuação é somada ao `xp` do usuário e o `nivel` é
 reatribuído pelas faixas em `FAIXAS_NIVEL`
-(`backend/services/atividade.py`): iniciante → intermediario → avancado →
+(`backend/services/atividade/apoio.py`): iniciante → intermediario → avancado →
 profissional → elite.
 
 ### Consentimento LGPD
@@ -430,7 +476,7 @@ marcadas. As **obrigatórias** (conta, registro de treinos, histórico, dados
 que podem revelar saúde — art. 11 da LGPD, segurança/auditoria) ficam
 travadas; as **opcionais** (ranking público, localização, chats, busca,
 notificações, compartilhamento) podem ser desmarcadas. O
-`ConsentimentoService` grava uma linha por finalidade na tabela
+`AtualizarConsentimentoService`/`registrar_consentimentos_iniciais` grava uma linha por finalidade na tabela
 `consentimento`. Recusar `ranking_publico` já define
 `usuario.perfil_publico = 0`. O usuário pode revogar/reativar qualquer
 opção depois via `PUT /api/usuarios/<id>/consentimentos/<chave>`. O texto
@@ -440,8 +486,9 @@ completo dos dois termos está em `frontend/termos.html`.
 
 O cadastro recebe `data_nascimento` (`AAAA-MM-DD`), não mais uma idade
 digitada — a idade é sempre calculada na hora (`utils.calcular_idade`) a
-partir dela, nunca gravada para contas novas. `UsuarioService._validar_faixa_etaria`
-aplica, a partir dessa idade calculada:
+partir dela, nunca gravada para contas novas. `usuario/apoio.py::validar_faixa_etaria`
+(usada por `CadastrarUsuarioService` e `AtualizarPerfilService`) aplica, a partir
+dessa idade calculada:
 
 - **< 13 anos:** cadastro (ou edição) recusado (400).
 - **13 a 17 anos:** obrigatório `responsavel` (`nome`, `email`) e

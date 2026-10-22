@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: http://*:5000; connect-src 'self' http://*:5000; font-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FitBattle - Notificações</title>
@@ -16,7 +17,7 @@
 <body data-pagina="notificacoes">
 <main>
 
-  <section class="card">
+  <section class="card card--interno">
     <div class="notificacoes-pagina__cabecalho">
       <h1>Notificações</h1>
       <button type="button" class="btn btn--secundario btn--pequeno" id="btnMarcarTodasLidas">Marcar todas como lidas</button>

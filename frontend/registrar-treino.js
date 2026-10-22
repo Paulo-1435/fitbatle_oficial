@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function () {
   usuarioLogado = exigirLogin();
   if (!usuarioLogado) return;
 
-  ligarAvisosEmBreve();
+  carregarDesafioAtivo();
   configurarExercicios();
   configurarPeso();
   configurarContadores();
@@ -24,14 +24,6 @@ document.addEventListener('DOMContentLoaded', function () {
   atualizarRecompensaEstimada();
   carregarHistoricoDoUsuario();
 });
-
-function ligarAvisosEmBreve() {
-  document.body.addEventListener('click', function (evento) {
-    const alvo = evento.target.closest('[data-em-breve]');
-    if (!alvo) return;
-    mostrarToast(alvo.getAttribute('data-em-breve') + ' estará disponível em breve.');
-  });
-}
 
 async function carregarHistoricoDoUsuario() {
   try {
@@ -193,9 +185,8 @@ function preencherResumo() {
   document.getElementById('resumoDuracao').textContent = duracaoAtual + ' min';
 
   const pontos = calcularPontosEstimados();
-  const recorde = ehNovoRecorde();
   document.getElementById('textoBotaoSalvar').textContent =
-    'Salvar e Compartilhar Treino (+' + pontos + ' Pontos)' + (recorde ? ' 🏆' : '');
+    'Salvar e Compartilhar Treino (+' + pontos + ' Pontos)';
 }
 
 function irParaPasso(numero) {
@@ -229,7 +220,7 @@ function configurarSubmissao() {
 
     const recorde = ehNovoRecorde();
     let descricao = document.getElementById('treinoDescricao').value.trim();
-    if (recorde) descricao = ('🏆 Novo recorde pessoal! ' + descricao).trim();
+    if (recorde) descricao = ('Novo recorde pessoal! ' + descricao).trim();
 
     const corpo = {
       tipo: 'musculacao',
@@ -256,7 +247,7 @@ function configurarSubmissao() {
       botao.hidden = true;
 
       if (recorde) {
-        const textoRecorde = 'Bati meu recorde pessoal: ' + formatarNumero(pesoAtual) + 'kg no ' + exercicioSelecionado + ' no FitBattle! 🏆 #FitBattle';
+        const textoRecorde = 'Bati meu recorde pessoal: ' + formatarNumero(pesoAtual) + 'kg no ' + exercicioSelecionado + ' no FitBattle! #FitBattle';
         const botaoRecorde = document.getElementById('btnCompartilharRecorde');
         botaoRecorde.hidden = false;
         botaoRecorde.onclick = function () {
@@ -266,14 +257,14 @@ function configurarSubmissao() {
             texto: textoRecorde
           });
         };
-        mostrarToast('Treino registrado! +' + dados.pontuacao_ganha + ' xp 🏆 Novo recorde pessoal!');
+        mostrarToast('Treino registrado! +' + dados.pontuacao_ganha + ' xp. Novo recorde pessoal!');
         return;
       }
 
       mostrarToast('Treino registrado! +' + dados.pontuacao_ganha + ' xp');
       setTimeout(function () { window.location.href = 'feed.html'; }, 1400);
     } catch (e) {
-      erro.textContent = 'Não foi possível conectar à API.';
+      erro.textContent = 'Não foi possível falar com o servidor. Tente novamente.';
     } finally {
       botao.disabled = false;
     }
@@ -282,4 +273,24 @@ function configurarSubmissao() {
 
 function formatarNumero(n) {
   return Number(n).toString().replace('.', ',');
+}
+
+async function carregarDesafioAtivo() {
+  const area = document.getElementById('desafioAtivoConteudo');
+  try {
+    const resposta = await api('/desafios');
+    if (!resposta.ok) return;
+    const desafios = await resposta.json();
+    const ativo = desafios.find(function (d) {
+      return d.minha_inscricao && d.minha_inscricao.status === 'inscrito';
+    });
+    if (!ativo) return;
+    const progresso = ativo.minha_inscricao;
+    const unidade = ativo.tipo_metrica === 'carga_maxima' ? 'kg' : 'treinos';
+    area.innerHTML = `
+      <p class="rt-desafio-nome">${esc(ativo.nome)}</p>
+      <div class="barra"><div class="barra__preenchimento" style="width:${progresso.percentual}%"></div></div>
+      <p class="rotulo-mini">${formatarNumero(progresso.valor_atual)} de ${formatarNumero(ativo.valor_objetivo)} ${unidade}</p>
+      <p><a href="desafio-detalhes.html?id=${ativo.id}">Ver desafio</a></p>`;
+  } catch (erro) {}
 }

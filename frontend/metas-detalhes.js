@@ -29,7 +29,7 @@ async function carregarMeta() {
     metaAtual = meta;
     renderizar(meta);
   } catch (e) {
-    mostrarToast('Não foi possível conectar à API.');
+    mostrarFalhaDeCarregamento(carregarMeta);
   }
 }
 
@@ -43,10 +43,11 @@ function renderizar(meta) {
 
   const tagsHtml = [
     `<span class="badge">${meta.tipo === 'curto_prazo' ? 'Curto Prazo' : 'Longo Prazo'}</span>`,
-    `<span class="badge${meta.status === 'concluida' ? ' badge--sucesso' : ' badge--destaque'}">${meta.status === 'concluida' ? '✓ Concluída' : '● Em Andamento'}</span>`,
+    `<span class="badge${meta.status === 'concluida' ? ' badge--sucesso' : ' badge--destaque'}">${meta.status === 'concluida' ? '<span data-icone="check"></span> Concluída' : '● Em Andamento'}</span>`,
   ];
   if (meta.exercicio) tagsHtml.push(`<span class="badge">${esc(meta.exercicio)}</span>`);
   document.getElementById('metaTags').innerHTML = tagsHtml.join('');
+  ativarIcones(document.getElementById('metaTags'));
 
   const botaoCompartilhar = document.getElementById('btnCompartilharMeta');
   botaoCompartilhar.hidden = meta.status !== 'concluida';
@@ -54,7 +55,7 @@ function renderizar(meta) {
     abrirCompartilhar({
       tipoConteudo: 'meta',
       idMeta: meta.id,
-      texto: 'Bati minha meta "' + meta.titulo + '" no FitBattle! 🏆 #FitBattle'
+      texto: 'Bati minha meta "' + meta.titulo + '" no FitBattle! #FitBattle'
     });
   };
 
@@ -84,7 +85,7 @@ function renderizar(meta) {
   document.getElementById('barraProgresso').style.width = meta.percentual + '%';
   document.getElementById('legendaInicio').textContent = formatarNumero(meta.valor_partida) + ' ' + un + ' (Inicial)';
   document.getElementById('legendaAtual').textContent = formatarNumero(meta.valor_atual) + ' ' + un + ' (Atual)';
-  document.getElementById('legendaMeta').textContent = '🏁 ' + formatarNumero(meta.valor_objetivo) + ' ' + un + ' (Meta)';
+  document.getElementById('legendaMeta').replaceChildren(...montarComIcone('meta', formatarNumero(meta.valor_objetivo) + ' ' + un + ' (Meta)'));
 
   const progresso = meta.valor_atual - meta.valor_partida;
   document.getElementById('calloutProgresso').textContent = progresso > 0
@@ -158,7 +159,7 @@ async function editarMeta() {
     mostrarToast('Meta atualizada.');
     carregarMeta();
   } catch (e) {
-    mostrarToast('Não foi possível conectar à API.');
+    mostrarToast('Não foi possível falar com o servidor. Tente novamente.');
   }
 }
 
@@ -175,7 +176,7 @@ async function excluirMeta() {
     mostrarToast('Meta excluída.');
     window.location.href = 'metas.html';
   } catch (e) {
-    mostrarToast('Não foi possível conectar à API.');
+    mostrarToast('Não foi possível falar com o servidor. Tente novamente.');
   }
 }
 

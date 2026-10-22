@@ -15,16 +15,14 @@ document.addEventListener('DOMContentLoaded', function () {
     window.location.href = 'grupo-convidar.html?id=' + idGrupo;
   });
 
-  document.body.addEventListener('click', function (evento) {
-    const alvo = evento.target.closest('[data-em-breve]');
-    if (!alvo) return;
-    mostrarToast(alvo.getAttribute('data-em-breve') + ' estará disponível em breve.');
-  });
+  carregarGrupo();
+});
 
+function carregarGrupo() {
   carregarDetalhe();
   carregarMembros();
   carregarRanking();
-});
+}
 
 async function carregarDetalhe() {
   try {
@@ -46,7 +44,7 @@ async function carregarDetalhe() {
 
     document.getElementById('btnConvidarMembro').hidden = false;
   } catch (e) {
-    mostrarToast('Não foi possível conectar à API.');
+    mostrarFalhaDeCarregamento(carregarGrupo);
   }
 }
 
@@ -71,15 +69,15 @@ async function carregarMembros() {
         <span class="badge${membro.papel === 'admin' ? ' badge--destaque' : ''}">${membro.papel === 'admin' ? 'Admin' : 'Membro'}</span>
       </li>`;
     }).join('');
+    aplicarFotosNoAvatares(lista);
   } catch (e) {
-    lista.innerHTML = '<li class="estado-vazio">Não foi possível conectar à API.</li>';
+    mostrarFalhaDeCarregamento(carregarGrupo);
   }
 }
 
 function htmlAvatar(usuario) {
-  const foto = urlFoto(usuario.foto);
-  if (foto) {
-    return `<span class="avatar" aria-hidden="true" style="background-image:url('${foto.replace(/'/g, "%27")}')"></span>`;
+  if (urlFoto(usuario.foto)) {
+    return `<span class="avatar" aria-hidden="true"${atributoFoto(usuario)}></span>`;
   }
   return `<span class="avatar" aria-hidden="true">${esc(iniciais(usuario.nome))}</span>`;
 }
@@ -105,8 +103,7 @@ async function carregarRanking() {
     podio.innerHTML = dados.slice(0, 3).map(htmlVagaPodio).join('');
     corpo.innerHTML = dados.map(htmlLinhaTabela).join('');
   } catch (e) {
-    podio.innerHTML = '<p class="estado-vazio">Não foi possível conectar à API.</p>';
-    corpo.innerHTML = '<tr><td colspan="4" class="estado-vazio">Não foi possível conectar à API.</td></tr>';
+    mostrarFalhaDeCarregamento(carregarGrupo);
   }
 }
 
@@ -131,7 +128,7 @@ function htmlLinhaTabela(item) {
       </div>
     </td>
     <td class="ranking-tabela__pontos">${item.pontuacao_total} xp</td>
-    <td>${eu ? '—' : '<button type="button" class="btn btn--secundario btn--pequeno" data-em-breve="Perfis públicos de outros atletas">Ver Perfil</button>'}</td>
+    <td>${eu ? '—' : '<a class="btn btn--secundario btn--pequeno" href="perfil-publico.html?id=' + item.id_usuario + '">Ver Perfil</a>'}</td>
   </tr>`;
 }
 

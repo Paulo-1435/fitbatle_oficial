@@ -40,11 +40,20 @@ function lerSessao() {
 }
 
 function salvarSessao(token, usuario, lembrar) {
-  const persistente = lembrar !== false;
+  const persistente = lembrar === true;
   const destino = persistente ? localStorage : (typeof sessionStorage !== 'undefined' ? sessionStorage : localStorage);
   limparSessao();
   try {
     destino.setItem(CHAVE_SESSAO, JSON.stringify({ token: token, usuario: usuario }));
+  } catch (e) {}
+}
+
+function atualizarTokenDaSessao(token) {
+  const armazenamento = armazenamentoDaSessao();
+  const sessao = lerSessao();
+  if (!armazenamento || !sessao) return;
+  try {
+    armazenamento.setItem(CHAVE_SESSAO, JSON.stringify({ token: token, usuario: sessao.usuario }));
   } catch (e) {}
 }
 
@@ -85,6 +94,15 @@ function encerrarSessao() {
   window.location.href = PAGINA_LOGIN;
 }
 
+const MENSAGEM_SEM_CONEXAO = 'Não foi possível falar com o servidor. Tente novamente.';
+
+class ErroDeConexao extends Error {
+  constructor() {
+    super(MENSAGEM_SEM_CONEXAO);
+    this.name = 'ErroDeConexao';
+  }
+}
+
 async function api(caminho, opcoes) {
   const config = Object.assign({}, opcoes);
   const cabecalhos = Object.assign({}, config.headers);
@@ -92,9 +110,42 @@ async function api(caminho, opcoes) {
   if (sessao) cabecalhos['Authorization'] = 'Bearer ' + sessao.token;
   config.headers = cabecalhos;
 
-  const resposta = await fetch(API_URL + caminho, config);
+  let resposta;
+  try {
+    resposta = await fetch(API_URL + caminho, config);
+  } catch (erro) {
+    throw new ErroDeConexao();
+  }
   if (resposta.status === 401) encerrarSessao();
+  if (resposta.status >= 500) throw new ErroDeConexao();
   return resposta;
+}
+
+function mostrarFalhaDeCarregamento(aoTentarDeNovo) {
+  document.querySelectorAll('body *').forEach(function (elemento) {
+    if (elemento.childElementCount === 0 && /^carregando/i.test(elemento.textContent.trim())) {
+      elemento.textContent = /^(H[1-6]|SPAN)$/.test(elemento.tagName) ? 'Indisponível no momento' : MENSAGEM_SEM_CONEXAO;
+    }
+  });
+  let bloco = document.getElementById('falhaDeCarregamento');
+  if (bloco) bloco.remove();
+  bloco = document.createElement('div');
+  bloco.id = 'falhaDeCarregamento';
+  bloco.className = 'card card--interno estado-falha';
+  bloco.setAttribute('role', 'alert');
+  const texto = document.createElement('p');
+  texto.textContent = MENSAGEM_SEM_CONEXAO;
+  const botao = document.createElement('button');
+  botao.type = 'button';
+  botao.className = 'btn btn--secundario btn--pequeno';
+  botao.textContent = 'Tentar de novo';
+  botao.addEventListener('click', function () {
+    bloco.remove();
+    aoTentarDeNovo();
+  });
+  bloco.append(texto, botao);
+  const principal = document.querySelector('main') || document.body;
+  principal.insertBefore(bloco, principal.firstChild);
 }
 
 async function atualizarSessaoPelaApi() {
@@ -105,8 +156,10 @@ async function atualizarSessaoPelaApi() {
   return dados.usuario;
 }
 
+const ESCAPES_HTML = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+
 function esc(s) {
-  const div = document.createElement('div');
-  div.textContent = s == null ? '' : s;
-  return div.innerHTML;
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (caractere) {
+    return ESCAPES_HTML[caractere];
+  });
 }

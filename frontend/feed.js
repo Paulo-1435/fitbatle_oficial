@@ -1,11 +1,5 @@
 const LIMITE_FEED = 30;
 
-const EMOJI_TIPO = {
-  musculacao: '🏋️',
-  cardio: '🏃',
-  yoga: '🧘',
-  outro: '💪'
-};
 const NOME_TIPO = {
   musculacao: 'Musculação',
   cardio: 'Cardio',
@@ -34,13 +28,12 @@ function primeiroNome(nome) {
 }
 
 function configurarBanner() {
-  document.getElementById('feedSaudacao').textContent = 'Bem-vindo de volta, ' + primeiroNome(usuarioLogado.nome) + '! 👋';
+  document.getElementById('feedSaudacao').textContent = 'Bem-vindo de volta, ' + primeiroNome(usuarioLogado.nome) + '!';
 }
 
 async function carregarBanner() {
-  const chips = document.getElementById('feedChips');
   const subtitulo = document.getElementById('feedSubtitulo');
-  chips.replaceChildren(criarElemento('span', { classe: 'badge badge--placeholder', texto: 'Unidade: em breve' }));
+  const chips = document.getElementById('feedChips');
 
   try {
     const resposta = await api(`/usuarios/${usuarioLogado.id}/atividades`);
@@ -49,7 +42,10 @@ async function carregarBanner() {
     const sequencia = calcularSequencia(treinos);
 
     if (sequencia > 0) {
-      chips.prepend(criarElemento('span', { classe: 'badge badge--destaque', texto: '🔥 Sequência de ' + sequencia + ' dia' + (sequencia > 1 ? 's' : '') }));
+      chips.prepend(criarElemento('span', { classe: 'badge badge--destaque' }, [
+        criarIcone('sequencia'),
+        document.createTextNode(' Sequência de ' + sequencia + ' dia' + (sequencia > 1 ? 's' : ''))
+      ]));
       subtitulo.textContent = 'Você está treinando há ' + sequencia + ' dia' + (sequencia > 1 ? 's' : '') + ' seguidos. Mantenha o ritmo!';
     } else if (treinos.length > 0) {
       subtitulo.textContent = 'Faz um tempo que você não registra um treino. Bora retomar?';
@@ -77,8 +73,11 @@ async function carregarFeed() {
     }
 
     lista.innerHTML = itens.map(htmlCardFeed).join('');
+    ativarIcones(lista);
+    aplicarFotosNoAvatares(lista);
   } catch (e) {
-    lista.replaceChildren(criarElemento('p', { classe: 'estado-vazio', texto: 'Não foi possível carregar o feed. A API está rodando?' }));
+    lista.replaceChildren();
+    mostrarFalhaDeCarregamento(function () { carregarFeed(); carregarTop3(); });
   }
 }
 
@@ -102,23 +101,23 @@ async function carregarTop3() {
       </div>`;
     }).join('');
   } catch (e) {
-    lista.replaceChildren(criarElemento('p', { classe: 'estado-vazio', texto: 'Não foi possível carregar o ranking.' }));
+    lista.replaceChildren();
+    mostrarFalhaDeCarregamento(function () { carregarFeed(); carregarTop3(); });
   }
 }
 
 function htmlCardFeed(item) {
   const dono = item.usuario || {};
-  const foto = urlFoto(dono.foto);
-  const avatarEstilo = foto ? ` style="background-image:url('${foto.replace(/'/g, '%27')}')"` : '';
-  const avatarConteudo = foto ? '' : esc(iniciais(dono.nome));
+  const avatarAtributo = atributoFoto(dono);
+  const avatarConteudo = urlFoto(dono.foto) ? '' : esc(iniciais(dono.nome));
 
   let titulo;
   let metricasHtml = '';
 
   if (item.tipo_conteudo === 'atividade') {
-    const emoji = EMOJI_TIPO[item.tipo] || '💪';
-    const nomeTipo = NOME_TIPO[item.tipo] || capitalizar(item.tipo);
-    titulo = `${emoji} ${nomeTipo}${item.titulo ? ' — ' + esc(item.titulo) : ''}`;
+    const nomeTipo = esc(NOME_TIPO[item.tipo] || capitalizar(item.tipo));
+    const icone = `<span data-icone="${nomeIconeDoTipo(item.tipo)}"></span>`;
+    titulo = `${icone} ${nomeTipo}${item.titulo ? ': ' + esc(item.titulo) : ''}`;
 
     const metricas = [];
     if (item.tempo_min != null) {
@@ -133,26 +132,27 @@ function htmlCardFeed(item) {
     }
     metricasHtml = metricas.length ? `<div class="feed-card__metricas">${metricas.join('')}</div>` : '';
   } else {
-    titulo = '📣 Nova postagem';
+    titulo = '';
   }
 
   const descricao = item.descricao || item.texto || '';
-  const midia = item.foto ? `<img class="feed-card__midia" src="${urlFoto(item.foto)}" alt="Foto do treino de ${esc(dono.nome || '')}" >` : '';
+  const fotoMidia = urlFoto(item.foto);
+  const midia = fotoMidia ? `<img class="feed-card__midia" src="${esc(fotoMidia)}" alt="Foto do treino de ${esc(dono.nome || '')}">` : '';
 
   const textoCompartilhar = item.tipo_conteudo === 'atividade'
-    ? `Registrei um treino de ${NOME_TIPO[item.tipo] || item.tipo}${item.titulo ? ' (' + item.titulo + ')' : ''} no FitBattle! 💪 #FitBattle`
+    ? `Registrei um treino de ${NOME_TIPO[item.tipo] || item.tipo}${item.titulo ? ' (' + item.titulo + ')' : ''} no FitBattle! #FitBattle`
     : (item.texto ? item.texto + ' #FitBattle' : 'Confira meu FitBattle! #FitBattle');
 
   return `
     <article class="card card--interno feed-card" data-tipo-alvo="${item.tipo_conteudo}" data-id-alvo="${item.id}">
       <div class="feed-card__cabecalho">
-        <span class="avatar avatar--pequeno"${avatarEstilo} aria-hidden="true">${avatarConteudo}</span>
+        <span class="avatar avatar--pequeno"${avatarAtributo} aria-hidden="true">${avatarConteudo}</span>
         <div class="feed-card__quem">
           <span class="feed-card__nome">${esc(dono.nome || 'Usuário removido')}</span>
           <span class="feed-card__tempo">${dataRelativa(item.data_registro)}</span>
         </div>
       </div>
-      <div class="feed-card__titulo">${titulo}</div>
+      ${titulo ? `<div class="feed-card__titulo">${titulo}</div>` : ''}
       ${descricao ? `<p class="feed-card__texto">${esc(descricao)}</p>` : ''}
       ${midia}
       ${metricasHtml}
@@ -189,12 +189,11 @@ function feedMetrica(valor, unidade, rotulo) {
 
 function htmlComentario(c) {
   const dono = c.usuario || {};
-  const foto = urlFoto(dono.foto);
-  const avatarEstilo = foto ? ` style="background-image:url('${foto.replace(/'/g, '%27')}')"` : '';
-  const avatarConteudo = foto ? '' : esc(iniciais(dono.nome));
+  const avatarAtributo = atributoFoto(dono);
+  const avatarConteudo = urlFoto(dono.foto) ? '' : esc(iniciais(dono.nome));
 
   return `<div class="feed-comentario">
-    <span class="avatar avatar--pequeno"${avatarEstilo} aria-hidden="true">${avatarConteudo}</span>
+    <span class="avatar avatar--pequeno"${avatarAtributo} aria-hidden="true">${avatarConteudo}</span>
     <div class="feed-comentario__corpo">
       <div class="feed-comentario__nome">${esc(dono.nome || 'Usuário removido')}</div>
       <div class="feed-comentario__texto">${esc(c.texto)}</div>
@@ -248,7 +247,7 @@ async function curtir(botao) {
     botao.classList.toggle('feed-acao--ativa', dados.curti);
     botao.querySelector('[data-contagem="curtidas"]').textContent = dados.curtidas + ' Mandou Bem';
   } catch (e) {
-    mostrarToast('Não foi possível conectar à API.');
+    mostrarToast('Não foi possível falar com o servidor. Tente novamente.');
   } finally {
     botao.disabled = false;
   }
@@ -278,6 +277,7 @@ async function carregarComentarios(card) {
       return;
     }
     lista.innerHTML = dados.map(htmlComentario).join('');
+    aplicarFotosNoAvatares(lista);
   } catch (e) {
     lista.replaceChildren(criarElemento('p', { classe: 'feed-card__texto', texto: 'Não foi possível carregar os comentários.' }));
   }
@@ -307,12 +307,13 @@ async function enviarComentario(form) {
     const lista = card.querySelector('[data-lista-comentarios]');
     if (lista.querySelector('.feed-card__texto')) lista.replaceChildren();
     lista.insertAdjacentHTML('beforeend', htmlComentario(dados.comentario));
+    aplicarFotosNoAvatares(lista);
 
     const contagem = card.querySelector('[data-contagem="comentarios"]');
     const atual = parseInt(contagem.textContent, 10) || 0;
     contagem.textContent = (atual + 1) + ' Comentários';
   } catch (e) {
-    mostrarToast('Não foi possível conectar à API.');
+    mostrarToast('Não foi possível falar com o servidor. Tente novamente.');
   } finally {
     botao.disabled = false;
   }
@@ -409,7 +410,7 @@ function configurarModalTreino() {
       carregarBanner();
       carregarFeed();
     } catch (e) {
-      erro.textContent = 'Não foi possível conectar à API.';
+      erro.textContent = 'Não foi possível falar com o servidor. Tente novamente.';
     } finally {
       botaoSalvar.disabled = false;
     }

@@ -12,6 +12,7 @@ from controllers.controller import (
     DesafioController,
     FeedController,
     GrupoController,
+    MedalhaController,
     MetaController,
     NotificacaoController,
     PostagemController,
@@ -70,6 +71,9 @@ rota("/ranking/regional", "ranking_regional", RankingController.ranking_regional
 rota("/ranking/exercicio", "ranking_por_exercicio", RankingController.ranking_por_exercicio, ["GET"], LOGADO)
 rota("/usuarios/<int:id_usuario>/ranking", "usuario_ranking",
      RankingController.resumo_usuario, ["GET"], LOGADO)
+
+rota("/usuarios/<int:id_usuario>/medalhas", "usuario_medalhas",
+     MedalhaController.listar, ["GET"], LOGADO)
 
 rota("/usuarios/<int:id_usuario>/consentimentos", "consentimento_listar",
      ConsentimentoController.listar, ["GET"], DONO)

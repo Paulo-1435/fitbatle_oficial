@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: http://*:5000; connect-src 'self' http://*:5000; font-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FitBattle - Perfil</title>
@@ -9,17 +10,19 @@
   <link rel="stylesheet" href="app-shell.css">
   <link rel="stylesheet" href="ranking.css">
   <link rel="stylesheet" href="perfil-publico.css">
+<link rel="stylesheet" href="medalhas.css">
   <script src="config.js" defer></script>
   <script src="api.js" defer></script>
   <script src="shell.js" defer></script>
-  <script src="perfil-publico.js" defer></script>
+  <script src="medalhas.js" defer></script>
+<script src="perfil-publico.js" defer></script>
 </head>
 <body data-pagina="perfil-publico">
 <main>
 
   <a class="link-voltar" href="busca.html">&larr; Voltar para a busca</a>
 
-  <section class="card" id="cartaoPerfilPublico" hidden>
+  <section class="card card--interno" id="cartaoPerfilPublico" hidden>
     <div class="perfil-publico-cabecalho">
       <span class="avatar avatar--grande" id="avatarPublico" aria-hidden="true"></span>
       <div>
@@ -36,7 +39,12 @@
     <p id="descricaoPublica"></p>
   </section>
 
-  <section class="card" id="cartaoNaoEncontrado" hidden>
+  <section class="card card--interno" id="cartaoMedalhas" hidden>
+    <h2 class="perfil-secao-titulo">Medalhas</h2>
+    <ul class="medalhas-lista" id="listaMedalhasPublicas"></ul>
+  </section>
+
+  <section class="card card--interno" id="cartaoNaoEncontrado" hidden>
     <p class="estado-vazio">Perfil não encontrado.</p>
   </section>
 

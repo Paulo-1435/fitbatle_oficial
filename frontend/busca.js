@@ -69,7 +69,7 @@ function configurarBuscaPerfis() {
       if (!resposta.ok) return mostrarAviso('Não foi possível buscar agora.');
       mostrarResultados(await resposta.json());
     } catch (erro) {
-      if (minha === sequencia) mostrarAviso('Não foi possível conectar à API.');
+      if (minha === sequencia) mostrarAviso('Não foi possível falar com o servidor. Tente novamente.');
     }
   }
 
@@ -97,7 +97,8 @@ async function carregarMeusGrupos() {
     meusGruposCarregados = grupos;
     renderizarGrupos(grupos);
   } catch (erro) {
-    lista.innerHTML = '<p class="estado-vazio">Não foi possível conectar à API.</p>';
+    lista.innerHTML = '';
+    mostrarFalhaDeCarregamento(carregarMeusGrupos);
   }
 }
 
@@ -152,7 +153,7 @@ function configurarEntrarPorCodigo() {
       }
       window.location.href = 'grupo-detalhes.html?id=' + dados.grupo.id;
     } catch (e) {
-      erro.textContent = 'Não foi possível conectar à API.';
+      erro.textContent = 'Não foi possível falar com o servidor. Tente novamente.';
     }
   });
 }
