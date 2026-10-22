@@ -9,7 +9,6 @@ const ITENS_NAVEGACAO = [
   { id: 'dashboard', rotulo: 'Dashboard', href: 'dashboard.html' },
   { id: 'ranking', rotulo: 'Ranking', href: 'ranking.html' },
   { id: 'registrar', rotulo: 'Registrar Treino', href: 'registrar-treino.html' },
-  { id: 'desafios', rotulo: '1v1', href: 'desafio.html', breve: true },
   { id: 'grupo', rotulo: 'Grupo', href: 'grupo.html' },
   { id: 'metas', rotulo: 'Metas', href: 'metas.html' },
   { id: 'perfil', rotulo: 'Perfil', href: 'perfil.html' }

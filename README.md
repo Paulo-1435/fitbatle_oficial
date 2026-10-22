@@ -173,7 +173,6 @@ Controller, Service ou Repository novo.
     ├── desafio-detalhes.html / desafio-detalhes.js       # detalhe de 1 desafio sazonal (RF16)
     ├── ranking.html / ranking.js                         # rankings
     ├── privacidade.html / privacidade.js                 # consentimentos LGPD
-    ├── desafio.html / desafio.js                         # prévia visual do "1x1", sem API (Em breve)
     ├── mockups/                                          # telas de outro integrante do grupo,
     │                                                      # não referenciadas pelo app (perfil-A/B/C.html)
     └── api.js, shell.js, auth-comum.js, tokens.css, ...  # compartilhados entre as páginas
@@ -378,12 +377,6 @@ usando a antiga coluna `idade` como base para o cálculo de idade
 > sem volta.** Nunca rode isso contra um banco com dados reais.
 
 ## Notas importantes
-
-**Desafio 1x1 (`frontend/desafio.html`) é só uma prévia visual.** O próprio
-HTML avisa isso ("dados de exemplo fixos do design"); o `desafio.js` não faz
-nenhuma chamada à API. Não é o mesmo conceito dos desafios sazonais do RF16
-(esses são reais, veja a aba "Desafios" em `metas.html`); o "1x1" continua
-sem data prevista de implementação.
 
 **A API precisa rodar com exatamente 1 worker do gunicorn em produção.** O
 limitador de tentativas de login (`_LimitadorLogin`, em

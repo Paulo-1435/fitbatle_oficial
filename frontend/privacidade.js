@@ -20,9 +20,11 @@ async function carregarConsentimentos() {
   }
 }
 
+const CHAVES_SEM_EFEITO = ['chat_publico', 'chat_privado_externo', 'localizacao'];
+
 function renderizarConsentimentos(registros) {
   const obrigatorios = registros.filter(function (r) { return r.obrigatorio; });
-  const opcionais = registros.filter(function (r) { return !r.obrigatorio; });
+  const opcionais = registros.filter(function (r) { return !r.obrigatorio && CHAVES_SEM_EFEITO.indexOf(r.chave) === -1; });
 
   const listaObrigatorios = document.getElementById('listaObrigatorios');
   const listaOpcionais = document.getElementById('listaOpcionais');
