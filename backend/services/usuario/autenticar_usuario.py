@@ -8,10 +8,10 @@ from services.usuario.limitador_login import _LimitadorLogin
 class AutenticarUsuarioService:
 
     @staticmethod
-    def executar(email, senha):
+    def executar(email, senha, ip=""):
         email = texto_do_cliente(email, "e-mail")
         senha = senha_do_cliente(senha) if senha is not None else ""
-        chave = email.lower()
+        chave = f"{email.lower()}|{ip}"
         _LimitadorLogin.verificar(chave)
 
         usuario = UsuarioRepository.buscar_por_email(email)

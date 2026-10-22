@@ -1,3 +1,4 @@
+import os
 from flask import current_app, g, jsonify, request
 
 from auth import gerar_token
@@ -68,6 +69,14 @@ def _id_logado():
     return g.usuario_atual.id_usuario
 
 
+def _ip_do_cliente():
+    if os.getenv("TRUST_PROXY") == "1":
+        encaminhado = request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+        if encaminhado:
+            return encaminhado
+    return request.remote_addr or ""
+
+
 def _corpo_json():
     corpo = request.get_json(silent=True)
     if not isinstance(corpo, dict):
@@ -92,10 +101,10 @@ class UsuarioController:
     def login():
         try:
             dados = _corpo_json()
-            usuario = AutenticarUsuarioService.executar(dados.get("email"), dados.get("senha"))
+            usuario = AutenticarUsuarioService.executar(dados.get("email"), dados.get("senha"), _ip_do_cliente())
             return jsonify({
                 "mensagem": "Login efetuado!",
-                "token": gerar_token(usuario.id_usuario),
+                "token": gerar_token(usuario.id_usuario, usuario.senha),
                 "usuario": usuario.to_dict(),
             })
         except ErroValidacao as erro:
@@ -130,11 +139,15 @@ class UsuarioController:
     @staticmethod
     def atualizar(id_usuario):
         try:
-            usuario = AtualizarPerfilService.executar(id_usuario, _corpo_json())
-            return jsonify({
+            dados = _corpo_json()
+            usuario = AtualizarPerfilService.executar(id_usuario, dados)
+            resposta = {
                 "mensagem": "Usuário atualizado.",
                 "usuario": usuario.to_dict(),
-            })
+            }
+            if dados.get("senha"):
+                resposta["token"] = gerar_token(usuario.id_usuario, usuario.senha)
+            return jsonify(resposta)
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status
 
