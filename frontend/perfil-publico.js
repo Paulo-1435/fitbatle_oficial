@@ -25,6 +25,7 @@ async function carregarPerfilPublico(idPerfil) {
     const usuario = await resposta.json();
     renderizarPerfilPublico(usuario);
     carregarPosicaoNoRanking(idPerfil);
+    carregarMedalhas(idPerfil);
   } catch (erro) {
     mostrarFalhaDeCarregamento(function () { carregarPerfilPublico(idPerfil); });
   }
@@ -43,6 +44,21 @@ function renderizarPerfilPublico(usuario) {
   document.getElementById('nivelPublico').textContent = DIVISOES[usuario.nivel] || usuario.nivel;
   document.getElementById('xpPublico').textContent = usuario.xp + ' XP';
   document.getElementById('descricaoPublica').textContent = usuario.descricao || '';
+}
+
+async function carregarMedalhas(idPerfil) {
+  const secao = document.getElementById('cartaoMedalhas');
+  try {
+    const resposta = await api('/usuarios/' + idPerfil + '/medalhas');
+    if (!resposta.ok) {
+      secao.hidden = true;
+      return;
+    }
+    renderizarMedalhas(document.getElementById('listaMedalhasPublicas'), await resposta.json(), { compartilhavel: false });
+    secao.hidden = false;
+  } catch (erro) {
+    mostrarFalhaDeCarregamento(function () { carregarPerfilPublico(idPerfil); });
+  }
 }
 
 async function carregarPosicaoNoRanking(idPerfil) {

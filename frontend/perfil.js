@@ -78,6 +78,18 @@ function carregarTudo() {
   carregarPerfil();
   carregarTreinos();
   carregarRankingLocal();
+  carregarMedalhas();
+}
+
+async function carregarMedalhas() {
+  const lista = document.getElementById('listaMedalhas');
+  try {
+    const resposta = await api(`/usuarios/${usuarioLogado.id}/medalhas`);
+    if (!resposta.ok) throw new Error('falha');
+    renderizarMedalhas(lista, await resposta.json(), { compartilhavel: true });
+  } catch (e) {
+    mostrarFalhaDeCarregamento(carregarTudo);
+  }
 }
 
 function configurarAvatar() {

@@ -9,10 +9,12 @@
   <link rel="stylesheet" href="app-shell.css">
   <link rel="stylesheet" href="ranking.css">
   <link rel="stylesheet" href="perfil-publico.css">
+<link rel="stylesheet" href="medalhas.css">
   <script src="config.js" defer></script>
   <script src="api.js" defer></script>
   <script src="shell.js" defer></script>
-  <script src="perfil-publico.js" defer></script>
+  <script src="medalhas.js" defer></script>
+<script src="perfil-publico.js" defer></script>
 </head>
 <body data-pagina="perfil-publico">
 <main>
@@ -34,6 +36,11 @@
       <div><dt>Posição Regional</dt><dd id="posicaoRegionalPublica">—</dd></div>
     </dl>
     <p id="descricaoPublica"></p>
+  </section>
+
+  <section class="card card--interno" id="cartaoMedalhas" hidden>
+    <h2 class="perfil-secao-titulo">Medalhas</h2>
+    <ul class="medalhas-lista" id="listaMedalhasPublicas"></ul>
   </section>
 
   <section class="card card--interno" id="cartaoNaoEncontrado" hidden>

@@ -54,13 +54,13 @@ function abrirMenuCompartilhar(opcoes) {
         }
         mostrarToast('Texto copiado.');
       }
-      registrarCompartilhamento(opcoes.tipoConteudo, opcoes.idAtividade, opcoes.idMeta, rede);
+      registrarCompartilhamento(opcoes.tipoConteudo, opcoes.idAtividade, opcoes.idMeta, rede, opcoes.chaveMedalha);
       fechar();
     });
   });
 }
 
-async function registrarCompartilhamento(tipoConteudo, idAtividade, idMeta, redeSocial) {
+async function registrarCompartilhamento(tipoConteudo, idAtividade, idMeta, redeSocial, chaveMedalha) {
   try {
     await api('/compartilhamentos', {
       method: 'POST',
@@ -69,6 +69,7 @@ async function registrarCompartilhamento(tipoConteudo, idAtividade, idMeta, rede
         tipo_conteudo: tipoConteudo,
         id_atividade: idAtividade || null,
         id_meta: idMeta || null,
+        chave_medalha: chaveMedalha || null,
         rede_social: redeSocial
       })
     });
