@@ -1,5 +1,6 @@
 import ast
 import os
+import re
 import tempfile
 import unittest
 
@@ -214,6 +215,42 @@ class TestServicesPorCasoDeUso(unittest.TestCase):
                     arquivo.write("")
             erro = _verificar_raiz_de_services_so_tem_arquivos_permitidos(pasta)
             self.assertIsNotNone(erro)
+
+
+def _classes_do_modulo(caminho):
+    with open(caminho, "r", encoding="utf-8") as arquivo:
+        arvore = ast.parse(arquivo.read(), filename=caminho)
+    return [nodo for nodo in arvore.body if isinstance(nodo, ast.ClassDef)]
+
+
+def _nome_de_arquivo_esperado(nome_classe):
+    return re.sub(r"(?<!^)(?=[A-Z])", "_", nome_classe).lower() + ".py"
+
+
+def _bases_da_classe(classe):
+    return [base.id for base in classe.bases if isinstance(base, ast.Name)]
+
+
+ARQUIVOS_DE_APOIO_EM_MODELS = {"__init__.py", "base.py", "model.py"}
+
+
+class TestUmaClassePorArquivoEmModels(unittest.TestCase):
+
+    def test_cada_model_fica_em_arquivo_proprio_com_nome_da_classe(self):
+        for caminho in _arquivos_py("models"):
+            nome = os.path.basename(caminho)
+            if nome in ARQUIVOS_DE_APOIO_EM_MODELS:
+                continue
+            with self.subTest(arquivo=nome):
+                classes = _classes_do_modulo(caminho)
+                self.assertEqual(len(classes), 1, f"{nome} deve ter uma classe, tem {len(classes)}")
+                self.assertEqual(_bases_da_classe(classes[0]), ["ModeloBase"])
+                self.assertEqual(nome, _nome_de_arquivo_esperado(classes[0].name))
+
+    def test_base_e_model_py_nao_definem_model(self):
+        classes_da_base = _classes_do_modulo(os.path.join(RAIZ, "models", "base.py"))
+        self.assertEqual([classe.name for classe in classes_da_base], ["ModeloBase"])
+        self.assertEqual(_classes_do_modulo(os.path.join(RAIZ, "models", "model.py")), [])
 
 
 if __name__ == "__main__":
