@@ -1,8 +1,9 @@
 from database import db
+from models.base import ModeloBase
 from utils import agora, calcular_idade, iso_utc
 
 
-class Usuario(db.Model):
+class Usuario(ModeloBase):
     __tablename__ = "usuario"
 
     id_usuario = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -72,7 +73,7 @@ class Usuario(db.Model):
         }
 
 
-class Atividade(db.Model):
+class Atividade(ModeloBase):
     __tablename__ = "atividade"
 
     id_atividade = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -107,7 +108,7 @@ class Atividade(db.Model):
         }
 
 
-class Postagem(db.Model):
+class Postagem(ModeloBase):
     __tablename__ = "postagem"
 
     id_postagem = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -130,7 +131,7 @@ class Postagem(db.Model):
         }
 
 
-class Curtida(db.Model):
+class Curtida(ModeloBase):
     __tablename__ = "curtida"
     __table_args__ = (
         db.UniqueConstraint("id_usuario", "tipo_alvo", "id_alvo", name="uq_curtida_usuario_alvo"),
@@ -147,7 +148,7 @@ class Curtida(db.Model):
     data_registro = db.Column(db.DateTime, nullable=False, default=agora)
 
 
-class Comentario(db.Model):
+class Comentario(ModeloBase):
     __tablename__ = "comentario"
 
     id_comentario = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -170,7 +171,7 @@ class Comentario(db.Model):
         }
 
 
-class Grupo(db.Model):
+class Grupo(ModeloBase):
     __tablename__ = "grupo"
 
     id_grupo = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -195,7 +196,7 @@ class Grupo(db.Model):
         }
 
 
-class GrupoMembro(db.Model):
+class GrupoMembro(ModeloBase):
     __tablename__ = "grupo_membro"
 
     id_grupo = db.Column(
@@ -212,7 +213,7 @@ class GrupoMembro(db.Model):
     entrou_em = db.Column(db.DateTime, nullable=False, default=agora)
 
 
-class Convite(db.Model):
+class Convite(ModeloBase):
     __tablename__ = "convite"
     __table_args__ = (
         db.UniqueConstraint("id_grupo", "id_destinatario", "status", name="uq_convite"),
@@ -239,7 +240,7 @@ class Convite(db.Model):
     data_resposta = db.Column(db.DateTime)
 
 
-class Meta(db.Model):
+class Meta(ModeloBase):
     __tablename__ = "meta"
 
     id_meta = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -260,7 +261,7 @@ class Meta(db.Model):
     concluida_em = db.Column(db.DateTime)
 
 
-class Notificacao(db.Model):
+class Notificacao(ModeloBase):
     __tablename__ = "notificacao"
 
     id_notif = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -288,7 +289,7 @@ class Notificacao(db.Model):
         }
 
 
-class Desafio(db.Model):
+class Desafio(ModeloBase):
     __tablename__ = "desafio"
 
     id_desafio = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -302,7 +303,7 @@ class Desafio(db.Model):
     valor_objetivo = db.Column(db.Numeric(8, 2), nullable=False, default=1)
 
 
-class DesafioUsuario(db.Model):
+class DesafioUsuario(ModeloBase):
     __tablename__ = "desafio_usuario"
 
     id_desafio = db.Column(
@@ -319,7 +320,7 @@ class DesafioUsuario(db.Model):
     concluido_em = db.Column(db.DateTime)
 
 
-class Compartilhamento(db.Model):
+class Compartilhamento(ModeloBase):
     __tablename__ = "compartilhamento"
 
     id_comp = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -354,7 +355,7 @@ class Compartilhamento(db.Model):
         }
 
 
-class Consentimento(db.Model):
+class Consentimento(ModeloBase):
     __tablename__ = "consentimento"
     __table_args__ = (
         db.UniqueConstraint("id_usuario", "chave", name="uq_consent_usuario_chave"),
