@@ -55,6 +55,7 @@ from services.meta import (
 )
 from services.compartilhamento import RegistrarCompartilhamentoService
 from services.dashboard import ConsultarDashboardService
+from services.email import EnviarEmailService
 from services.notificacao import (
     ContarNotificacoesNaoLidasService,
     ListarNotificacoesService,
