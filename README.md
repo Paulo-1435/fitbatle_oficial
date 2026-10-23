@@ -83,6 +83,22 @@ Cada item indica a tela, a rota da API, o Controller e o método, o Service e o 
     Tela: `notificacoes.html`; rota: `GET /api/notificacoes`; Controller: `NotificacaoController.listar`; Service: `ListarNotificacoesService`; Repository/Model: `NotificacaoRepository.listar_do_usuario`, `Notificacao`.
 24. Marcar todas as notificações como lidas
     Tela: `notificacoes.html`; rota: `PUT /api/notificacoes/lidas`; Controller: `NotificacaoController.marcar_todas_lidas`; Service: `MarcarTodasNotificacoesLidasService`; Repository/Model: `NotificacaoRepository.marcar_todas_lidas`, `Notificacao`.
+25. Compartilhar treino, recorde, meta ou medalha
+   Tela: `feed.html`, `perfil.html`, `registrar-treino.html` e `metas-detalhes.html` (componente `compartilhar.js`); rota: `POST /api/compartilhamentos`; Controller: `CompartilhamentoController.registrar`; Service: `RegistrarCompartilhamentoService`; Repository/Model: `ConsentimentoRepository.buscar` (consentimento "compartilhamento"), `AtividadeRepository.buscar_por_id`, `MetaRepository.buscar_por_id`, `CompartilhamentoRepository.criar`, `Compartilhamento`.
+26. Ver medalhas
+   Tela: `perfil.html` (componente `medalhas.js`); rota: `GET /api/usuarios/<id>/medalhas`; Controller: `MedalhaController.listar`; Service: `ListarMedalhasService`; Repository/Model: `AtividadeRepository.listar_do_usuario`, `MetaRepository.listar_do_usuario`, `Atividade`, `Meta`.
+27. Ver ranking do estado
+   Tela: `ranking.html` (aba "Do seu estado"); rota: `GET /api/ranking/regional?estado=<UF>`; Controller: `RankingController.ranking_regional`; Service: `ConsultarRankingRegionalService`; Repository/Model: `RankingRepository.regional_todos` (view `vw_ranking_regional`), `Usuario`.
+28. Buscar meus grupos
+   Tela: `busca.html` (aba "Grupos", filtro pelo nome); rota: `GET /api/grupos`; Controller: `GrupoController.listar_meus`; Service: `ListarMeusGruposService`; Repository/Model: `GrupoRepository.listar_do_usuario`, `GrupoRepository.contar_membros`, `Grupo`, `GrupoMembro`.
+29. Alterar senha
+   Tela: `perfil.html` (campos de senha atual e nova senha); rota: `PUT /api/usuarios/<id>`; Controller: `UsuarioController.atualizar`; Service: `AtualizarPerfilService`; Repository/Model: `UsuarioRepository.buscar_por_email`, `UsuarioRepository.atualizar`, `Usuario`.
+30. Listar metas
+   Tela: `metas.html`; rota: `GET /api/metas`; Controller: `MetaController.listar`; Service: `ListarMetasService`; Repository/Model: `MetaRepository.listar_do_usuario`, `Meta`.
+31. Ver metas e desafios em andamento
+   Tela: `dashboard.html` (bloco "Em andamento"); rotas: `GET /api/metas` e `GET /api/desafios`; Controller: `MetaController.listar` e `DesafioController.listar`; Service: `ListarMetasService` e `ListarDesafiosAtivosService`; Repository/Model: `MetaRepository.listar_do_usuario`, `DesafioRepository.listar_ativos`, `Meta`, `Desafio`.
+32. Desistir de desafio
+   Tela: `metas.html` (aba "Desafios"); rota: `DELETE /api/desafios/<id>/participar`; Controller: `DesafioController.desistir`; Service: `DesistirDesafioService`; Repository/Model: `DesafioUsuarioRepository.buscar` e `salvar`, `DesafioUsuario`.
 
 Diagrama de classes das entidades: `docs/diagrama_de_classes_dominio.svg` (versão em imagem: `docs/diagrama_de_classes_dominio.png`).
 
@@ -107,9 +123,12 @@ completo, ex.: `services.usuario.apoio`) e que a raiz de `services/` só tem
 `__init__.py` e `comum.py` soltos.
 
 Hoje (conferido direto na árvore de arquivos): 57 rotas registradas em
-`routers.py`, 60 classes `Service` de caso de uso em `services/` (uma por
-arquivo), 10 arquivos `apoio.py` (um por área que precisa de lógica
-compartilhada) e 323 testes.
+`routers.py`, 16 classes `Controller` em `controllers/` (uma por arquivo),
+61 classes `Service` de caso de uso em `services/` (uma por arquivo), 14
+classes `Repository` em `repositories/` (uma por arquivo), 14 classes `Model`
+em `models/` (uma por arquivo, todas herdando de `ModeloBase`), 10 arquivos
+`apoio.py` em `services/` (um por área que precisa de lógica compartilhada),
+mais um `apoio.py` em `controllers/` e um em `repositories/`, e 342 testes.
 
 | Caso de uso | Controller | Service | Repository |
 |---|---|---|---|
@@ -171,9 +190,25 @@ Controller, Service ou Repository novo.
 │   │   └── migracao_medalha.sql          # idem, para o tipo 'medalha' e a coluna chave_medalha de compartilhamento
 │   ├── routers/
 │   │   └── routers.py          # mapeia as URLs para os Controllers
-│   ├── controllers/
-│   │   └── controller.py       # Usuario/Atividade/Postagem/Feed/Curtida/Comentario/
-│   │                            # Ranking/Consentimento/Grupo/Convite/MetaController
+│   ├── controllers/             # uma classe Controller por arquivo
+│   │   ├── apoio.py             # auxiliares de requisição (id logado, IP, corpo JSON)
+│   │   ├── usuario_controller.py
+│   │   ├── atividade_controller.py
+│   │   ├── postagem_controller.py
+│   │   ├── feed_controller.py
+│   │   ├── curtida_controller.py
+│   │   ├── comentario_controller.py
+│   │   ├── medalha_controller.py
+│   │   ├── ranking_controller.py
+│   │   ├── consentimento_controller.py
+│   │   ├── grupo_controller.py
+│   │   ├── convite_controller.py
+│   │   ├── notificacao_controller.py
+│   │   ├── dashboard_controller.py
+│   │   ├── compartilhamento_controller.py
+│   │   ├── meta_controller.py
+│   │   ├── desafio_controller.py
+│   │   └── controller.py        # só reexporta as classes (imports antigos continuam funcionando)
 │   ├── services/                # regra de negócio; uma pasta por área, um arquivo por caso de uso
 │   │   ├── comum.py             # ErroValidacao, upload/validação de imagem
 │   │   ├── usuario/              # cadastro, login, perfil, foto, conta, estatísticas
@@ -193,11 +228,42 @@ Controller, Service ou Repository novo.
 │   │   ├── compartilhamento/       # registrar compartilhamento externo
 │   │   ├── dashboard/              # resumo agregado do próprio usuário
 │   │   ├── desafio/                # criar/atualizar/encerrar/participar/desistir, avaliação automática
-│   │   └── notificacao/            # gerar/listar/marcar lida, e-mail opcional por SMTP
-│   ├── repositories/
-│   │   └── repository.py       # único ponto de acesso ao banco
-│   ├── models/
-│   │   └── model.py            # todas as tabelas (SQLAlchemy)
+│   │   ├── email/                  # EnviarEmailService: envio SMTP opcional, configurado por variáveis de ambiente
+│   │   └── notificacao/            # gerar/listar/marcar lida; chama o Service de e-mail
+│   ├── repositories/            # um Repository por arquivo; único ponto de acesso ao banco
+│   │   ├── apoio.py             # constantes e funções auxiliares das consultas
+│   │   ├── usuario_repository.py
+│   │   ├── atividade_repository.py
+│   │   ├── postagem_repository.py
+│   │   ├── curtida_repository.py
+│   │   ├── comentario_repository.py
+│   │   ├── consentimento_repository.py
+│   │   ├── ranking_repository.py
+│   │   ├── grupo_repository.py
+│   │   ├── convite_repository.py
+│   │   ├── meta_repository.py
+│   │   ├── desafio_repository.py
+│   │   ├── desafio_usuario_repository.py
+│   │   ├── compartilhamento_repository.py
+│   │   ├── notificacao_repository.py
+│   │   └── repository.py        # só reexporta as classes
+│   ├── models/                  # uma Model por arquivo, todas herdando de ModeloBase
+│   │   ├── base.py              # ModeloBase: salvar, atualizar, deletar, listar_todos, buscar_por_id
+│   │   ├── usuario.py
+│   │   ├── atividade.py
+│   │   ├── postagem.py
+│   │   ├── curtida.py
+│   │   ├── comentario.py
+│   │   ├── grupo.py
+│   │   ├── grupo_membro.py
+│   │   ├── convite.py
+│   │   ├── meta.py
+│   │   ├── notificacao.py
+│   │   ├── desafio.py
+│   │   ├── desafio_usuario.py
+│   │   ├── compartilhamento.py
+│   │   ├── consentimento.py
+│   │   └── model.py             # só reexporta as Models (imports antigos continuam funcionando)
 │   └── tests/
 │       ├── apoio.py             # recria as views de ranking em SQLite para os testes
 │       ├── servidor_dev.py      # API com SQLite populado de dados de exemplo
@@ -210,7 +276,9 @@ Controller, Service ou Repository novo.
 │       ├── test_compartilhamento.py
 │       ├── test_dashboard.py
 │       ├── test_notificacao.py
-│       └── test_desafio.py
+│       ├── test_desafio.py
+│       ├── test_modelos_base.py  # os cinco métodos da ModeloBase nas 14 Models
+│       └── test_envio_email.py   # EnviarEmailService com SMTP simulado
 └── frontend/
     ├── config.js                                         # window.FITBATTLE_API_URL (ver "Como rodar")
     ├── compartilhar.js                                   # menu de compartilhamento (RF20), compartilhado
@@ -329,7 +397,7 @@ cd backend
 python -m unittest discover -s tests -t .
 ```
 
-323 testes atualmente, cobrindo autenticação/LGPD (incluindo as fronteiras de
+342 testes atualmente, cobrindo autenticação/LGPD (incluindo as fronteiras de
 13 e 18 anos), robustez (uploads, limite de login, concorrência),
 grupos/convites, metas, compartilhamento, busca restrita (nome, cidade,
 menores de idade, perfil revogado), rankings, dashboard (estado vazio,
