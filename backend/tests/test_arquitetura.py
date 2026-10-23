@@ -253,5 +253,26 @@ class TestUmaClassePorArquivoEmModels(unittest.TestCase):
         self.assertEqual(_classes_do_modulo(os.path.join(RAIZ, "models", "model.py")), [])
 
 
+ARQUIVOS_DE_APOIO_EM_CONTROLLERS = {"__init__.py", "apoio.py", "controller.py"}
+
+
+class TestUmaClassePorArquivoEmControllers(unittest.TestCase):
+
+    def test_cada_controller_fica_em_arquivo_proprio_com_nome_da_classe(self):
+        for caminho in _arquivos_py("controllers"):
+            nome = os.path.basename(caminho)
+            if nome in ARQUIVOS_DE_APOIO_EM_CONTROLLERS:
+                continue
+            with self.subTest(arquivo=nome):
+                classes = _classes_do_modulo(caminho)
+                self.assertEqual(len(classes), 1, f"{nome} deve ter uma classe, tem {len(classes)}")
+                self.assertTrue(classes[0].name.endswith("Controller"))
+                self.assertEqual(nome, _nome_de_arquivo_esperado(classes[0].name))
+
+    def test_controller_py_e_apoio_nao_definem_controller(self):
+        self.assertEqual(_classes_do_modulo(os.path.join(RAIZ, "controllers", "controller.py")), [])
+        self.assertEqual(_classes_do_modulo(os.path.join(RAIZ, "controllers", "apoio.py")), [])
+
+
 if __name__ == "__main__":
     unittest.main()

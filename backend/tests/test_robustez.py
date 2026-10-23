@@ -43,7 +43,7 @@ class TestErrosEmJson(BaseTeste):
 
     def test_erro_inesperado_nao_vaza_html(self):
         with mock.patch(
-            "controllers.controller.ConsultarEstatisticasService.executar",
+            "controllers.usuario_controller.ConsultarEstatisticasService.executar",
             side_effect=RuntimeError("falha simulada"),
         ):
             resposta = self.cli.get("/api/estatisticas")
