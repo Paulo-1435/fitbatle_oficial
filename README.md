@@ -31,6 +31,61 @@ schema não significa que a funcionalidade esteja implementada.
 - RF19 — Busca de perfis (nome ou cidade, restrita a campos públicos, nunca menores de idade) e busca de grupos (entre os grupos dos quais o usuário já é membro, com entrada por código de convite na mesma tela)
 - RF20 — Compartilhar treino registrado, recorde pessoal, meta concluída e medalha conquistada em redes sociais externas (Web Share API, WhatsApp, X, Telegram ou copiar texto), condicionado ao consentimento "compartilhamento" e registrado na tabela `compartilhamento`. As medalhas são calculadas a partir dos dados reais (primeiro treino, constância de 10 e veterano de 50 atividades, semana perfeita de 7 dias seguidos, meta batida, maratonista de 42 km e uma medalha por categoria acima da inicial do RF13). Não alteram XP nem ranking. Ao conquistar uma medalha nova, o usuário recebe uma notificação, sem repetição, com o mesmo consentimento de notificações. Perfil próprio mostra todas, com progresso real; perfil público mostra só as conquistadas. A medalha "Campeão de desafio" não existe porque o sistema não calcula posição final em desafio concluído.
 
+## Funcionalidades Implementadas
+
+Cada item indica a tela, a rota da API, o Controller e o método, o Service e o Repository ou Model usados. Exceto cadastro, login e estatísticas gerais, as rotas exigem token.
+
+1. Cadastrar usuário
+   Tela: `index.html`; rota: `POST /api/usuarios`; Controller: `UsuarioController.cadastrar`; Service: `CadastrarUsuarioService`; Repository/Model: `UsuarioRepository.criar`, `Usuario`.
+2. Entrar no sistema
+   Tela: `login.html`; rota: `POST /api/login`; Controller: `UsuarioController.login`; Service: `AutenticarUsuarioService`; Repository/Model: `UsuarioRepository.buscar_por_email`, `Usuario`.
+3. Editar perfil
+   Tela: `perfil.html`; rota: `PUT /api/usuarios/<id>`; Controller: `UsuarioController.atualizar`; Service: `AtualizarPerfilService`; Repository/Model: `UsuarioRepository.atualizar`, `Usuario`.
+4. Enviar foto de perfil
+   Tela: `perfil.html`; rota: `POST /api/usuarios/<id>/foto`; Controller: `UsuarioController.upload_foto`; Service: `AtualizarFotoPerfilService`; Repository/Model: `UsuarioRepository.salvar`, `Usuario`.
+5. Buscar perfis
+   Tela: `busca.html`; rota: `GET /api/usuarios/busca`; Controller: `UsuarioController.busca`; Service: `BuscarPerfisService`; Repository/Model: `UsuarioRepository.buscar_publicos`, `Usuario`.
+6. Registrar treino
+   Tela: `registrar-treino.html`; rota: `POST /api/usuarios/<id>/atividades`; Controller: `AtividadeController.registrar`; Service: `RegistrarTreinoService`; Repository/Model: `AtividadeRepository.criar`, `Atividade`.
+7. Ver histórico de treinos
+   Tela: `perfil.html`; rota: `GET /api/usuarios/<id>/atividades`; Controller: `AtividadeController.historico`; Service: `ConsultarHistoricoTreinosService`; Repository/Model: `AtividadeRepository.listar_do_usuario`, `Atividade`.
+8. Excluir treino
+   Tela: `perfil.html`; rota: `DELETE /api/atividades/<id>`; Controller: `AtividadeController.excluir`; Service: `ExcluirAtividadeService`; Repository/Model: `AtividadeRepository.buscar_por_id` e `excluir`, `Atividade`.
+9. Ver painel de desempenho
+   Tela: `dashboard.html`; rota: `GET /api/dashboard`; Controller: `DashboardController.resumo`; Service: `ConsultarDashboardService`; Repository/Model: `AtividadeRepository` (totais, distribuição por tipo, pontuações), `Atividade`.
+10. Curtir publicação do feed
+    Tela: `feed.html`; rota: `POST /api/feed/<tipo>/<id>/curtir`; Controller: `CurtidaController.alternar`; Service: `AlternarCurtidaService`; Repository/Model: `CurtidaRepository.curtir` e `descurtir`, `Curtida`.
+11. Comentar no feed
+    Tela: `feed.html`; rota: `POST /api/feed/<tipo>/<id>/comentarios`; Controller: `ComentarioController.criar`; Service: `CriarComentarioService`; Repository/Model: `ComentarioRepository.criar`, `Comentario`.
+12. Ver ranking global
+    Tela: `ranking.html`; rota: `GET /api/ranking/global`; Controller: `RankingController.ranking_global`; Service: `ConsultarRankingGlobalService`; Repository/Model: `RankingRepository.global_` (view `vw_ranking_global`).
+13. Ver ranking da cidade
+    Tela: `ranking.html`; rota: `GET /api/ranking/regional`; Controller: `RankingController.ranking_regional`; Service: `ConsultarRankingRegionalService`; Repository/Model: `RankingRepository.regional_todos` (view `vw_ranking_regional`).
+14. Criar grupo
+    Tela: `grupo-criar.html`; rota: `POST /api/grupos`; Controller: `GrupoController.criar`; Service: `CriarGrupoService`; Repository/Model: `GrupoRepository.criar` e `adicionar_membro`, `Grupo`, `GrupoMembro`.
+15. Convidar membro para grupo
+    Tela: `grupo-convidar.html`; rota: `POST /api/grupos/<id>/convites`; Controller: `GrupoController.convidar`; Service: `ConvidarParaGrupoService`; Repository/Model: `ConviteRepository.criar`, `Convite`.
+16. Responder convite de grupo
+    Tela: `grupo.html`; rota: `PUT /api/convites/<id>`; Controller: `ConviteController.responder`; Service: `ResponderConviteService`; Repository/Model: `ConviteRepository.buscar_por_id` e `salvar`, `GrupoRepository.adicionar_membro`, `Convite`.
+17. Ver ranking do grupo
+    Tela: `grupo-detalhes.html`; rota: `GET /api/grupos/<id>/ranking`; Controller: `GrupoController.ranking`; Service: `ConsultarRankingGrupoService`; Repository/Model: `RankingRepository.grupo` (view `vw_ranking_grupo`).
+18. Criar meta
+    Tela: `metas-criar.html`; rota: `POST /api/metas`; Controller: `MetaController.criar`; Service: `CriarMetaService`; Repository/Model: `MetaRepository.criar`, `Meta`.
+19. Atualizar meta
+    Tela: `metas-detalhes.html`; rota: `PUT /api/metas/<id>`; Controller: `MetaController.atualizar`; Service: `AtualizarMetaService`; Repository/Model: `MetaRepository.salvar`, `Meta`.
+20. Excluir meta
+    Tela: `metas-detalhes.html`; rota: `DELETE /api/metas/<id>`; Controller: `MetaController.excluir`; Service: `ExcluirMetaService`; Repository/Model: `MetaRepository.excluir`, `Meta`.
+21. Criar desafio (somente administradores)
+    Tela: `metas.html`; rota: `POST /api/desafios`; Controller: `DesafioController.criar`; Service: `CriarDesafioService`; Repository/Model: `DesafioRepository.criar`, `Desafio`.
+22. Participar de desafio
+    Tela: `metas.html`; rota: `POST /api/desafios/<id>/participar`; Controller: `DesafioController.participar`; Service: `ParticiparDesafioService`; Repository/Model: `DesafioUsuarioRepository.buscar` e `inscrever`, `salvar`, `DesafioUsuario`.
+23. Ver notificações
+    Tela: `notificacoes.html`; rota: `GET /api/notificacoes`; Controller: `NotificacaoController.listar`; Service: `ListarNotificacoesService`; Repository/Model: `NotificacaoRepository.listar_do_usuario`, `Notificacao`.
+24. Marcar todas as notificações como lidas
+    Tela: `notificacoes.html`; rota: `PUT /api/notificacoes/lidas`; Controller: `NotificacaoController.marcar_todas_lidas`; Service: `MarcarTodasNotificacoesLidasService`; Repository/Model: `NotificacaoRepository.marcar_todas_lidas`, `Notificacao`.
+
+Diagrama de classes das entidades: `docs/diagrama_de_classes_dominio.svg` (versão em imagem: `docs/diagrama_de_classes_dominio.png`).
+
 ## Arquitetura em camadas
 
 Fluxo de uma requisição: **routers → controller → service → repository → model → MySQL**.
