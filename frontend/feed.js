@@ -9,8 +9,11 @@ const NOME_TIPO = {
 
 let usuarioLogado = null;
 
-document.addEventListener('DOMContentLoaded', function () {
-  usuarioLogado = exigirLogin();
+document.addEventListener('DOMContentLoaded', iniciarFeed);
+
+async function iniciarFeed() {
+  if (!exigirLogin()) return;
+  usuarioLogado = await usuarioAtualOuFalha(iniciarFeed);
   if (!usuarioLogado) return;
 
   configurarBanner();
@@ -20,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function () {
   carregarBanner();
   carregarFeed();
   carregarTop3();
-});
+}
 
 function primeiroNome(nome) {
   const partes = String(nome || '').trim().split(/\s+/);

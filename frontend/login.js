@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', function () {
   const form = document.getElementById('loginForm');
   const identificador = document.getElementById('email');
   const senha = document.getElementById('senha');
-  const lembrar = document.getElementById('lembrar');
   const mensagem = document.getElementById('errorMessage');
   const botao = document.getElementById('btnEntrar');
   const rotuloBotao = botao.querySelector('span');
@@ -47,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function () {
         return erro(dados.erro || 'Não foi possível entrar.');
       }
 
-      salvarSessao(dados.token, dados.usuario, lembrar.checked);
+      salvarSessao(dados.token, dados.usuario.id);
       mostrarMensagemForm(mensagem, 'Bem-vindo, ' + dados.usuario.nome + '! Redirecionando...', true);
       setTimeout(function () { window.location.href = PAGINA_INICIAL; }, ATRASO_REDIRECIONAR_MS);
     } catch (e) {

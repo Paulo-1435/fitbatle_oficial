@@ -168,8 +168,8 @@ function montarBusca() {
       ]);
       item.addEventListener('click', function () {
         fechar();
-        const eu = usuarioDaSessao();
-        if (eu && Number(eu.id) === Number(u.id)) {
+        const idEu = idDaSessao();
+        if (idEu && Number(idEu) === Number(u.id)) {
           window.location.href = 'perfil.html';
         } else {
           window.location.href = 'perfil-publico.html?id=' + u.id;
@@ -401,7 +401,7 @@ function montarHeader(usuario, paginaAtiva) {
 
   const acoes = criarElemento('div', { classe: 'app-header__acoes' }, [
     montarNotificacoes(),
-    montarUsuarioAtual(usuario),
+    usuario ? montarUsuarioAtual(usuario) : criarElemento('div', { classe: 'seletor', 'data-usuario-atual': '' }),
     botaoMenu
   ]);
 
@@ -452,23 +452,24 @@ async function iniciarShell() {
   const pagina = document.body.dataset.pagina;
   if (!pagina) return;
 
-  const usuario = exigirLogin();
-  if (!usuario) return;
+  if (!exigirLogin()) return;
 
   const principal = document.querySelector('main');
   if (principal && !principal.id) principal.id = 'conteudo';
 
   document.body.prepend(criarElemento('a', { classe: 'link-pular', href: '#conteudo', texto: 'Ir para o conteúdo' }));
-  document.body.insertBefore(montarHeader(usuario, pagina), document.body.children[1]);
+  document.body.insertBefore(montarHeader(null, pagina), document.body.children[1]);
   document.body.appendChild(montarFooter());
 
+  carregarUsuarioNoHeader(false);
+}
+
+async function carregarUsuarioNoHeader(recarregar) {
   try {
-    const atualizado = await atualizarSessaoPelaApi();
-    if (atualizado) {
-      atualizarUsuarioNoHeader(atualizado);
-      document.dispatchEvent(new CustomEvent('fitbattle:usuario', { detail: atualizado }));
-    }
-  } catch (e) {}
+    atualizarUsuarioNoHeader(await usuarioAtual(recarregar));
+  } catch (erro) {
+    mostrarFalhaDeCarregamento(function () { carregarUsuarioNoHeader(true); });
+  }
 }
 
 document.addEventListener('DOMContentLoaded', iniciarShell);

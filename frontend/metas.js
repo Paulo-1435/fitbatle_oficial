@@ -37,7 +37,7 @@ function selecionarSecao(secao) {
 
 async function inicializarAdmin() {
   try {
-    const usuario = await atualizarSessaoPelaApi();
+    const usuario = await usuarioAtual();
     usuarioEhAdmin = !!(usuario && usuario.admin);
   } catch (e) {
     usuarioEhAdmin = false;

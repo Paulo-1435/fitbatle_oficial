@@ -118,8 +118,8 @@ function configurarAlterarSenha() {
   });
 }
 
-function carregarTudo() {
-  carregarPerfil();
+async function carregarTudo() {
+  await carregarPerfil(false);
   carregarTreinos();
   carregarRankingLocal();
   carregarMedalhas();
@@ -153,17 +153,10 @@ function configurarAvatar() {
   });
 }
 
-async function carregarPerfil() {
+async function carregarPerfil(recarregar) {
   try {
-    const resposta = await api(`/usuarios/${usuarioLogado.id}`);
-    if (!resposta.ok) {
-      if (resposta.status === 404) return sair();
-      throw new Error('falha');
-    }
-    const u = await resposta.json();
-    usuarioLogado = u;
-    atualizarUsuarioDaSessao(u);
-    preencherPerfil(u);
+    usuarioLogado = await usuarioAtual(recarregar);
+    preencherPerfil(usuarioLogado);
   } catch (e) {
     mostrarFalhaDeCarregamento(carregarTudo);
   }
@@ -291,7 +284,7 @@ async function excluirTreino(id) {
     const resposta = await api(`/atividades/${id}`, { method: 'DELETE' });
     if (!resposta.ok) throw new Error('falha');
     mostrarToast('Treino excluído.');
-    carregarPerfil();
+    carregarPerfil(true);
     carregarTreinos();
     carregarRankingLocal();
   } catch (e) {
@@ -401,7 +394,7 @@ function configurarModais() {
       fecharOverlay('overlayTreino');
       e.target.reset();
       mostrarToast('Treino registrado! +' + dados.pontuacao_ganha + ' xp');
-      carregarPerfil();
+      carregarPerfil(true);
       carregarTreinos();
       carregarRankingLocal();
     } catch (err) {
@@ -454,7 +447,6 @@ function configurarModais() {
       }
 
       usuarioLogado = usuarioFinal;
-      atualizarUsuarioDaSessao(usuarioFinal);
       preencherPerfil(usuarioFinal);
       carregarRankingLocal();
       fotoSelecionada = null;

@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 async function inicializarAdmin() {
   try {
-    const usuario = await atualizarSessaoPelaApi();
+    const usuario = await usuarioAtual();
     usuarioEhAdminDetalhe = !!(usuario && usuario.admin);
     document.getElementById('btnEncerrarDetalhe').hidden = !usuarioEhAdminDetalhe;
   } catch (e) {}

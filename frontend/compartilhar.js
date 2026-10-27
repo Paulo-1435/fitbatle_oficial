@@ -79,10 +79,10 @@ async function registrarCompartilhamento(tipoConteudo, idAtividade, idMeta, rede
 }
 
 async function abrirCompartilhar(opcoes) {
-  const usuario = usuarioDaSessao();
-  if (!usuario) return;
+  const idUsuario = idDaSessao();
+  if (!idUsuario) return;
   try {
-    const resposta = await api('/usuarios/' + usuario.id + '/consentimentos');
+    const resposta = await api('/usuarios/' + idUsuario + '/consentimentos');
     if (!resposta.ok) return mostrarToast('Não foi possível verificar o consentimento de compartilhamento.');
     const consentimentos = await resposta.json();
     const compartilhamento = consentimentos.find(function (c) { return c.chave === 'compartilhamento'; });

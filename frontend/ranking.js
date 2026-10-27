@@ -12,15 +12,18 @@ let usuarioLogado = null;
 let escopoAtual = 'global';
 let exercicioAtual = null;
 
-document.addEventListener('DOMContentLoaded', function () {
-  usuarioLogado = exigirLogin();
+document.addEventListener('DOMContentLoaded', iniciarRanking);
+
+async function iniciarRanking() {
+  if (!exigirLogin()) return;
+  usuarioLogado = await usuarioAtualOuFalha(iniciarRanking);
   if (!usuarioLogado) return;
 
   ligarAbas();
   ligarAbasExercicio();
   configurarBotaoRegional();
   atualizarRanking();
-});
+}
 
 function configurarBotaoRegional() {
   const semCidade = !usuarioLogado.cidade;

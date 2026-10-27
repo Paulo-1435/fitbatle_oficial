@@ -7,25 +7,15 @@ const API_URL = window.FITBATTLE_API_URL
     : window.location.origin + '/api');
 const ORIGEM_API = API_URL.replace(/\/api\/?$/, '');
 const CHAVE_SESSAO = 'fitbattle_sessao';
-const CHAVE_SESSAO_ANTIGA = 'fitbattle_usuario';
 const PAGINA_LOGIN = 'login.html';
 const PAGINA_INICIAL = 'feed.html';
 
-function armazenamentosDisponiveis() {
-  const lista = [];
-  try { if (typeof sessionStorage !== 'undefined') lista.push(sessionStorage); } catch (e) {}
-  try { if (typeof localStorage !== 'undefined') lista.push(localStorage); } catch (e) {}
-  return lista;
-}
-
 function armazenamentoDaSessao() {
-  const lista = armazenamentosDisponiveis();
-  for (let i = 0; i < lista.length; i++) {
-    try {
-      if (lista[i].getItem(CHAVE_SESSAO)) return lista[i];
-    } catch (e) {}
+  try {
+    return typeof sessionStorage !== 'undefined' ? sessionStorage : null;
+  } catch (e) {
+    return null;
   }
-  return null;
 }
 
 function lerSessao() {
@@ -33,60 +23,50 @@ function lerSessao() {
   if (!armazenamento) return null;
   try {
     const sessao = JSON.parse(armazenamento.getItem(CHAVE_SESSAO));
-    return sessao && sessao.token && sessao.usuario ? sessao : null;
+    return sessao && sessao.token && sessao.id ? sessao : null;
   } catch (e) {
     return null;
   }
 }
 
-function salvarSessao(token, usuario, lembrar) {
-  const persistente = lembrar === true;
-  const destino = persistente ? localStorage : (typeof sessionStorage !== 'undefined' ? sessionStorage : localStorage);
-  limparSessao();
+function gravarSessao(sessao) {
+  const armazenamento = armazenamentoDaSessao();
+  if (!armazenamento) return;
   try {
-    destino.setItem(CHAVE_SESSAO, JSON.stringify({ token: token, usuario: usuario }));
+    armazenamento.setItem(CHAVE_SESSAO, JSON.stringify(sessao));
   } catch (e) {}
+}
+
+function salvarSessao(token, id) {
+  limparSessao();
+  gravarSessao({ token: token, id: id });
 }
 
 function atualizarTokenDaSessao(token) {
-  const armazenamento = armazenamentoDaSessao();
   const sessao = lerSessao();
-  if (!armazenamento || !sessao) return;
-  try {
-    armazenamento.setItem(CHAVE_SESSAO, JSON.stringify({ token: token, usuario: sessao.usuario }));
-  } catch (e) {}
-}
-
-function atualizarUsuarioDaSessao(usuario) {
-  const armazenamento = armazenamentoDaSessao();
-  const sessao = lerSessao();
-  if (!armazenamento || !sessao) return;
-  try {
-    armazenamento.setItem(CHAVE_SESSAO, JSON.stringify({ token: sessao.token, usuario: usuario }));
-  } catch (e) {}
+  if (sessao) gravarSessao({ token: token, id: sessao.id });
 }
 
 function limparSessao() {
-  armazenamentosDisponiveis().forEach(function (armazenamento) {
-    try {
-      armazenamento.removeItem(CHAVE_SESSAO);
-      armazenamento.removeItem(CHAVE_SESSAO_ANTIGA);
-    } catch (e) {}
-  });
+  const armazenamento = armazenamentoDaSessao();
+  if (!armazenamento) return;
+  try {
+    armazenamento.removeItem(CHAVE_SESSAO);
+  } catch (e) {}
 }
 
-function usuarioDaSessao() {
+function idDaSessao() {
   const sessao = lerSessao();
-  return sessao ? sessao.usuario : null;
+  return sessao ? sessao.id : null;
 }
 
 function exigirLogin() {
-  const usuario = usuarioDaSessao();
-  if (!usuario) {
+  const sessao = lerSessao();
+  if (!sessao) {
     window.location.href = PAGINA_LOGIN;
     return null;
   }
-  return usuario;
+  return { id: sessao.id };
 }
 
 function encerrarSessao() {
@@ -148,12 +128,33 @@ function mostrarFalhaDeCarregamento(aoTentarDeNovo) {
   principal.insertBefore(bloco, principal.firstChild);
 }
 
-async function atualizarSessaoPelaApi() {
-  const resposta = await api('/eu');
-  if (!resposta.ok) return null;
-  const dados = await resposta.json();
-  atualizarUsuarioDaSessao(dados.usuario);
-  return dados.usuario;
+let pedidoUsuarioAtual = null;
+
+function usuarioAtual(recarregar) {
+  if (recarregar || !pedidoUsuarioAtual) {
+    pedidoUsuarioAtual = api('/eu')
+      .then(function (resposta) {
+        if (!resposta.ok) throw new ErroDeConexao();
+        return resposta.json();
+      })
+      .then(function (dados) {
+        return dados.usuario;
+      })
+      .catch(function (erro) {
+        pedidoUsuarioAtual = null;
+        throw erro;
+      });
+  }
+  return pedidoUsuarioAtual;
+}
+
+async function usuarioAtualOuFalha(aoTentarDeNovo) {
+  try {
+    return await usuarioAtual();
+  } catch (erro) {
+    mostrarFalhaDeCarregamento(aoTentarDeNovo);
+    return null;
+  }
 }
 
 const ESCAPES_HTML = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
