@@ -7,7 +7,6 @@ let exercicioSelecionado = null;
 let pesoAtual = 40;
 let repeticoesAtual = 6;
 let duracaoAtual = 40;
-const recordesPorExercicio = {};
 
 document.addEventListener('DOMContentLoaded', function () {
   usuarioLogado = exigirLogin();
@@ -22,24 +21,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   atualizarPeso();
   atualizarRecompensaEstimada();
-  carregarHistoricoDoUsuario();
 });
-
-async function carregarHistoricoDoUsuario() {
-  try {
-    const resposta = await api(`/usuarios/${usuarioLogado.id}/atividades`);
-    if (!resposta.ok) return;
-    const treinos = await resposta.json();
-    treinos.forEach(function (treino) {
-      if (treino.tipo !== 'musculacao' || !treino.titulo || treino.carga_kg == null) return;
-      const chave = treino.titulo.trim().toLowerCase();
-      if (recordesPorExercicio[chave] == null || treino.carga_kg > recordesPorExercicio[chave]) {
-        recordesPorExercicio[chave] = treino.carga_kg;
-      }
-    });
-    atualizarPainelRecorde();
-  } catch (e) {}
-}
 
 function configurarExercicios() {
   document.querySelectorAll('.rt-exercicio').forEach(function (botao) {
@@ -48,7 +30,6 @@ function configurarExercicios() {
 
   document.getElementById('exercicioCustom').addEventListener('input', function () {
     exercicioSelecionado = this.value.trim();
-    atualizarPainelRecorde();
   });
 }
 
@@ -70,7 +51,6 @@ function selecionarExercicio(botao) {
   }
 
   document.getElementById('erroEtapa1').textContent = '';
-  atualizarPainelRecorde();
 }
 
 function configurarPeso() {
@@ -86,7 +66,7 @@ function configurarPeso() {
 function atualizarPeso() {
   document.getElementById('pesoValor').textContent = formatarNumero(pesoAtual);
   atualizarRecompensaEstimada();
-  atualizarPainelRecorde();
+  document.getElementById('lateralCargaAtual').textContent = formatarNumero(pesoAtual) + ' kg';
 }
 
 function configurarContadores() {
@@ -106,36 +86,6 @@ function configurarContadores() {
   });
 }
 
-function atualizarPainelRecorde() {
-  const painel = document.getElementById('painelRecorde');
-  const texto = document.getElementById('textoRecorde');
-  const lateralRecorde = document.getElementById('lateralRecordeAtual');
-  const lateralCarga = document.getElementById('lateralCargaAtual');
-
-  lateralCarga.textContent = formatarNumero(pesoAtual) + ' kg';
-
-  if (!exercicioSelecionado) {
-    texto.textContent = 'Selecione um exercício para ver seu recorde pessoal.';
-    painel.classList.remove('rt-recorde--pr');
-    lateralRecorde.textContent = '—';
-    return;
-  }
-
-  const recordeAnterior = recordesPorExercicio[exercicioSelecionado.toLowerCase()];
-  lateralRecorde.textContent = recordeAnterior != null ? formatarNumero(recordeAnterior) + ' kg' : 'Ainda sem registro';
-
-  if (recordeAnterior == null) {
-    texto.textContent = 'Primeira vez registrando ' + exercicioSelecionado + '! Isso já vira seu recorde pessoal.';
-    painel.classList.add('rt-recorde--pr');
-  } else if (pesoAtual > recordeAnterior) {
-    texto.textContent = 'Novo recorde pessoal! Seu anterior em ' + exercicioSelecionado + ' era ' + formatarNumero(recordeAnterior) + ' kg.';
-    painel.classList.add('rt-recorde--pr');
-  } else {
-    texto.textContent = 'Seu recorde em ' + exercicioSelecionado + ' é ' + formatarNumero(recordeAnterior) + ' kg.';
-    painel.classList.remove('rt-recorde--pr');
-  }
-}
-
 function calcularPontosEstimados() {
   const pontos = duracaoAtual * 1 + (pesoAtual * repeticoesAtual) / 100 + BONUS_MUSCULACAO;
   return Math.max(PONTOS_MINIMOS, Math.round(pontos));
@@ -143,12 +93,6 @@ function calcularPontosEstimados() {
 
 function atualizarRecompensaEstimada() {
   document.getElementById('recompensaEstimada').textContent = '≈ +' + calcularPontosEstimados() + ' xp';
-}
-
-function ehNovoRecorde() {
-  if (!exercicioSelecionado) return false;
-  const recordeAnterior = recordesPorExercicio[exercicioSelecionado.toLowerCase()];
-  return recordeAnterior == null || pesoAtual > recordeAnterior;
 }
 
 function configurarNavegacao() {
@@ -218,14 +162,10 @@ function configurarSubmissao() {
     const botao = document.getElementById('btnSalvar');
     botao.disabled = true;
 
-    const recorde = ehNovoRecorde();
-    let descricao = document.getElementById('treinoDescricao').value.trim();
-    if (recorde) descricao = ('Novo recorde pessoal! ' + descricao).trim();
-
     const corpo = {
       tipo: 'musculacao',
       titulo: exercicioSelecionado,
-      descricao: descricao,
+      descricao: document.getElementById('treinoDescricao').value.trim(),
       tempo_min: duracaoAtual,
       carga_kg: pesoAtual,
       repeticoes: repeticoesAtual,
@@ -246,7 +186,7 @@ function configurarSubmissao() {
 
       botao.hidden = true;
 
-      if (recorde) {
+      if (dados.recorde_pessoal) {
         const textoRecorde = 'Bati meu recorde pessoal: ' + formatarNumero(pesoAtual) + 'kg no ' + exercicioSelecionado + ' no FitBattle! #FitBattle';
         const botaoRecorde = document.getElementById('btnCompartilharRecorde');
         botaoRecorde.hidden = false;

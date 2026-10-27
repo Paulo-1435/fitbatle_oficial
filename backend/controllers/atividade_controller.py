@@ -16,12 +16,13 @@ class AtividadeController:
     @staticmethod
     def registrar(id_usuario):
         try:
-            atividade, usuario = RegistrarTreinoService.executar(
+            atividade, usuario, recorde = RegistrarTreinoService.executar(
                 id_usuario, corpo_json()
             )
             return jsonify({
                 "mensagem": "Treino registrado!",
                 "pontuacao_ganha": atividade.pontuacao,
+                "recorde_pessoal": recorde,
                 "atividade": atividade.to_dict(),
                 "usuario": usuario.to_dict(),
             }), 201

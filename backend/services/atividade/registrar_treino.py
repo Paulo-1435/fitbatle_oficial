@@ -14,6 +14,8 @@ from services.usuario.apoio import buscar_usuario
 from utils import agora, data_local, inicio_utc_do_dia_local
 
 TIPOS_VALIDOS = {"musculacao", "cardio", "yoga", "outro"}
+PREFIXO_RECORDE = "Novo recorde pessoal! "
+DESCRICAO_MAXIMA = 500
 
 LIMITES_CAMPOS = {
     "tempo_min": 600,
@@ -71,6 +73,23 @@ def _validar_teto(id_usuario, pontuacao):
         )
 
 
+def _eh_recorde_pessoal(id_usuario, limpos):
+    if limpos["tipo"] != "musculacao" or not limpos["titulo"] or limpos["carga_kg"] is None:
+        return False
+    maior_carga = AtividadeRepository.maior_carga(id_usuario, limpos["titulo"].lower())
+    return maior_carga is None or limpos["carga_kg"] > maior_carga
+
+
+def _aplicar_marca_de_recorde(limpos):
+    descricao = PREFIXO_RECORDE + (limpos["descricao"] or "")
+    if len(descricao.strip()) > DESCRICAO_MAXIMA:
+        raise ErroValidacao(
+            "A descrição é longa demais para registrar um recorde pessoal. "
+            "Reduza o texto e tente de novo."
+        )
+    limpos["descricao"] = descricao.strip()
+
+
 def _notificar_subida_no_ranking(id_usuario, posicao_antes):
     posicao_depois = RankingRepository.minha_posicao_global(id_usuario)
     if not posicao_antes or not posicao_depois:
@@ -95,6 +114,9 @@ class RegistrarTreinoService:
 
         limpos["pontuacao"] = calcular_pontuacao(limpos)
         _validar_teto(id_usuario, limpos["pontuacao"])
+        recorde = _eh_recorde_pessoal(id_usuario, limpos)
+        if recorde:
+            _aplicar_marca_de_recorde(limpos)
         atividade = AtividadeRepository.criar(id_usuario, limpos)
 
         usuario.xp += atividade.pontuacao
@@ -105,4 +127,4 @@ class RegistrarTreinoService:
         AvaliarDesafiosDoUsuarioService.executar(id_usuario)
         AvisarMedalhasNovasService.executar(id_usuario, medalhas_antes)
 
-        return atividade, usuario
+        return atividade, usuario, recorde
