@@ -99,6 +99,12 @@ Cada item indica a tela, a rota da API, o Controller e o método, o Service e o 
    Tela: `dashboard.html` (bloco "Em andamento"); rotas: `GET /api/metas` e `GET /api/desafios`; Controller: `MetaController.listar` e `DesafioController.listar`; Service: `ListarMetasService` e `ListarDesafiosAtivosService`; Repository/Model: `MetaRepository.listar_do_usuario`, `DesafioRepository.listar_ativos`, `Meta`, `Desafio`.
 32. Desistir de desafio
    Tela: `metas.html` (aba "Desafios"); rota: `DELETE /api/desafios/<id>/participar`; Controller: `DesafioController.desistir`; Service: `DesistirDesafioService`; Repository/Model: `DesafioUsuarioRepository.buscar` e `salvar`, `DesafioUsuario`.
+33. Prever pontos de um treino antes de salvar
+   Tela: `registrar-treino.html` (painel de prévia e recompensa estimada); rota: `POST /api/usuarios/<id>/atividades/previa`; Controller: `AtividadeController.previa`; Service: `PreverTreinoService`; Repository/Model: `AtividadeRepository.maior_carga` e `pontuacao_total_desde`, `Atividade`. Não grava nada.
+34. Registrar recorde pessoal
+   Tela: `registrar-treino.html` (aviso de recorde após salvar e linha "Seu recorde atual"); rota: `POST /api/usuarios/<id>/atividades` (campo `recorde_pessoal` na resposta); Controller: `AtividadeController.registrar`; Service: `RegistrarTreinoService`; Repository/Model: `AtividadeRepository.maior_carga` e `criar`, `Atividade`.
+35. Ver nível e progresso até o próximo nível
+   Tela: `perfil.html` (barra de nível); rota: `GET /api/eu` (campo `progresso_nivel`); Controller: `UsuarioController.eu`; Service: `ConsultarProgressoNivelService`; Model: `Usuario` (campo `xp`).
 
 Diagrama de classes das entidades: `docs/diagrama_de_classes_dominio.svg` (versão em imagem: `docs/diagrama_de_classes_dominio.png`).
 
@@ -384,12 +390,22 @@ variáveis no ambiente ou use o gerenciador de variáveis da sua hospedagem.
 
 ```bash
 cd backend
-python tests/servidor_dev.py
+ADMIN_EMAILS=helena@fitbattle.dev python tests/servidor_dev.py
+```
+
+No Windows (PowerShell), defina a variável antes de rodar:
+
+```powershell
+cd backend
+$env:ADMIN_EMAILS = "helena@fitbattle.dev"
+python tests\servidor_dev.py
 ```
 
 Sobe a API num banco SQLite local (`backend/dev.db`), já populado com ~12
 usuários e treinos de teste, sem precisar de MySQL. Útil para demonstração
-rápida ou para olhar o frontend sem configurar banco nenhum.
+rápida ou para olhar o frontend sem configurar banco nenhum. A variável
+`ADMIN_EMAILS` é opcional, mas sem ela nenhum usuário consegue criar desafios.
+Login de teste: `helena@fitbattle.dev` / `senhaforte123`.
 
 ### 4. Suíte de testes
 
