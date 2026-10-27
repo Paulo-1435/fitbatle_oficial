@@ -187,7 +187,8 @@ Controller, Service ou Repository novo.
 │   │   ├── migracao_data_nascimento.sql  # idem, para a coluna data_nascimento
 │   │   ├── migracao_notificacao_alvo.sql # idem, para as colunas tipo_alvo/id_alvo de notificacao
 │   │   ├── migracao_desafio_metrica.sql  # idem, para as colunas tipo_metrica/valor_objetivo de desafio
-│   │   └── migracao_medalha.sql          # idem, para o tipo 'medalha' e a coluna chave_medalha de compartilhamento
+│   │   ├── migracao_medalha.sql          # idem, para o tipo 'medalha' e a coluna chave_medalha de compartilhamento
+│   │   └── migracao_xp_ranking.sql       # recria as views de ranking para ler usuario.xp (pode ser rodada quantas vezes precisar)
 │   ├── routers/
 │   │   └── routers.py          # mapeia as URLs para os Controllers
 │   ├── controllers/             # uma classe Controller por arquivo
@@ -479,6 +480,14 @@ passaram a excluir menores de idade. Pode ser rodada quantas vezes precisar:
 
 ```bash
 mysql -u root -p fitbattle < backend/database/migracao_ranking_maiores.sql
+```
+
+`migracao_xp_ranking.sql` recria as views de ranking (global, regional e do
+grupo) para usar o XP total do usuário (`usuario.xp`), que inclui a recompensa
+de desafios. Também pode ser rodada quantas vezes precisar:
+
+```bash
+mysql -u root -p fitbattle < backend/database/migracao_xp_ranking.sql
 ```
 
 Cada uma faz só um `ALTER TABLE` (a de metas adiciona as colunas novas e

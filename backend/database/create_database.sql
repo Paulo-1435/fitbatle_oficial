@@ -230,13 +230,11 @@ SELECT
     u.nome,
     u.cidade,
     u.estado,
-    COALESCE(SUM(a.pontuacao), 0) AS pontuacao_total,
-    RANK() OVER (ORDER BY COALESCE(SUM(a.pontuacao), 0) DESC) AS posicao
+    COALESCE(u.xp, 0) AS pontuacao_total,
+    RANK() OVER (ORDER BY COALESCE(u.xp, 0) DESC) AS posicao
 FROM idade_usuario u
-LEFT JOIN atividade a ON a.id_usuario = u.id_usuario
 WHERE u.perfil_publico = 1
-    AND (u.idade_calculada IS NULL OR u.idade_calculada >= 18)
-GROUP BY u.id_usuario, u.nome, u.cidade, u.estado;
+    AND (u.idade_calculada IS NULL OR u.idade_calculada >= 18);
 
 CREATE OR REPLACE VIEW vw_ranking_regional AS
 WITH idade_usuario AS (
@@ -256,16 +254,14 @@ SELECT
     u.nome,
     u.cidade,
     u.estado,
-    COALESCE(SUM(a.pontuacao), 0) AS pontuacao_total,
+    COALESCE(u.xp, 0) AS pontuacao_total,
     RANK() OVER (
         PARTITION BY u.cidade
-        ORDER BY COALESCE(SUM(a.pontuacao), 0) DESC
+        ORDER BY COALESCE(u.xp, 0) DESC
     ) AS posicao
 FROM idade_usuario u
-LEFT JOIN atividade a ON a.id_usuario = u.id_usuario
 WHERE u.perfil_publico = 1
-    AND (u.idade_calculada IS NULL OR u.idade_calculada >= 18)
-GROUP BY u.id_usuario, u.nome, u.cidade, u.estado;
+    AND (u.idade_calculada IS NULL OR u.idade_calculada >= 18);
 
 CREATE OR REPLACE VIEW vw_ranking_exercicio AS
 WITH idade_usuario AS (
@@ -305,15 +301,13 @@ SELECT
     gm.id_grupo,
     u.id_usuario,
     u.nome,
-    COALESCE(SUM(a.pontuacao), 0) AS pontuacao_total,
+    COALESCE(u.xp, 0) AS pontuacao_total,
     RANK() OVER (
         PARTITION BY gm.id_grupo
-        ORDER BY COALESCE(SUM(a.pontuacao), 0) DESC
+        ORDER BY COALESCE(u.xp, 0) DESC
     ) AS posicao
 FROM grupo_membro gm
-JOIN usuario u   ON u.id_usuario = gm.id_usuario
-LEFT JOIN atividade a ON a.id_usuario = u.id_usuario
-GROUP BY gm.id_grupo, u.id_usuario, u.nome;
+JOIN usuario u ON u.id_usuario = gm.id_usuario;
 
 INSERT INTO usuario (nome, email, senha, idade, peso, altura, cidade, estado, descricao, nivel, xp) VALUES
 ('Paulo Souza',  'paulo@fitbattle.com',  'hash_exemplo_1', 28, 78.0, 1.80, 'Belo Horizonte', 'MG', 'Apaixonado por musculacao.', 'profissional', 11101),
