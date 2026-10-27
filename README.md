@@ -526,23 +526,23 @@ puro.
 |---|---|---|---|---|
 | POST | `/api/usuarios` | Cadastra usuário (`aceite_termos`, `consentimentos`) | Público | RF01 |
 | POST | `/api/login` | Autentica (email, senha); bloqueia após tentativas demais | Público | RF02 |
-| GET | `/api/estatisticas` | Total de usuários e média de XP, agregado de todos | Público | — |
+| GET | `/api/estatisticas` | Total de usuários e média de XP, agregado de todos. Disponível só via API (sem tela no frontend) | Público | — |
 | GET | `/api/dashboard?exercicio=` | Dashboard do próprio usuário: XP/treinos por semana (8 semanas), distribuição por tipo, evolução de carga por exercício, sequência atual/melhor, totais | Logado | RF14 |
-| GET | `/api/eu` | Dados completos do próprio usuário logado | Logado | RF03 |
+| GET | `/api/eu` | Dados completos do próprio usuário logado, com `progresso_nivel` (nível, percentual e XP que falta) | Logado | RF03 |
 | GET | `/api/usuarios/busca?nome=` | Busca restrita por nome ou cidade (parâmetro `nome` tratado como termo geral), só perfis públicos, com `busca_perfil` aceito e maiores de 18 | Logado | RF19 |
 | GET | `/api/usuarios/<id>` | Perfil (próprio: completo; de outro: público, se visível — mesmo 404 para perfil privado, inexistente ou de menor de idade) | Logado | RF03, RF19 |
 | PUT | `/api/usuarios/<id>` | Atualiza o perfil; se incluir `data_nascimento`, reaplica as mesmas regras de idade do cadastro | Dono | RF03 |
-| DELETE | `/api/usuarios/<id>` | Exclui a conta (e as fotos associadas) | Dono | — |
+| DELETE | `/api/usuarios/<id>` | Exclui a conta (e as fotos associadas). Disponível só via API (sem tela no frontend) | Dono | — |
 | POST | `/api/usuarios/<id>/foto` | Envia a foto de perfil (multipart, campo `foto`) | Dono | RF03 |
 | POST | `/api/usuarios/<id>/atividades` | Registra um treino; calcula pontuação e XP/nível | Dono | RF04, RF12, RF13 |
 | GET | `/api/usuarios/<id>/atividades` | Histórico de treinos | Dono | RF05 |
-| GET | `/api/atividades/<id>` | Detalhe de um treino | Logado | RF05 |
+| GET | `/api/atividades/<id>` | Detalhe de um treino. Disponível só via API (sem tela no frontend) | Logado | RF05 |
 | DELETE | `/api/atividades/<id>` | Exclui o treino (desconta a pontuação) | Logado | — |
-| POST / DELETE | `/api/postagens[/<id>]` | Criar/excluir postagem no feed | Logado | — |
+| POST / DELETE | `/api/postagens[/<id>]` | Criar/excluir postagem no feed. Disponível só via API (sem tela no frontend) | Logado | — |
 | GET | `/api/feed` | Feed combinado (treinos + postagens) | Logado | — |
 | POST | `/api/feed/<tipo>/<id>/curtir` | Curtir/descurtir treino ou postagem | Logado | — |
 | GET / POST | `/api/feed/<tipo>/<id>/comentarios` | Listar/criar comentário | Logado | — |
-| DELETE | `/api/comentarios/<id>` | Excluir comentário | Logado | — |
+| DELETE | `/api/comentarios/<id>` | Excluir comentário. Disponível só via API (sem tela no frontend) | Logado | — |
 | GET | `/api/ranking/global` | Ranking de todos por XP | Logado | RF11 |
 | GET | `/api/ranking/regional?cidade=` ou `?estado=` | Ranking da cidade ou do estado (cidade comparada sem caixa, acentos e espaços nas pontas) | Logado | RF10 |
 | GET | `/api/ranking/exercicio?titulo=` | Ranking por carga num exercício específico | Logado | — |
