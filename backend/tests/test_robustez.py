@@ -409,7 +409,7 @@ class TestTetoDePontuacao(BaseTeste):
 
         self.assertEqual(self.registrar(tipo="cardio", tempo_min=600, distancia_km=100).status_code, 201)
         amanha = agora() + timedelta(days=1)
-        with mock.patch("services.atividade.registrar_treino.agora", return_value=amanha):
+        with mock.patch("services.atividade.apoio.agora", return_value=amanha):
             resposta = self.registrar(tipo="cardio", tempo_min=600, distancia_km=100)
         self.assertEqual(resposta.status_code, 201)
 
