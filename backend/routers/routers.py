@@ -50,6 +50,8 @@ rota("/usuarios/<int:id_usuario>/atividades", "atividade_registrar",
      AtividadeController.registrar, ["POST"], DONO)
 rota("/usuarios/<int:id_usuario>/atividades", "atividade_historico",
      AtividadeController.historico, ["GET"], DONO)
+rota("/usuarios/<int:id_usuario>/atividades/previa", "atividade_previa",
+     AtividadeController.previa, ["POST"], DONO)
 rota("/atividades/<int:id_atividade>", "atividade_buscar", AtividadeController.buscar, ["GET"], LOGADO)
 rota("/atividades/<int:id_atividade>", "atividade_excluir", AtividadeController.excluir, ["DELETE"], LOGADO)
 

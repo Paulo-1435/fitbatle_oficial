@@ -1,93 +1,18 @@
 from repositories.repository import AtividadeRepository, RankingRepository, UsuarioRepository
 from services.atividade.apoio import (
-    PONTUACAO_MAXIMA_TREINO,
-    XP_MAXIMO_DIARIO,
     calcular_pontuacao,
+    eh_recorde_pessoal,
+    maior_carga_do_exercicio,
+    marcar_recorde,
     nivel_por_xp,
+    validar_teto_xp,
+    validar_treino,
 )
-from services.comum import ErroValidacao, numero_decimal, texto_do_cliente
 from services.medalha.apoio import chaves_conquistadas
 from services.medalha.avisar_medalhas_novas import AvisarMedalhasNovasService
 from services.desafio.avaliar_desafios_do_usuario import AvaliarDesafiosDoUsuarioService
 from services.notificacao.apoio import gerar_notificacao
 from services.usuario.apoio import buscar_usuario
-from utils import agora, data_local, inicio_utc_do_dia_local
-
-TIPOS_VALIDOS = {"musculacao", "cardio", "yoga", "outro"}
-PREFIXO_RECORDE = "Novo recorde pessoal! "
-DESCRICAO_MAXIMA = 500
-
-LIMITES_CAMPOS = {
-    "tempo_min": 600,
-    "distancia_km": 500,
-    "carga_kg": 500,
-    "repeticoes": 1000,
-}
-
-
-def _validar(dados):
-    if not dados:
-        raise ErroValidacao("Corpo da requisição vazio ou JSON inválido.")
-
-    tipo = texto_do_cliente(dados.get("tipo"), "tipo").lower()
-    if tipo not in TIPOS_VALIDOS:
-        raise ErroValidacao(
-            "Tipo inválido. Use: " + ", ".join(sorted(TIPOS_VALIDOS))
-        )
-
-    numericos = {}
-    for campo in ("tempo_min", "distancia_km", "carga_kg", "repeticoes"):
-        valor = dados.get(campo)
-        if valor in (None, ""):
-            numericos[campo] = None
-            continue
-        valor = numero_decimal(valor, campo, LIMITES_CAMPOS[campo])
-        if valor < 0:
-            raise ErroValidacao(f"O campo '{campo}' não pode ser negativo.")
-        numericos[campo] = valor
-
-    if not numericos["tempo_min"] and not numericos["distancia_km"]:
-        raise ErroValidacao("Informe ao menos a duração ou a distância do treino.")
-
-    return {
-        "tipo": tipo,
-        "titulo": texto_do_cliente(dados.get("titulo"), "título") or None,
-        "descricao": texto_do_cliente(dados.get("descricao"), "descrição") or None,
-        **numericos,
-    }
-
-
-def _validar_teto(id_usuario, pontuacao):
-    if pontuacao > PONTUACAO_MAXIMA_TREINO:
-        raise ErroValidacao(
-            f"Este treino vale {pontuacao} XP, acima do máximo de {PONTUACAO_MAXIMA_TREINO} XP por treino. "
-            "Confira os valores informados."
-        )
-    xp_hoje = AtividadeRepository.pontuacao_total_desde(
-        id_usuario, inicio_utc_do_dia_local(data_local(agora()))
-    )
-    if xp_hoje + pontuacao > XP_MAXIMO_DIARIO:
-        raise ErroValidacao(
-            f"Limite diário de XP atingido: você já somou {xp_hoje} XP hoje e o máximo é "
-            f"{XP_MAXIMO_DIARIO} XP por dia. Tente novamente amanhã."
-        )
-
-
-def _eh_recorde_pessoal(id_usuario, limpos):
-    if limpos["tipo"] != "musculacao" or not limpos["titulo"] or limpos["carga_kg"] is None:
-        return False
-    maior_carga = AtividadeRepository.maior_carga(id_usuario, limpos["titulo"].lower())
-    return maior_carga is None or limpos["carga_kg"] > maior_carga
-
-
-def _aplicar_marca_de_recorde(limpos):
-    descricao = PREFIXO_RECORDE + (limpos["descricao"] or "")
-    if len(descricao.strip()) > DESCRICAO_MAXIMA:
-        raise ErroValidacao(
-            "A descrição é longa demais para registrar um recorde pessoal. "
-            "Reduza o texto e tente de novo."
-        )
-    limpos["descricao"] = descricao.strip()
 
 
 def _notificar_subida_no_ranking(id_usuario, posicao_antes):
@@ -107,16 +32,16 @@ class RegistrarTreinoService:
     @staticmethod
     def executar(id_usuario, dados):
         usuario = buscar_usuario(id_usuario)
-        limpos = _validar(dados)
+        limpos = validar_treino(dados)
 
         posicao_antes = RankingRepository.minha_posicao_global(id_usuario)
         medalhas_antes = chaves_conquistadas(usuario)
 
         limpos["pontuacao"] = calcular_pontuacao(limpos)
-        _validar_teto(id_usuario, limpos["pontuacao"])
-        recorde = _eh_recorde_pessoal(id_usuario, limpos)
+        validar_teto_xp(id_usuario, limpos["pontuacao"])
+        recorde = eh_recorde_pessoal(id_usuario, limpos, maior_carga_do_exercicio(id_usuario, limpos))
         if recorde:
-            _aplicar_marca_de_recorde(limpos)
+            marcar_recorde(limpos)
         atividade = AtividadeRepository.criar(id_usuario, limpos)
 
         usuario.xp += atividade.pontuacao

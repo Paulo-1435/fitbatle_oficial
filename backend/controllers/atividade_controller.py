@@ -5,6 +5,7 @@ from services import (
     ConsultarHistoricoTreinosService,
     ErroValidacao,
     ExcluirAtividadeService,
+    PreverTreinoService,
     RegistrarTreinoService,
 )
 
@@ -26,6 +27,13 @@ class AtividadeController:
                 "atividade": atividade.to_dict(),
                 "usuario": usuario.to_dict(),
             }), 201
+        except ErroValidacao as erro:
+            return jsonify({"erro": erro.mensagem}), erro.status
+
+    @staticmethod
+    def previa(id_usuario):
+        try:
+            return jsonify(PreverTreinoService.executar(id_usuario, corpo_json())), 200
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status
 

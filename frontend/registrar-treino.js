@@ -1,5 +1,4 @@
-const BONUS_MUSCULACAO = 20;
-const PONTOS_MINIMOS = 10;
+const ATRASO_PREVIA_MS = 300;
 
 let usuarioLogado = null;
 let passoAtual = 1;
@@ -7,6 +6,10 @@ let exercicioSelecionado = null;
 let pesoAtual = 40;
 let repeticoesAtual = 6;
 let duracaoAtual = 40;
+let previaAtual = null;
+let erroPrevia = false;
+let temporizadorPrevia = null;
+let sequenciaPrevia = 0;
 
 document.addEventListener('DOMContentLoaded', function () {
   usuarioLogado = exigirLogin();
@@ -20,7 +23,6 @@ document.addEventListener('DOMContentLoaded', function () {
   configurarSubmissao();
 
   atualizarPeso();
-  atualizarRecompensaEstimada();
 });
 
 function configurarExercicios() {
@@ -30,6 +32,7 @@ function configurarExercicios() {
 
   document.getElementById('exercicioCustom').addEventListener('input', function () {
     exercicioSelecionado = this.value.trim();
+    agendarPrevia();
   });
 }
 
@@ -51,6 +54,7 @@ function selecionarExercicio(botao) {
   }
 
   document.getElementById('erroEtapa1').textContent = '';
+  agendarPrevia();
 }
 
 function configurarPeso() {
@@ -65,7 +69,7 @@ function configurarPeso() {
 
 function atualizarPeso() {
   document.getElementById('pesoValor').textContent = formatarNumero(pesoAtual);
-  atualizarRecompensaEstimada();
+  agendarPrevia();
   document.getElementById('lateralCargaAtual').textContent = formatarNumero(pesoAtual) + ' kg';
 }
 
@@ -81,18 +85,78 @@ function configurarContadores() {
         duracaoAtual = Math.max(5, duracaoAtual + delta);
         document.getElementById('duracaoValor').textContent = duracaoAtual;
       }
-      atualizarRecompensaEstimada();
+      agendarPrevia();
     });
   });
 }
 
-function calcularPontosEstimados() {
-  const pontos = duracaoAtual * 1 + (pesoAtual * repeticoesAtual) / 100 + BONUS_MUSCULACAO;
-  return Math.max(PONTOS_MINIMOS, Math.round(pontos));
+function agendarPrevia() {
+  clearTimeout(temporizadorPrevia);
+  temporizadorPrevia = setTimeout(pedirPrevia, ATRASO_PREVIA_MS);
 }
 
-function atualizarRecompensaEstimada() {
-  document.getElementById('recompensaEstimada').textContent = '≈ +' + calcularPontosEstimados() + ' xp';
+async function pedirPrevia() {
+  const minha = ++sequenciaPrevia;
+  try {
+    const resposta = await api(`/usuarios/${usuarioLogado.id}/atividades/previa`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tipo: 'musculacao',
+        titulo: exercicioSelecionado,
+        tempo_min: duracaoAtual,
+        carga_kg: pesoAtual,
+        repeticoes: repeticoesAtual,
+        distancia_km: null
+      })
+    });
+    const dados = await resposta.json().catch(function () { return {}; });
+    if (minha !== sequenciaPrevia) return;
+    if (!resposta.ok) {
+      previaAtual = null;
+      mostrarErroPrevia(dados.erro || 'Não foi possível calcular a prévia deste treino.');
+      return;
+    }
+    previaAtual = dados;
+    mostrarPrevia(dados);
+  } catch (erro) {
+    if (minha === sequenciaPrevia) mostrarFalhaDeCarregamento(pedirPrevia);
+  }
+}
+
+function mostrarErroPrevia(texto) {
+  erroPrevia = true;
+  document.getElementById('recompensaEstimada').textContent = '—';
+  document.getElementById('erroEtapa2').textContent = texto;
+}
+
+function mostrarPrevia(dados) {
+  if (erroPrevia) {
+    erroPrevia = false;
+    document.getElementById('erroEtapa2').textContent = '';
+  }
+  document.getElementById('recompensaEstimada').textContent = '≈ +' + dados.pontuacao_estimada + ' xp';
+
+  const painel = document.getElementById('painelRecorde');
+  const texto = document.getElementById('textoRecorde');
+  const lateralRecorde = document.getElementById('lateralRecordeAtual');
+
+  if (!exercicioSelecionado) {
+    texto.textContent = 'Selecione um exercício para ver seu recorde pessoal.';
+    painel.classList.remove('rt-recorde--pr');
+    lateralRecorde.textContent = '—';
+    return;
+  }
+
+  lateralRecorde.textContent = dados.recorde_atual != null ? formatarNumero(dados.recorde_atual) + ' kg' : 'Ainda sem registro';
+  if (dados.recorde_pessoal && dados.recorde_atual == null) {
+    texto.textContent = 'Primeira vez registrando ' + exercicioSelecionado + '! Isso já vira seu recorde pessoal.';
+  } else if (dados.recorde_pessoal) {
+    texto.textContent = 'Novo recorde pessoal! Seu anterior em ' + exercicioSelecionado + ' era ' + formatarNumero(dados.recorde_atual) + ' kg.';
+  } else {
+    texto.textContent = 'Seu recorde em ' + exercicioSelecionado + ' é ' + formatarNumero(dados.recorde_atual) + ' kg.';
+  }
+  painel.classList.toggle('rt-recorde--pr', dados.recorde_pessoal);
 }
 
 function configurarNavegacao() {
@@ -128,9 +192,8 @@ function preencherResumo() {
   document.getElementById('resumoReps').textContent = repeticoesAtual;
   document.getElementById('resumoDuracao').textContent = duracaoAtual + ' min';
 
-  const pontos = calcularPontosEstimados();
-  document.getElementById('textoBotaoSalvar').textContent =
-    'Salvar e Compartilhar Treino (+' + pontos + ' Pontos)';
+  const pontos = previaAtual ? ' (+' + previaAtual.pontuacao_estimada + ' Pontos)' : '';
+  document.getElementById('textoBotaoSalvar').textContent = 'Salvar e Compartilhar Treino' + pontos;
 }
 
 function irParaPasso(numero) {

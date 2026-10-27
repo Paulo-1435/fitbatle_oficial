@@ -18,6 +18,7 @@ from services.atividade import (
     ConsultarHistoricoTreinosService,
     ConsultarProgressoNivelService,
     ExcluirAtividadeService,
+    PreverTreinoService,
     RegistrarTreinoService,
 )
 from services.postagem import CriarPostagemService, ExcluirPostagemService

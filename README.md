@@ -122,9 +122,9 @@ arquivo de `services/` importa o pacote de outra área direto (sempre o módulo
 completo, ex.: `services.usuario.apoio`) e que a raiz de `services/` só tem
 `__init__.py` e `comum.py` soltos.
 
-Hoje (conferido direto na árvore de arquivos): 57 rotas registradas em
+Hoje (conferido direto na árvore de arquivos): 58 rotas registradas em
 `routers.py`, 16 classes `Controller` em `controllers/` (uma por arquivo),
-61 classes `Service` de caso de uso em `services/` (uma por arquivo), 14
+63 classes `Service` de caso de uso em `services/` (uma por arquivo), 14
 classes `Repository` em `repositories/` (uma por arquivo), 14 classes `Model`
 em `models/` (uma por arquivo, todas herdando de `ModeloBase`), 10 arquivos
 `apoio.py` em `services/` (um por área que precisa de lógica compartilhada),
@@ -544,6 +544,7 @@ puro.
 | DELETE | `/api/usuarios/<id>` | Exclui a conta (e as fotos associadas). Disponível só via API (sem tela no frontend) | Dono | — |
 | POST | `/api/usuarios/<id>/foto` | Envia a foto de perfil (multipart, campo `foto`) | Dono | RF03 |
 | POST | `/api/usuarios/<id>/atividades` | Registra um treino; calcula pontuação e XP/nível | Dono | RF04, RF12, RF13 |
+| POST | `/api/usuarios/<id>/atividades/previa` | Prévia de um treino sem gravar: pontuação estimada, recorde pessoal e recorde atual; recusa com 400 o treino que estouraria os limites de XP | Dono | RF04, RF12 |
 | GET | `/api/usuarios/<id>/atividades` | Histórico de treinos | Dono | RF05 |
 | GET | `/api/atividades/<id>` | Detalhe de um treino. Disponível só via API (sem tela no frontend) | Logado | RF05 |
 | DELETE | `/api/atividades/<id>` | Exclui o treino (desconta a pontuação) | Logado | — |

@@ -1,5 +1,6 @@
 from repositories.repository import AtividadeRepository
-from services.comum import ErroValidacao
+from services.comum import ErroValidacao, numero_decimal, texto_do_cliente
+from utils import agora, data_local, inicio_utc_do_dia_local
 
 FAIXAS_NIVEL = [
     (0, "iniciante"),
@@ -11,6 +12,16 @@ FAIXAS_NIVEL = [
 
 PONTUACAO_MAXIMA_TREINO = 2000
 XP_MAXIMO_DIARIO = 3000
+TIPOS_VALIDOS = {"musculacao", "cardio", "yoga", "outro"}
+PREFIXO_RECORDE = "Novo recorde pessoal! "
+DESCRICAO_MAXIMA = 500
+
+LIMITES_CAMPOS = {
+    "tempo_min": 600,
+    "distancia_km": 500,
+    "carga_kg": 500,
+    "repeticoes": 1000,
+}
 
 
 def nivel_por_xp(xp):
@@ -53,6 +64,76 @@ def calcular_pontuacao(dados):
     pontos += bonus_tipo.get(dados["tipo"], 5)
 
     return max(10, round(pontos))
+
+
+def validar_treino(dados):
+    if not dados:
+        raise ErroValidacao("Corpo da requisição vazio ou JSON inválido.")
+
+    tipo = texto_do_cliente(dados.get("tipo"), "tipo").lower()
+    if tipo not in TIPOS_VALIDOS:
+        raise ErroValidacao(
+            "Tipo inválido. Use: " + ", ".join(sorted(TIPOS_VALIDOS))
+        )
+
+    numericos = {}
+    for campo in ("tempo_min", "distancia_km", "carga_kg", "repeticoes"):
+        valor = dados.get(campo)
+        if valor in (None, ""):
+            numericos[campo] = None
+            continue
+        valor = numero_decimal(valor, campo, LIMITES_CAMPOS[campo])
+        if valor < 0:
+            raise ErroValidacao(f"O campo '{campo}' não pode ser negativo.")
+        numericos[campo] = valor
+
+    if not numericos["tempo_min"] and not numericos["distancia_km"]:
+        raise ErroValidacao("Informe ao menos a duração ou a distância do treino.")
+
+    return {
+        "tipo": tipo,
+        "titulo": texto_do_cliente(dados.get("titulo"), "título") or None,
+        "descricao": texto_do_cliente(dados.get("descricao"), "descrição") or None,
+        **numericos,
+    }
+
+
+def validar_teto_xp(id_usuario, pontuacao):
+    if pontuacao > PONTUACAO_MAXIMA_TREINO:
+        raise ErroValidacao(
+            f"Este treino vale {pontuacao} XP, acima do máximo de {PONTUACAO_MAXIMA_TREINO} XP por treino. "
+            "Confira os valores informados."
+        )
+    xp_hoje = AtividadeRepository.pontuacao_total_desde(
+        id_usuario, inicio_utc_do_dia_local(data_local(agora()))
+    )
+    if xp_hoje + pontuacao > XP_MAXIMO_DIARIO:
+        raise ErroValidacao(
+            f"Limite diário de XP atingido: você já somou {xp_hoje} XP hoje e o máximo é "
+            f"{XP_MAXIMO_DIARIO} XP por dia. Tente novamente amanhã."
+        )
+
+
+def maior_carga_do_exercicio(id_usuario, limpos):
+    if limpos["tipo"] != "musculacao" or not limpos["titulo"]:
+        return None
+    return AtividadeRepository.maior_carga(id_usuario, limpos["titulo"].lower())
+
+
+def eh_recorde_pessoal(id_usuario, limpos, maior_carga):
+    if limpos["tipo"] != "musculacao" or not limpos["titulo"] or limpos["carga_kg"] is None:
+        return False
+    return maior_carga is None or limpos["carga_kg"] > maior_carga
+
+
+def marcar_recorde(limpos):
+    descricao = PREFIXO_RECORDE + (limpos["descricao"] or "")
+    if len(descricao.strip()) > DESCRICAO_MAXIMA:
+        raise ErroValidacao(
+            "A descrição é longa demais para registrar um recorde pessoal. "
+            "Reduza o texto e tente de novo."
+        )
+    limpos["descricao"] = descricao.strip()
 
 
 def buscar_atividade(id_atividade):
