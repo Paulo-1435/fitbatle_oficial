@@ -2,6 +2,7 @@ const LIMITE_TABELA = 100;
 
 let usuarioLogado = null;
 let escopoAtual = 'global';
+let situacaoRanking = null;
 let exercicioAtual = null;
 
 document.addEventListener('DOMContentLoaded', iniciarRanking);
@@ -10,11 +11,24 @@ async function iniciarRanking() {
   if (!exigirLogin()) return;
   usuarioLogado = await usuarioAtualOuFalha(iniciarRanking);
   if (!usuarioLogado) return;
+  situacaoRanking = await carregarSituacaoRanking(iniciarRanking);
+  if (!situacaoRanking) return;
 
   ligarAbas();
   ligarAbasExercicio();
   configurarBotaoRegional();
   atualizarRanking();
+}
+
+async function carregarSituacaoRanking(aoTentarDeNovo) {
+  try {
+    const resposta = await api(`/usuarios/${usuarioLogado.id}/ranking`);
+    if (!resposta.ok) throw new ErroDeConexao();
+    return await resposta.json();
+  } catch (erro) {
+    mostrarFalhaDeCarregamento(aoTentarDeNovo);
+    return null;
+  }
 }
 
 function configurarBotaoRegional() {
@@ -246,7 +260,7 @@ function renderizarMinhaPosicao(dados, modo, contexto) {
   }
 
   if (!minhaLinha) {
-    if (usuarioLogado.idade != null && usuarioLogado.idade < 18) {
+    if (situacaoRanking && situacaoRanking.restricao === 'menor_de_idade') {
       secao.hidden = false;
       document.getElementById('minhaPosicaoTexto').textContent = '—';
       legenda.textContent = 'O ranking público é só para maiores de 18 anos.';

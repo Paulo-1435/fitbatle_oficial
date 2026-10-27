@@ -556,7 +556,7 @@ puro.
 | GET | `/api/ranking/global` | Ranking de todos por XP | Logado | RF11 |
 | GET | `/api/ranking/regional?cidade=` ou `?estado=` | Ranking da cidade ou do estado (cidade comparada sem caixa, acentos e espaços nas pontas) | Logado | RF10 |
 | GET | `/api/ranking/exercicio?titulo=` | Ranking por carga num exercício específico | Logado | — |
-| GET | `/api/usuarios/<id>/ranking` | Posição do usuário nos rankings global/regional (própria, ou de outro perfil visível — mesma regra do `GET /api/usuarios/<id>`) | Logado | RF10, RF11, RF19 |
+| GET | `/api/usuarios/<id>/ranking` | Posição do usuário nos rankings global/regional (própria, ou de outro perfil visível — mesma regra do `GET /api/usuarios/<id>`); traz `restricao` (`menor_de_idade` ou `null`), que indica quando o usuário não entra no ranking público por idade | Logado | RF10, RF11, RF19 |
 | GET | `/api/usuarios/<id>/medalhas` | Medalhas do usuário: todas com progresso e data para o próprio; só as conquistadas para outro usuário (404 quando o perfil não é visível) | Logado | RF20 |
 | GET | `/api/usuarios/<id>/consentimentos` | Lista os consentimentos LGPD | Dono | — |
 | PUT | `/api/usuarios/<id>/consentimentos/<chave>` | Revoga/reativa um consentimento opcional | Dono | — |
