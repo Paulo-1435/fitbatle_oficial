@@ -1,13 +1,5 @@
 const TAMANHO_MAX_FOTO = 3 * 1024 * 1024;
 
-const FAIXAS_NIVEL = [
-  [0, 'iniciante'],
-  [1000, 'intermediario'],
-  [3000, 'avancado'],
-  [7000, 'profissional'],
-  [15000, 'elite']
-];
-
 const ICONE_TIPO = {
   musculacao: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6v12M18 6v12M3 9v6M21 9v6M6 12h12"/></svg>',
   cardio: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 0 0-7.1 7.1L12 21.5l8.8-8.8a5 5 0 0 0 0-7.1z"/></svg>',
@@ -173,11 +165,11 @@ function preencherPerfil(u) {
 
   aplicarFotoOuIniciais('avatarLarge', u);
 
-  const nivel = calcularNivel(u.xp || 0);
-  texto('levelNome', nivel.nome);
-  document.getElementById('levelBar').style.width = nivel.pct + '%';
-  document.getElementById('levelFooter').textContent = nivel.falta > 0
-    ? `Faltam ${nivel.falta} xp para o próximo nível.`
+  const progresso = u.progresso_nivel;
+  texto('levelNome', progresso.nivel);
+  document.getElementById('levelBar').style.width = progresso.percentual + '%';
+  document.getElementById('levelFooter').textContent = progresso.xp_faltante > 0
+    ? `Faltam ${progresso.xp_faltante} xp para o próximo nível.`
     : 'Nível máximo alcançado.';
 }
 
@@ -189,7 +181,10 @@ async function carregarTreinos() {
     renderizarTreinos(treinos);
 
     document.getElementById('statTreinos').textContent = treinos.length;
-    document.getElementById('statSequencia').textContent = calcularSequencia(treinos) + 'd';
+    const respostaDashboard = await api('/dashboard');
+    if (!respostaDashboard.ok) throw new Error('falha');
+    const dashboard = await respostaDashboard.json();
+    document.getElementById('statSequencia').textContent = dashboard.sequencia_atual + 'd';
   } catch (e) {
     mostrarFalhaDeCarregamento(carregarTudo);
   }
@@ -429,8 +424,6 @@ function configurarModais() {
       if (!resposta.ok) { erro.textContent = dados.erro || 'Não foi possível salvar.'; return; }
       document.getElementById('editSenhaAtual').value = '';
 
-      let usuarioFinal = dados.usuario;
-
       if (fotoSelecionada) {
         const fd = new FormData();
         fd.append('foto', fotoSelecionada);
@@ -443,11 +436,9 @@ function configurarModais() {
           erro.textContent = dFoto.erro || 'Os dados foram salvos, mas a foto não pôde ser enviada.';
           return;
         }
-        usuarioFinal = dFoto.usuario;
       }
 
-      usuarioLogado = usuarioFinal;
-      preencherPerfil(usuarioFinal);
+      carregarPerfil(true);
       carregarRankingLocal();
       fotoSelecionada = null;
       fecharOverlay('overlayPerfil');
@@ -544,47 +535,6 @@ async function carregarRanking(escopo) {
   } catch (e) {
     lista.innerHTML = '<p class="rank-vazio">Não foi possível falar com o servidor. Tente novamente.</p>';
   }
-}
-
-function calcularNivel(xp) {
-  let indice = 0;
-  for (let i = 0; i < FAIXAS_NIVEL.length; i++) {
-    if (xp >= FAIXAS_NIVEL[i][0]) indice = i;
-  }
-  const base = FAIXAS_NIVEL[indice][0];
-  const nome = FAIXAS_NIVEL[indice][1];
-
-  if (indice === FAIXAS_NIVEL.length - 1) {
-    return { nome: nome, pct: 100, falta: 0 };
-  }
-  const proximo = FAIXAS_NIVEL[indice + 1][0];
-  const pct = Math.round(((xp - base) / (proximo - base)) * 100);
-  return { nome: nome, pct: Math.min(100, Math.max(0, pct)), falta: proximo - xp };
-}
-
-function calcularSequencia(treinos) {
-  if (treinos.length === 0) return 0;
-
-  const dias = new Set();
-  treinos.forEach(function (t) {
-    if (t.data_registro) dias.add(diaLocal(new Date(t.data_registro)));
-  });
-
-  const hoje = new Date();
-  const ontem = new Date();
-  ontem.setDate(hoje.getDate() - 1);
-
-  let cursor;
-  if (dias.has(diaLocal(hoje))) cursor = hoje;
-  else if (dias.has(diaLocal(ontem))) cursor = ontem;
-  else return 0;
-
-  let sequencia = 0;
-  while (dias.has(diaLocal(cursor))) {
-    sequencia++;
-    cursor.setDate(cursor.getDate() - 1);
-  }
-  return sequencia;
 }
 
 function texto(id, valor) {

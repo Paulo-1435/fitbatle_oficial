@@ -16,6 +16,7 @@ from services.privacidade import AtualizarConsentimentoService, ListarConsentime
 from services.atividade import (
     ConsultarAtividadeService,
     ConsultarHistoricoTreinosService,
+    ConsultarProgressoNivelService,
     ExcluirAtividadeService,
     RegistrarTreinoService,
 )

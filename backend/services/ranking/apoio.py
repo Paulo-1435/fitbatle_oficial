@@ -1,7 +1,15 @@
 import unicodedata
 
+from services.atividade.apoio import nivel_por_xp
+
 LIMITE_PADRAO = 20
 LIMITE_MAXIMO = 100
+
+
+def com_nivel(linhas):
+    for linha in linhas:
+        linha["nivel"] = nivel_por_xp(linha["pontuacao_total"])
+    return linhas
 
 
 def normalizar_texto(valor):

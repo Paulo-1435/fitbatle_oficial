@@ -1,7 +1,6 @@
 const ANO_RODAPE = 2026;
 const ATRASO_BUSCA_MS = 300;
 const MINIMO_BUSCA = 2;
-const XP_POR_NIVEL = 250;
 
 const ITENS_NAVEGACAO = [
   { id: 'feed', rotulo: 'Feed', href: 'feed.html' },
@@ -45,10 +44,6 @@ function criarElemento(tag, atributos, filhos) {
   return elemento;
 }
 
-function nivelNumerico(xp) {
-  return 1 + Math.floor(Math.max(0, Number(xp) || 0) / XP_POR_NIVEL);
-}
-
 function nomeDivisao(usuario) {
   return (DIVISOES[usuario && usuario.nivel] || DIVISOES.iniciante) + ' Division';
 }
@@ -88,9 +83,6 @@ function criarAvatar(usuario, opcoes) {
     avatar.style.backgroundImage = 'url("' + foto.replace(/"/g, '%22') + '")';
   } else {
     avatar.textContent = iniciais(usuario && usuario.nome);
-  }
-  if (config.comNivel) {
-    avatar.appendChild(criarElemento('span', { classe: 'avatar__nivel', texto: 'L' + nivelNumerico(usuario && usuario.xp) }));
   }
   return avatar;
 }
@@ -356,7 +348,7 @@ function montarUsuarioAtual(usuario) {
     'aria-expanded': 'false',
     'aria-label': 'Menu do usuário ' + usuario.nome
   }, [
-    criarAvatar(usuario, { comNivel: true }),
+    criarAvatar(usuario),
     criarElemento('span', { classe: 'usuario-atual__texto' }, [
       criarElemento('span', { classe: 'usuario-atual__nome', texto: usuario.nome }),
       criarElemento('span', {

@@ -39,10 +39,11 @@ async function carregarBanner() {
   const chips = document.getElementById('feedChips');
 
   try {
-    const resposta = await api(`/usuarios/${usuarioLogado.id}/atividades`);
+    const resposta = await api('/dashboard');
     if (!resposta.ok) throw new Error('falha');
-    const treinos = await resposta.json();
-    const sequencia = calcularSequencia(treinos);
+    const dashboard = await resposta.json();
+    const sequencia = dashboard.sequencia_atual;
+    const treinos = dashboard.totais.treinos;
 
     if (sequencia > 0) {
       chips.prepend(criarElemento('span', { classe: 'badge badge--destaque' }, [
@@ -50,7 +51,7 @@ async function carregarBanner() {
         document.createTextNode(' Sequência de ' + sequencia + ' dia' + (sequencia > 1 ? 's' : ''))
       ]));
       subtitulo.textContent = 'Você está treinando há ' + sequencia + ' dia' + (sequencia > 1 ? 's' : '') + ' seguidos. Mantenha o ritmo!';
-    } else if (treinos.length > 0) {
+    } else if (treinos > 0) {
       subtitulo.textContent = 'Faz um tempo que você não registra um treino. Bora retomar?';
     } else {
       subtitulo.textContent = 'Registre seu primeiro treino para começar sua sequência.';
@@ -454,31 +455,6 @@ function diaLocal(data) {
   const mes = String(data.getMonth() + 1).padStart(2, '0');
   const dia = String(data.getDate()).padStart(2, '0');
   return `${ano}-${mes}-${dia}`;
-}
-
-function calcularSequencia(treinos) {
-  if (treinos.length === 0) return 0;
-
-  const dias = new Set();
-  treinos.forEach(function (t) {
-    if (t.data_registro) dias.add(diaLocal(new Date(t.data_registro)));
-  });
-
-  const hoje = new Date();
-  const ontem = new Date();
-  ontem.setDate(hoje.getDate() - 1);
-
-  let cursor;
-  if (dias.has(diaLocal(hoje))) cursor = hoje;
-  else if (dias.has(diaLocal(ontem))) cursor = ontem;
-  else return 0;
-
-  let sequencia = 0;
-  while (dias.has(diaLocal(cursor))) {
-    sequencia++;
-    cursor.setDate(cursor.getDate() - 1);
-  }
-  return sequencia;
 }
 
 function dataRelativa(iso) {

@@ -3,6 +3,7 @@ from services.comum import ErroValidacao
 from services.ranking.apoio import (
     LIMITE_PADRAO,
     atribuir_posicoes,
+    com_nivel,
     normalizar_limite_ranking,
     normalizar_texto,
 )
@@ -25,4 +26,4 @@ class ConsultarRankingRegionalService:
         else:
             chave = normalizar_texto(cidade)
             linhas = [linha for linha in linhas if normalizar_texto(linha["cidade"]) == chave]
-        return atribuir_posicoes(linhas)[: normalizar_limite_ranking(limite)]
+        return com_nivel(atribuir_posicoes(linhas)[: normalizar_limite_ranking(limite)])

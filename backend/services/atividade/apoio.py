@@ -21,6 +21,26 @@ def nivel_por_xp(xp):
     return nivel
 
 
+def progresso_de_nivel(xp):
+    indice = 0
+    for posicao, (xp_minimo, _) in enumerate(FAIXAS_NIVEL):
+        if xp >= xp_minimo:
+            indice = posicao
+    nivel = FAIXAS_NIVEL[indice][1]
+
+    if indice == len(FAIXAS_NIVEL) - 1:
+        return {"nivel": nivel, "percentual": 100, "xp_faltante": 0}
+
+    base = FAIXAS_NIVEL[indice][0]
+    proximo = FAIXAS_NIVEL[indice + 1][0]
+    percentual = int((xp - base) * 100 / (proximo - base) + 0.5)
+    return {
+        "nivel": nivel,
+        "percentual": min(100, max(0, percentual)),
+        "xp_faltante": proximo - xp,
+    }
+
+
 def calcular_pontuacao(dados):
     tempo = dados.get("tempo_min") or 0
     distancia = dados.get("distancia_km") or 0

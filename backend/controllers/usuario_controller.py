@@ -10,6 +10,7 @@ from services import (
     CadastrarUsuarioService,
     ConsultarEstatisticasService,
     ConsultarPerfilService,
+    ConsultarProgressoNivelService,
     ErroValidacao,
     ExcluirContaService,
     VerificarAdminService,
@@ -48,6 +49,7 @@ class UsuarioController:
     def eu():
         dados = g.usuario_atual.to_dict()
         dados["admin"] = VerificarAdminService.executar(g.usuario_atual)
+        dados["progresso_nivel"] = ConsultarProgressoNivelService.executar(g.usuario_atual.xp)
         return jsonify({"usuario": dados})
 
     @staticmethod

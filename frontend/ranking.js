@@ -1,13 +1,5 @@
 const LIMITE_TABELA = 100;
 
-const FAIXAS_NIVEL = [
-  [0, 'iniciante'],
-  [1000, 'intermediario'],
-  [3000, 'avancado'],
-  [7000, 'profissional'],
-  [15000, 'elite']
-];
-
 let usuarioLogado = null;
 let escopoAtual = 'global';
 let exercicioAtual = null;
@@ -192,7 +184,7 @@ function htmlVagaPodio(item, modo) {
   const eu = usuarioLogado && item.id_usuario === usuarioLogado.id;
   const rodape = modo === 'exercicio'
     ? ''
-    : `<span class="podio-vaga__nivel">${esc(nomeDivisao({ nivel: nivelDeXp(item.pontuacao_total) }))}</span>`;
+    : `<span class="podio-vaga__nivel">${esc(nomeDivisao(item))}</span>`;
 
   return `<div class="podio-vaga podio-vaga--${item.posicao}${eu ? ' podio-vaga--eu' : ''}">
     <span class="podio-vaga__pos">${item.posicao}º</span>
@@ -299,14 +291,6 @@ function renderizarMinhaPosicao(dados, modo, contexto) {
     ? `Faltam ${formatarNumero(faltam)} ${unidade} para ultrapassar ${acima.nome} (#${acima.posicao})`
     : `Você empatou com ${acima.nome} (#${acima.posicao})`;
 
-}
-
-function nivelDeXp(xp) {
-  let nivel = FAIXAS_NIVEL[0][1];
-  FAIXAS_NIVEL.forEach(function (faixa) {
-    if (xp >= faixa[0]) nivel = faixa[1];
-  });
-  return nivel;
 }
 
 function formatarNumero(n) {

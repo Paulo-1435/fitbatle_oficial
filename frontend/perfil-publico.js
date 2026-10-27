@@ -35,7 +35,7 @@ function renderizarPerfilPublico(usuario) {
   document.title = 'FitBattle - ' + usuario.nome;
   document.getElementById('cartaoPerfilPublico').hidden = false;
 
-  const novoAvatar = criarAvatar(usuario, { tamanho: 'grande', comNivel: true });
+  const novoAvatar = criarAvatar(usuario, { tamanho: 'grande' });
   novoAvatar.id = 'avatarPublico';
   document.getElementById('avatarPublico').replaceWith(novoAvatar);
 
