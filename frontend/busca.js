@@ -69,7 +69,7 @@ function configurarBuscaPerfis() {
       if (!resposta.ok) return mostrarAviso('Não foi possível buscar agora.');
       mostrarResultados(await resposta.json());
     } catch (erro) {
-      if (minha === sequencia) mostrarAviso('Não foi possível falar com o servidor. Tente novamente.');
+      if (minha === sequencia) mostrarFalhaDeCarregamento(function () { buscar(termo); });
     }
   }
 

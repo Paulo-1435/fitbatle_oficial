@@ -232,5 +232,7 @@ async function carregarDesafioAtivo() {
       <div class="barra"><div class="barra__preenchimento" style="width:${progresso.percentual}%"></div></div>
       <p class="rotulo-mini">${formatarNumero(progresso.valor_atual)} de ${formatarNumero(ativo.valor_objetivo)} ${unidade}</p>
       <p><a href="desafio-detalhes.html?id=${ativo.id}">Ver desafio</a></p>`;
-  } catch (erro) {}
+  } catch (erro) {
+    mostrarFalhaDeCarregamento(carregarDesafioAtivo);
+  }
 }
