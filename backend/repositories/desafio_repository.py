@@ -1,12 +1,13 @@
 from models.desafio import Desafio
+from repositories.apoio import consultar, linhas_de
 
 
 class DesafioRepository:
 
     @staticmethod
     def listar_ativos(hoje):
-        return (
-            Desafio.query.filter(Desafio.data_fim >= hoje)
-            .order_by(Desafio.data_inicio.asc())
-            .all()
+        linhas = consultar(
+            "SELECT * FROM desafio WHERE data_fim >= :hoje ORDER BY data_inicio ASC",
+            {"hoje": hoje},
         )
+        return linhas_de(linhas, Desafio)
