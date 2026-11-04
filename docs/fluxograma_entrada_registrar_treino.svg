@@ -1,13 +1,13 @@
-<?xml version="1.0"?><svg width="749pt" height="2133pt" viewBox="0.00 0.00 748.60 2132.60" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(28.8 2103.8)">
+<?xml version="1.0"?><svg width="749pt" height="2151pt" viewBox="0.00 0.00 748.60 2150.60" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(28.8 2121.8)">
 <title>G</title>
-<polygon fill="white" stroke="transparent" points="-28.8,28.8 -28.8,-2103.8 719.8,-2103.8 719.8,28.8 -28.8,28.8"></polygon>
-<text text-anchor="start" x="8" y="-2057.6" font-family="Inter" font-weight="bold" font-size="18.00">Fluxograma de entrada de dados — Registrar treino</text>
+<polygon fill="white" stroke="transparent" points="-28.8,28.8 -28.8,-2121.8 719.8,-2121.8 719.8,28.8 -28.8,28.8"></polygon>
+<text text-anchor="start" x="8" y="-2075.6" font-family="Inter" font-weight="bold" font-size="18.00">Fluxograma de entrada de dados — Registrar treino</text>
 
 <g id="node1" class="node">
 <title>inicio</title>
-<path fill="#1f2430" stroke="#1f2430" stroke-width="1.4" d="M279.5,-2002.5C279.5,-2002.5 44.5,-2002.5 44.5,-2002.5 38.5,-2002.5 32.5,-1996.5 32.5,-1990.5 32.5,-1990.5 32.5,-1978.5 32.5,-1978.5 32.5,-1972.5 38.5,-1966.5 44.5,-1966.5 44.5,-1966.5 279.5,-1966.5 279.5,-1966.5 285.5,-1966.5 291.5,-1972.5 291.5,-1978.5 291.5,-1978.5 291.5,-1990.5 291.5,-1990.5 291.5,-1996.5 285.5,-2002.5 279.5,-2002.5"></path>
-<text text-anchor="start" x="45.5" y="-1982.7" font-family="Inter" font-weight="bold" font-size="11.00" fill="white">Início: usuário preenche o treino e confirma</text>
+<path fill="#1f2430" stroke="#1f2430" stroke-width="1.4" d="M279.5,-2011.5C279.5,-2011.5 44.5,-2011.5 44.5,-2011.5 38.5,-2011.5 32.5,-2005.5 32.5,-1999.5 32.5,-1999.5 32.5,-1987.5 32.5,-1987.5 32.5,-1981.5 38.5,-1975.5 44.5,-1975.5 44.5,-1975.5 279.5,-1975.5 279.5,-1975.5 285.5,-1975.5 291.5,-1981.5 291.5,-1987.5 291.5,-1987.5 291.5,-1999.5 291.5,-1999.5 291.5,-2005.5 285.5,-2011.5 279.5,-2011.5"></path>
+<text text-anchor="start" x="45.5" y="-1991.7" font-family="Inter" font-weight="bold" font-size="11.00" fill="white">Início: usuário preenche o treino e confirma</text>
 </g>
 
 <g id="node2" class="node">
@@ -21,8 +21,8 @@
 
 <g id="edge1" class="edge">
 <title>inicio-&gt;fe1</title>
-<path fill="none" stroke="#555b66" stroke-width="1.3" d="M162,-1966.41C162,-1949.14 162,-1921.98 162,-1900.25"></path>
-<polygon fill="#555b66" stroke="#555b66" stroke-width="1.3" points="164.8,-1900.23 162,-1892.23 159.2,-1900.23 164.8,-1900.23"></polygon>
+<path fill="none" stroke="#555b66" stroke-width="1.3" d="M162,-1975.44C162,-1956.38 162,-1925 162,-1900.73"></path>
+<polygon fill="#555b66" stroke="#555b66" stroke-width="1.3" points="164.8,-1900.47 162,-1892.47 159.2,-1900.47 164.8,-1900.47"></polygon>
 </g>
 
 <g id="node3" class="node">
@@ -30,7 +30,7 @@
 <path fill="#fbebc8" stroke="#a8741a" stroke-width="1.4" d="M295.5,-1808C295.5,-1808 28.5,-1808 28.5,-1808 22.5,-1808 16.5,-1802 16.5,-1796 16.5,-1796 16.5,-1776 16.5,-1776 16.5,-1770 22.5,-1764 28.5,-1764 28.5,-1764 295.5,-1764 295.5,-1764 301.5,-1764 307.5,-1770 307.5,-1776 307.5,-1776 307.5,-1796 307.5,-1796 307.5,-1802 301.5,-1808 295.5,-1808"></path>
 <text text-anchor="start" x="129" y="-1794.8" font-family="Inter" font-weight="bold" font-size="9.00" fill="#a8741a">ROTAS / AUTH</text>
 <text text-anchor="start" x="29.5" y="-1784.2" font-family="Inter" font-weight="bold" font-size="11.00">rota atividade_registrar (DONO) → auth.protegido</text>
-<text text-anchor="start" x="33.5" y="-1774" font-family="Inter" font-size="10.00">lê o token e consulta UsuarioRepository.buscar_por_id</text>
+<text text-anchor="start" x="38.5" y="-1774" font-family="Inter" font-size="10.00">lê o token e consulta Usuario.buscar_por_id (Model)</text>
 </g>
 
 <g id="edge2" class="edge">
@@ -111,7 +111,7 @@
 <path fill="#e8ddf5" stroke="#6b46a3" stroke-width="1.4" d="M303,-1528C303,-1528 21,-1528 21,-1528 15,-1528 9,-1522 9,-1516 9,-1516 9,-1486 9,-1486 9,-1480 15,-1474 21,-1474 21,-1474 303,-1474 303,-1474 309,-1474 315,-1480 315,-1486 315,-1486 315,-1516 315,-1516 315,-1522 309,-1528 303,-1528"></path>
 <text text-anchor="start" x="142.5" y="-1514.8" font-family="Inter" font-weight="bold" font-size="9.00" fill="#6b46a3">SERVICE</text>
 <text text-anchor="start" x="22" y="-1504.2" font-family="Inter" font-weight="bold" font-size="11.00">RegistrarTreinoService.executar(id_usuario, dados)</text>
-<text text-anchor="start" x="32.5" y="-1494" font-family="Inter" font-size="10.00">buscar_usuario(id) → UsuarioRepository.buscar_por_id</text>
+<text text-anchor="start" x="37.5" y="-1494" font-family="Inter" font-size="10.00">buscar_usuario(id) → Usuario.buscar_por_id (Model)</text>
 <text text-anchor="start" x="92.5" y="-1484" font-family="Inter" font-size="10.00">(404 se o usuário não existir)</text>
 </g>
 
@@ -196,10 +196,10 @@
 
 <g id="node15" class="node">
 <title>rp1</title>
-<path fill="#fadfd0" stroke="#b8501f" stroke-width="1.4" d="M237,-1098C237,-1098 87,-1098 87,-1098 81,-1098 75,-1092 75,-1086 75,-1086 75,-1066 75,-1066 75,-1060 81,-1054 87,-1054 87,-1054 237,-1054 237,-1054 243,-1054 249,-1060 249,-1066 249,-1066 249,-1086 249,-1086 249,-1092 243,-1098 237,-1098"></path>
-<text text-anchor="start" x="133" y="-1084.8" font-family="Inter" font-weight="bold" font-size="9.00" fill="#b8501f">REPOSITORY</text>
-<text text-anchor="start" x="88" y="-1074.2" font-family="Inter" font-weight="bold" font-size="11.00">AtividadeRepository.criar()</text>
-<text text-anchor="start" x="102" y="-1064" font-family="Inter" font-size="10.00">db.session.add + commit</text>
+<path fill="#d9eef0" stroke="#2a7f86" stroke-width="1.4" d="M264,-1098C264,-1098 60,-1098 60,-1098 54,-1098 48,-1092 48,-1086 48,-1086 48,-1066 48,-1066 48,-1060 54,-1054 60,-1054 60,-1054 264,-1054 264,-1054 270,-1054 276,-1060 276,-1066 276,-1066 276,-1086 276,-1086 276,-1092 270,-1098 264,-1098"></path>
+<text text-anchor="start" x="145.5" y="-1084.8" font-family="Inter" font-weight="bold" font-size="9.00" fill="#2a7f86">MODEL</text>
+<text text-anchor="start" x="112.5" y="-1074.2" font-family="Inter" font-weight="bold" font-size="11.00">Atividade.salvar()</text>
+<text text-anchor="start" x="61" y="-1064" font-family="Inter" font-size="10.00">CRUD na Model: db.session.add + commit</text>
 </g>
 
 <g id="edge11" class="edge">
@@ -238,10 +238,10 @@
 
 <g id="node18" class="node">
 <title>rp2</title>
-<path fill="#fadfd0" stroke="#b8501f" stroke-width="1.4" d="M236,-876C236,-876 88,-876 88,-876 82,-876 76,-870 76,-864 76,-864 76,-844 76,-844 76,-838 82,-832 88,-832 88,-832 236,-832 236,-832 242,-832 248,-838 248,-844 248,-844 248,-864 248,-864 248,-870 242,-876 236,-876"></path>
-<text text-anchor="start" x="133" y="-862.8" font-family="Inter" font-weight="bold" font-size="9.00" fill="#b8501f">REPOSITORY</text>
-<text text-anchor="start" x="89" y="-852.2" font-family="Inter" font-weight="bold" font-size="11.00">UsuarioRepository.salvar()</text>
-<text text-anchor="start" x="102" y="-842" font-family="Inter" font-size="10.00">db.session.add + commit</text>
+<path fill="#d9eef0" stroke="#2a7f86" stroke-width="1.4" d="M264,-876C264,-876 60,-876 60,-876 54,-876 48,-870 48,-864 48,-864 48,-844 48,-844 48,-838 54,-832 60,-832 60,-832 264,-832 264,-832 270,-832 276,-838 276,-844 276,-844 276,-864 276,-864 276,-870 270,-876 264,-876"></path>
+<text text-anchor="start" x="145.5" y="-862.8" font-family="Inter" font-weight="bold" font-size="9.00" fill="#2a7f86">MODEL</text>
+<text text-anchor="start" x="117.5" y="-852.2" font-family="Inter" font-weight="bold" font-size="11.00">Usuario.salvar()</text>
+<text text-anchor="start" x="61" y="-842" font-family="Inter" font-size="10.00">CRUD na Model: db.session.add + commit</text>
 </g>
 
 <g id="edge14" class="edge">
@@ -298,8 +298,8 @@
 <text text-anchor="start" x="406.5" y="-630.8" font-family="Inter" font-weight="bold" font-size="9.00" fill="#6b46a3">SERVICE</text>
 <text text-anchor="start" x="326" y="-620.2" font-family="Inter" font-weight="bold" font-size="11.00">gerar_notificacao(“subida_ranking”)</text>
 <text text-anchor="start" x="304" y="-610" font-family="Inter" font-size="10.00">só se o consentimento “notificacoes” estiver aceito</text>
-<text text-anchor="start" x="343.5" y="-600" font-family="Inter" font-size="10.00">(ConsentimentoRepository.buscar)</text>
-<text text-anchor="start" x="295" y="-590" font-family="Inter" font-size="10.00">NotificacaoRepository.criar → INSERT INTO notificacao</text>
+<text text-anchor="start" x="331" y="-600" font-family="Inter" font-size="10.00">consulta o consentimento no Repository</text>
+<text text-anchor="start" x="297" y="-590" font-family="Inter" font-size="10.00">Notificacao.salvar (Model) → INSERT INTO notificacao</text>
 <text text-anchor="start" x="290" y="-580" font-family="Inter" font-size="10.00">e-mail por SMTP opcional; falha não derruba a requisição</text>
 </g>
 
@@ -337,7 +337,7 @@
 <text text-anchor="start" x="265" y="-452.8" font-family="Inter" font-weight="bold" font-size="9.00" fill="#b8501f">REPOSITORY</text>
 <text text-anchor="start" x="209.5" y="-442.2" font-family="Inter" font-weight="bold" font-size="11.00">Repositories de desafio e treino</text>
 <text text-anchor="start" x="189" y="-432" font-family="Inter" font-size="10.00">DesafioUsuarioRepository.listar_do_usuario()</text>
-<text text-anchor="start" x="212.5" y="-422" font-family="Inter" font-size="10.00">DesafioRepository.buscar_por_id()</text>
+<text text-anchor="start" x="217" y="-422" font-family="Inter" font-size="10.00">Desafio.buscar_por_id() (Model)</text>
 <text text-anchor="start" x="127.5" y="-412" font-family="Inter" font-size="10.00">AtividadeRepository.contar_no_periodo() ou maior_carga_no_periodo()</text>
 </g>
 
@@ -366,7 +366,7 @@
 <text text-anchor="start" x="531.5" y="-358.8" font-family="Inter" font-weight="bold" font-size="9.00" fill="#6b46a3">SERVICE</text>
 <text text-anchor="start" x="505" y="-348.2" font-family="Inter" font-weight="bold" font-size="11.00">conclui o desafio</text>
 <text text-anchor="start" x="424" y="-338" font-family="Inter" font-size="10.00">status concluido; xp += recompensa_xp; nivel_por_xp</text>
-<text text-anchor="start" x="472" y="-328" font-family="Inter" font-size="10.00">UsuarioRepository.salvar(usuario)</text>
+<text text-anchor="start" x="494" y="-328" font-family="Inter" font-size="10.00">Usuario.salvar() (Model)</text>
 <text text-anchor="start" x="459" y="-318" font-family="Inter" font-size="10.00">gerar_notificacao(“desafio_concluido”)</text>
 </g>
 
@@ -442,21 +442,24 @@
 
 <g id="node31" class="node">
 <title>legenda</title>
-<polygon fill="#dce8f7" stroke="transparent" points="348,-2021.5 348,-2036.5 366,-2036.5 366,-2021.5 348,-2021.5"></polygon>
-<polygon fill="none" stroke="#2f5d9b" points="348,-2021.5 348,-2036.5 366,-2036.5 366,-2021.5 348,-2021.5"></polygon>
-<text text-anchor="start" x="371" y="-2026.5" font-family="Inter" font-size="10.00">Frontend</text>
-<polygon fill="#fbebc8" stroke="transparent" points="348,-2003.5 348,-2018.5 366,-2018.5 366,-2003.5 348,-2003.5"></polygon>
-<polygon fill="none" stroke="#a8741a" points="348,-2003.5 348,-2018.5 366,-2018.5 366,-2003.5 348,-2003.5"></polygon>
-<text text-anchor="start" x="371" y="-2008.5" font-family="Inter" font-size="10.00">Rotas / Auth</text>
-<polygon fill="#d8f0de" stroke="transparent" points="348,-1985.5 348,-2000.5 366,-2000.5 366,-1985.5 348,-1985.5"></polygon>
-<polygon fill="none" stroke="#2e7d4a" points="348,-1985.5 348,-2000.5 366,-2000.5 366,-1985.5 348,-1985.5"></polygon>
-<text text-anchor="start" x="371" y="-1990.5" font-family="Inter" font-size="10.00">Controller</text>
-<polygon fill="#e8ddf5" stroke="transparent" points="348,-1967.5 348,-1982.5 366,-1982.5 366,-1967.5 348,-1967.5"></polygon>
-<polygon fill="none" stroke="#6b46a3" points="348,-1967.5 348,-1982.5 366,-1982.5 366,-1967.5 348,-1967.5"></polygon>
-<text text-anchor="start" x="371" y="-1972.5" font-family="Inter" font-size="10.00">Service</text>
-<polygon fill="#fadfd0" stroke="transparent" points="348,-1949.5 348,-1964.5 366,-1964.5 366,-1949.5 348,-1949.5"></polygon>
-<polygon fill="none" stroke="#b8501f" points="348,-1949.5 348,-1964.5 366,-1964.5 366,-1949.5 348,-1949.5"></polygon>
-<text text-anchor="start" x="371" y="-1954.5" font-family="Inter" font-size="10.00">Repository</text>
+<polygon fill="#dce8f7" stroke="transparent" points="348,-2039.5 348,-2054.5 366,-2054.5 366,-2039.5 348,-2039.5"></polygon>
+<polygon fill="none" stroke="#2f5d9b" points="348,-2039.5 348,-2054.5 366,-2054.5 366,-2039.5 348,-2039.5"></polygon>
+<text text-anchor="start" x="371" y="-2044.5" font-family="Inter" font-size="10.00">Frontend</text>
+<polygon fill="#fbebc8" stroke="transparent" points="348,-2021.5 348,-2036.5 366,-2036.5 366,-2021.5 348,-2021.5"></polygon>
+<polygon fill="none" stroke="#a8741a" points="348,-2021.5 348,-2036.5 366,-2036.5 366,-2021.5 348,-2021.5"></polygon>
+<text text-anchor="start" x="371" y="-2026.5" font-family="Inter" font-size="10.00">Rotas / Auth</text>
+<polygon fill="#d8f0de" stroke="transparent" points="348,-2003.5 348,-2018.5 366,-2018.5 366,-2003.5 348,-2003.5"></polygon>
+<polygon fill="none" stroke="#2e7d4a" points="348,-2003.5 348,-2018.5 366,-2018.5 366,-2003.5 348,-2003.5"></polygon>
+<text text-anchor="start" x="371" y="-2008.5" font-family="Inter" font-size="10.00">Controller</text>
+<polygon fill="#e8ddf5" stroke="transparent" points="348,-1985.5 348,-2000.5 366,-2000.5 366,-1985.5 348,-1985.5"></polygon>
+<polygon fill="none" stroke="#6b46a3" points="348,-1985.5 348,-2000.5 366,-2000.5 366,-1985.5 348,-1985.5"></polygon>
+<text text-anchor="start" x="371" y="-1990.5" font-family="Inter" font-size="10.00">Service</text>
+<polygon fill="#fadfd0" stroke="transparent" points="348,-1967.5 348,-1982.5 366,-1982.5 366,-1967.5 348,-1967.5"></polygon>
+<polygon fill="none" stroke="#b8501f" points="348,-1967.5 348,-1982.5 366,-1982.5 366,-1967.5 348,-1967.5"></polygon>
+<text text-anchor="start" x="371" y="-1972.5" font-family="Inter" font-size="10.00">Repository (SQL)</text>
+<polygon fill="#d9eef0" stroke="transparent" points="348,-1949.5 348,-1964.5 366,-1964.5 366,-1949.5 348,-1949.5"></polygon>
+<polygon fill="none" stroke="#2a7f86" points="348,-1949.5 348,-1964.5 366,-1964.5 366,-1949.5 348,-1949.5"></polygon>
+<text text-anchor="start" x="371" y="-1954.5" font-family="Inter" font-size="10.00">Model (CRUD)</text>
 <polygon fill="#e4e6ea" stroke="transparent" points="348,-1931.5 348,-1946.5 366,-1946.5 366,-1931.5 348,-1931.5"></polygon>
 <polygon fill="none" stroke="#4a5160" points="348,-1931.5 348,-1946.5 366,-1946.5 366,-1931.5 348,-1931.5"></polygon>
 <text text-anchor="start" x="371" y="-1936.5" font-family="Inter" font-size="10.00">Banco de dados</text>
