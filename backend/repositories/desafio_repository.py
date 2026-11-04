@@ -7,7 +7,7 @@ class DesafioRepository:
     @staticmethod
     def listar_ativos(hoje):
         linhas = consultar(
-            "SELECT * FROM desafio WHERE data_fim >= :hoje ORDER BY data_inicio ASC",
+            "SELECT * FROM desafio WHERE data_fim >= :hoje ORDER BY data_inicio ASC, id_desafio ASC",
             {"hoje": hoje},
         )
         return linhas_de(linhas, Desafio)

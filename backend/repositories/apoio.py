@@ -36,12 +36,14 @@ def _comando(sql, listas):
 
 def consultar(sql, parametros=None, listas=()):
     sincronizar()
-    return db.session.execute(_comando(sql, listas), parametros or {}).mappings().all()
+    linhas = db.session.execute(_comando(sql, listas), parametros or {}).mappings().all()
+    return [dict(linha) for linha in linhas]
 
 
 def consultar_um(sql, parametros=None):
     sincronizar()
-    return db.session.execute(text(sql), parametros or {}).mappings().first()
+    linha = db.session.execute(text(sql), parametros or {}).mappings().first()
+    return dict(linha) if linha is not None else None
 
 
 def executar_comando(sql, parametros=None, listas=()):

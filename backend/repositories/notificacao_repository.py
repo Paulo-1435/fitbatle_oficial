@@ -16,7 +16,7 @@ class NotificacaoRepository:
     def listar_do_usuario(id_usuario, limite=50):
         linhas = consultar(
             "SELECT * FROM notificacao WHERE id_usuario = :id_usuario "
-            "ORDER BY data_envio DESC LIMIT :limite",
+            "ORDER BY data_envio DESC, id_notif DESC LIMIT :limite",
             {"id_usuario": id_usuario, "limite": limite},
         )
         return linhas_de(linhas, Notificacao)

@@ -13,7 +13,7 @@ class AtividadeRepository:
     @staticmethod
     def listar_do_usuario(id_usuario):
         linhas = consultar(
-            "SELECT * FROM atividade WHERE id_usuario = :id_usuario ORDER BY data_registro DESC",
+            "SELECT * FROM atividade WHERE id_usuario = :id_usuario ORDER BY data_registro DESC, id_atividade DESC",
             {"id_usuario": id_usuario},
         )
         return linhas_de(linhas, Atividade)
@@ -26,7 +26,7 @@ class AtividadeRepository:
             "SELECT a.* FROM atividade a "
             "JOIN usuario u ON u.id_usuario = a.id_usuario "
             "WHERE u.perfil_publico = 1 AND " + clausula + " "
-            "ORDER BY a.data_registro DESC LIMIT :limite",
+            "ORDER BY a.data_registro DESC, a.id_atividade ASC LIMIT :limite",
             parametros,
         )
         return linhas_de(linhas, Atividade)
@@ -79,7 +79,7 @@ class AtividadeRepository:
         linhas = consultar(
             "SELECT * FROM atividade "
             "WHERE id_usuario = :id_usuario AND tipo = 'musculacao' AND LOWER(titulo) = :titulo "
-            "ORDER BY data_registro ASC",
+            "ORDER BY data_registro ASC, id_atividade ASC",
             {"id_usuario": id_usuario, "titulo": titulo_normalizado},
         )
         return linhas_de(linhas, Atividade)

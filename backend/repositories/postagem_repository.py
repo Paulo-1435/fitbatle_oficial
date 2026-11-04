@@ -12,7 +12,7 @@ class PostagemRepository:
             "SELECT p.* FROM postagem p "
             "JOIN usuario u ON u.id_usuario = p.id_usuario "
             "WHERE u.perfil_publico = 1 AND " + clausula + " "
-            "ORDER BY p.data_registro DESC LIMIT :limite",
+            "ORDER BY p.data_registro DESC, p.id_postagem ASC LIMIT :limite",
             parametros,
         )
         return linhas_de(linhas, Postagem)

@@ -25,7 +25,7 @@ class ConviteRepository:
             "JOIN grupo g ON g.id_grupo = c.id_grupo "
             "JOIN usuario u ON u.id_usuario = c.id_remetente "
             "WHERE c.id_destinatario = :id_usuario AND c.status = 'pendente' "
-            "ORDER BY c.data_envio DESC",
+            "ORDER BY c.data_envio DESC, c.id_convite DESC",
             {"id_usuario": id_usuario},
         )
         return linhas_de(linhas, Convite)

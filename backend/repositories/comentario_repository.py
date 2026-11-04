@@ -8,7 +8,7 @@ class ComentarioRepository:
     def listar(tipo_alvo, id_alvo):
         linhas = consultar(
             "SELECT * FROM comentario "
-            "WHERE tipo_alvo = :tipo_alvo AND id_alvo = :id_alvo ORDER BY data_registro ASC",
+            "WHERE tipo_alvo = :tipo_alvo AND id_alvo = :id_alvo ORDER BY data_registro ASC, id_comentario ASC",
             {"tipo_alvo": tipo_alvo, "id_alvo": id_alvo},
         )
         return linhas_de(linhas, Comentario)
