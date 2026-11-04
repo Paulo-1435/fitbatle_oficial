@@ -15,7 +15,7 @@ class ConsentimentoController:
     def listar(id_usuario):
         try:
             registros = ListarConsentimentosService.executar(id_usuario)
-            return jsonify([c.to_dict() for c in registros])
+            return jsonify(registros)
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status
 

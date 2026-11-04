@@ -25,7 +25,7 @@ class RegistrarCompartilhamentoService:
             raise ErroValidacao("Rede social inválida.")
 
         consentimento = ConsentimentoRepository.buscar(id_usuario, "compartilhamento")
-        if not consentimento or not consentimento.aceito:
+        if not consentimento or not consentimento["aceito"]:
             raise ErroValidacao(
                 "Ative o consentimento de compartilhamento na página de Privacidade para continuar.",
                 status=403,

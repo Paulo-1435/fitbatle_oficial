@@ -23,9 +23,10 @@ class AtualizarConsentimentoService:
         if aceito is None:
             raise ErroValidacao("Informe o campo 'aceito' (true ou false).")
 
-        registro = ConsentimentoRepository.buscar(id_usuario, chave)
-        if not registro:
+        linha = ConsentimentoRepository.buscar(id_usuario, chave)
+        if not linha:
             raise ErroValidacao("Consentimento não encontrado.", status=404)
+        registro = Consentimento.buscar_por_id(linha["id_consentimento"])
 
         with Consentimento.transacao():
             registro.aceito = bool(aceito)
