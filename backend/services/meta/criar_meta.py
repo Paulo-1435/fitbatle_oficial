@@ -40,7 +40,7 @@ class CriarMetaService:
         if valor_partida not in (None, ""):
             valor_partida = validar_numero_meta(valor_partida, "valor de partida")
         elif tipo_metrica == "carga_maxima":
-            valor_partida = AtividadeRepository.maior_carga(id_usuario, exercicio.lower()) or 0
+            valor_partida = AtividadeRepository.maior_carga(id_usuario, exercicio.lower())["maior_carga"] or 0
         else:
             valor_partida = 0
 

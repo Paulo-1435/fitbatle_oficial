@@ -23,12 +23,12 @@ def exigir_dono_meta(id_meta, id_usuario):
 
 def valor_atual_meta(meta):
     if meta.tipo_metrica == "carga_maxima":
-        maior = AtividadeRepository.maior_carga(meta.id_usuario, (meta.exercicio or "").strip().lower())
+        maior = AtividadeRepository.maior_carga(meta.id_usuario, (meta.exercicio or "").strip().lower())["maior_carga"]
         if maior is None:
             return float(meta.valor_partida) if meta.valor_partida is not None else 0.0
         return maior
     inicio = datetime.combine(meta.data_inicio, datetime.min.time())
-    return float(AtividadeRepository.contar_desde(meta.id_usuario, inicio))
+    return float(AtividadeRepository.contar_desde(meta.id_usuario, inicio)["total"])
 
 
 def meta_com_progresso(meta):

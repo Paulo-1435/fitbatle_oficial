@@ -23,7 +23,7 @@ class ConsultarMetaService:
         historico = []
         anterior = None
         for indice, atividade in enumerate(atividades, start=1):
-            carga = float(atividade.carga_kg) if atividade.carga_kg is not None else None
+            carga = float(atividade["carga_kg"]) if atividade["carga_kg"] is not None else None
             if anterior is None:
                 rotulo = "Registro inicial da meta"
             elif carga == anterior:
@@ -36,8 +36,8 @@ class ConsultarMetaService:
             historico.append({
                 "sessao": indice,
                 "carga_kg": carga,
-                "repeticoes": atividade.repeticoes,
-                "data_registro": iso_utc(atividade.data_registro),
+                "repeticoes": atividade["repeticoes"],
+                "data_registro": iso_utc(atividade["data_registro"]),
                 "rotulo": rotulo,
             })
             anterior = carga

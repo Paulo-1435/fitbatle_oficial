@@ -20,8 +20,8 @@ def metas_com_progresso(metas):
 
 
 def calcular_medalhas(usuario, atividades, metas_progresso):
-    ordenadas = sorted(atividades, key=lambda atividade: atividade.data_registro)
-    datas = [data_local(atividade.data_registro) for atividade in ordenadas]
+    ordenadas = sorted(atividades, key=lambda atividade: atividade["data_registro"])
+    datas = [data_local(atividade["data_registro"]) for atividade in ordenadas]
     dias = sorted(set(datas))
 
     medalhas = [
@@ -93,11 +93,11 @@ def _maratonista(ordenadas):
     total = 0.0
     data = None
     for atividade in ordenadas:
-        if atividade.distancia_km is None:
+        if atividade["distancia_km"] is None:
             continue
-        total += float(atividade.distancia_km)
+        total += float(atividade["distancia_km"])
         if data is None and total >= KM_MARATONA:
-            data = data_local(atividade.data_registro)
+            data = data_local(atividade["data_registro"])
     return _medalha(
         "maratonista", "Maratonista",
         "Acumular 42 km em atividades com distância.", round(total, 2), KM_MARATONA, data,
@@ -109,9 +109,9 @@ def _categoria(usuario, chave_nivel, minimo, ordenadas):
     total = 0
     data = None
     for atividade in ordenadas:
-        total += atividade.pontuacao
+        total += atividade["pontuacao"]
         if data is None and total >= minimo:
-            data = data_local(atividade.data_registro)
+            data = data_local(atividade["data_registro"])
     nome = NOMES_CATEGORIA[chave_nivel]
     return _medalha(
         f"categoria_{chave_nivel}", f"Categoria {nome}",

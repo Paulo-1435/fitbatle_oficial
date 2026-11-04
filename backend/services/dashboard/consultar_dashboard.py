@@ -18,7 +18,10 @@ class ConsultarDashboardService:
         inicio_janela = semanas[0]
 
         pontos_por_dia, treinos_por_dia = ConsultarDashboardService._agrupar_por_dia_local(
-            AtividadeRepository.pontuacoes_desde(id_usuario, inicio_utc_do_dia_local(inicio_janela))
+            [
+                (linha["data_registro"], linha["pontuacao"])
+                for linha in AtividadeRepository.pontuacoes_desde(id_usuario, inicio_utc_do_dia_local(inicio_janela))
+            ]
         )
 
         xp_por_semana = [
@@ -32,12 +35,13 @@ class ConsultarDashboardService:
 
         distribuicao_por_tipo = AtividadeRepository.distribuicao_por_tipo(id_usuario)
 
-        dias = [data_local(dr) for dr in AtividadeRepository.datas_registro(id_usuario)]
+        dias = [data_local(linha["data_registro"]) for linha in AtividadeRepository.datas_registro(id_usuario)]
         sequencia_atual, melhor_sequencia = ConsultarDashboardService._sequencias(dias, hoje)
 
-        total_treinos, total_tempo = AtividadeRepository.totais(id_usuario)
+        totais = AtividadeRepository.totais(id_usuario)
+        total_treinos, total_tempo = totais["treinos"], totais["tempo_min"]
 
-        exercicios = AtividadeRepository.titulos_distintos(id_usuario)
+        exercicios = [linha["titulo"] for linha in AtividadeRepository.titulos_distintos(id_usuario)]
         exercicio_escolhido = None
         if exercicios:
             exercicio_escolhido = exercicio if exercicio in exercicios else exercicios[0]
@@ -49,12 +53,12 @@ class ConsultarDashboardService:
             )
             maior = None
             for registro in registros:
-                if registro.carga_kg is None:
+                if registro["carga_kg"] is None:
                     continue
-                valor = float(registro.carga_kg)
+                valor = float(registro["carga_kg"])
                 maior = valor if maior is None else max(maior, valor)
                 evolucao_carga.append({
-                    "data": registro.data_registro.date().isoformat(),
+                    "data": registro["data_registro"].date().isoformat(),
                     "carga_maxima": maior,
                 })
 

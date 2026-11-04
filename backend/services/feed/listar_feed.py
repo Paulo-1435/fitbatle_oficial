@@ -1,3 +1,4 @@
+from models.atividade import Atividade
 from models.usuario import Usuario
 from repositories.repository import (
     AtividadeRepository,
@@ -22,8 +23,8 @@ class ListarFeedService:
         itens = []
         for a in atividades:
             itens.append({
-                "tipo": "atividade", "id": a.id_atividade, "id_usuario": a.id_usuario,
-                "data_registro": a.data_registro, "objeto": a,
+                "tipo": "atividade", "id": a["id_atividade"], "id_usuario": a["id_usuario"],
+                "data_registro": a["data_registro"], "objeto": a,
             })
         for p in postagens:
             itens.append({
@@ -61,7 +62,10 @@ class ListarFeedService:
         resultado = []
         for i in itens:
             dono = donos.get(i["id_usuario"])
-            base = i["objeto"].to_dict()
+            if i["tipo"] == "atividade":
+                base = Atividade.formatar(i["objeto"])
+            else:
+                base = i["objeto"].to_dict()
             base["tipo_conteudo"] = i["tipo"]
             base["usuario"] = {
                 "id": dono.id_usuario if dono else None,

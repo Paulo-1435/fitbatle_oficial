@@ -41,7 +41,7 @@ class AtividadeController:
     def historico(id_usuario):
         try:
             atividades = ConsultarHistoricoTreinosService.executar(id_usuario)
-            return jsonify([a.to_dict() for a in atividades])
+            return jsonify(atividades)
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status
 

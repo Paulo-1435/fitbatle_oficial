@@ -25,8 +25,8 @@ class ExcluirContaService:
 
         with Usuario.transacao():
             for atividade in AtividadeRepository.listar_do_usuario(id_usuario):
-                CurtidaRepository.excluir_do_alvo("atividade", atividade.id_atividade)
-                ComentarioRepository.excluir_do_alvo("atividade", atividade.id_atividade)
+                CurtidaRepository.excluir_do_alvo("atividade", atividade["id_atividade"])
+                ComentarioRepository.excluir_do_alvo("atividade", atividade["id_atividade"])
             for postagem in PostagemRepository.listar_do_usuario(id_usuario):
                 CurtidaRepository.excluir_do_alvo("postagem", postagem.id_postagem)
                 ComentarioRepository.excluir_do_alvo("postagem", postagem.id_postagem)

@@ -108,6 +108,16 @@ def linhas_de(linhas, *modelos):
     ]
 
 
+def converter_agregado(linha, floats=(), inteiros=()):
+    d = dict(linha)
+    for chave in floats:
+        if d.get(chave) is not None:
+            d[chave] = float(d[chave])
+    for chave in inteiros:
+        d[chave] = int(d[chave] or 0)
+    return d
+
+
 def linha_ranking(linha):
     if linha is None:
         return None

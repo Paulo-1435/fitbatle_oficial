@@ -33,8 +33,8 @@ def valor_atual_desafio(desafio, id_usuario):
     titulo = _titulo_filtro(desafio)
 
     if desafio.tipo_metrica == "carga_maxima":
-        return AtividadeRepository.maior_carga_no_periodo(id_usuario, inicio, fim, titulo) or 0.0
-    return float(AtividadeRepository.contar_no_periodo(id_usuario, inicio, fim, titulo))
+        return AtividadeRepository.maior_carga_no_periodo(id_usuario, inicio, fim, titulo)["maior_carga"] or 0.0
+    return float(AtividadeRepository.contar_no_periodo(id_usuario, inicio, fim, titulo)["total"])
 
 
 def avaliar_conclusao(desafio, inscricao):

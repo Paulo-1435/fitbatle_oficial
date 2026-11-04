@@ -107,7 +107,7 @@ def validar_teto_xp(id_usuario, pontuacao):
         )
     xp_hoje = AtividadeRepository.pontuacao_total_desde(
         id_usuario, inicio_utc_do_dia_local(data_local(agora()))
-    )
+    )["total"]
     if xp_hoje + pontuacao > XP_MAXIMO_DIARIO:
         raise ErroValidacao(
             f"Limite diário de XP atingido: você já somou {xp_hoje} XP hoje e o máximo é "
@@ -118,7 +118,7 @@ def validar_teto_xp(id_usuario, pontuacao):
 def maior_carga_do_exercicio(id_usuario, limpos):
     if limpos["tipo"] != "musculacao" or not limpos["titulo"]:
         return None
-    return AtividadeRepository.maior_carga(id_usuario, limpos["titulo"].lower())
+    return AtividadeRepository.maior_carga(id_usuario, limpos["titulo"].lower())["maior_carga"]
 
 
 def eh_recorde_pessoal(id_usuario, limpos, maior_carga):

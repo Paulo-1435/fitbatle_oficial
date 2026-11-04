@@ -1,145 +1,139 @@
-from sqlalchemy import func
-from database import db
 from models.atividade import Atividade
-from models.usuario import Usuario
-from repositories.apoio import clausula_maior_de_idade_ou_proprio
+from repositories.apoio import (
+    consultar,
+    consultar_um,
+    converter_agregado,
+    filtro_maior_de_idade,
+    linhas_de,
+)
 
 
 class AtividadeRepository:
 
     @staticmethod
     def listar_do_usuario(id_usuario):
-        return (
-            Atividade.query.filter_by(id_usuario=id_usuario)
-            .order_by(Atividade.data_registro.desc())
-            .all()
+        linhas = consultar(
+            "SELECT * FROM atividade WHERE id_usuario = :id_usuario ORDER BY data_registro DESC",
+            {"id_usuario": id_usuario},
         )
+        return linhas_de(linhas, Atividade)
 
     @staticmethod
     def listar_publicas(limite, id_solicitante=None):
-        return (
-            Atividade.query.join(Usuario, Atividade.id_usuario == Usuario.id_usuario)
-            .filter(Usuario.perfil_publico.is_(True), clausula_maior_de_idade_ou_proprio(id_solicitante))
-            .order_by(Atividade.data_registro.desc())
-            .limit(limite)
-            .all()
+        clausula, parametros = filtro_maior_de_idade(id_solicitante)
+        parametros["limite"] = limite
+        linhas = consultar(
+            "SELECT a.* FROM atividade a "
+            "JOIN usuario u ON u.id_usuario = a.id_usuario "
+            "WHERE u.perfil_publico = 1 AND " + clausula + " "
+            "ORDER BY a.data_registro DESC LIMIT :limite",
+            parametros,
         )
+        return linhas_de(linhas, Atividade)
 
     @staticmethod
     def maior_carga(id_usuario, titulo_normalizado):
-        resultado = (
-            db.session.query(func.max(Atividade.carga_kg))
-            .filter(
-                Atividade.id_usuario == id_usuario,
-                Atividade.tipo == "musculacao",
-                func.lower(Atividade.titulo) == titulo_normalizado,
-            )
-            .scalar()
+        linha = consultar_um(
+            "SELECT MAX(carga_kg) AS maior_carga FROM atividade "
+            "WHERE id_usuario = :id_usuario AND tipo = 'musculacao' AND LOWER(titulo) = :titulo",
+            {"id_usuario": id_usuario, "titulo": titulo_normalizado},
         )
-        return float(resultado) if resultado is not None else None
+        return converter_agregado(linha, floats=("maior_carga",))
 
     @staticmethod
     def contar_desde(id_usuario, data_inicio):
-        return Atividade.query.filter(
-            Atividade.id_usuario == id_usuario,
-            Atividade.data_registro >= data_inicio,
-        ).count()
+        linha = consultar_um(
+            "SELECT COUNT(*) AS total FROM atividade "
+            "WHERE id_usuario = :id_usuario AND data_registro >= :inicio",
+            {"id_usuario": id_usuario, "inicio": data_inicio},
+        )
+        return converter_agregado(linha, inteiros=("total",))
 
     @staticmethod
     def contar_no_periodo(id_usuario, inicio, fim, titulo_normalizado=None):
-        query = Atividade.query.filter(
-            Atividade.id_usuario == id_usuario,
-            Atividade.data_registro >= inicio,
-            Atividade.data_registro < fim,
+        sql = (
+            "SELECT COUNT(*) AS total FROM atividade "
+            "WHERE id_usuario = :id_usuario AND data_registro >= :inicio AND data_registro < :fim"
         )
+        parametros = {"id_usuario": id_usuario, "inicio": inicio, "fim": fim}
         if titulo_normalizado:
-            query = query.filter(func.lower(Atividade.titulo) == titulo_normalizado)
-        return query.count()
+            sql += " AND LOWER(titulo) = :titulo"
+            parametros["titulo"] = titulo_normalizado
+        return converter_agregado(consultar_um(sql, parametros), inteiros=("total",))
 
     @staticmethod
     def maior_carga_no_periodo(id_usuario, inicio, fim, titulo_normalizado=None):
-        query = db.session.query(func.max(Atividade.carga_kg)).filter(
-            Atividade.id_usuario == id_usuario,
-            Atividade.tipo == "musculacao",
-            Atividade.data_registro >= inicio,
-            Atividade.data_registro < fim,
+        sql = (
+            "SELECT MAX(carga_kg) AS maior_carga FROM atividade "
+            "WHERE id_usuario = :id_usuario AND tipo = 'musculacao'"
+            " AND data_registro >= :inicio AND data_registro < :fim"
         )
+        parametros = {"id_usuario": id_usuario, "inicio": inicio, "fim": fim}
         if titulo_normalizado:
-            query = query.filter(func.lower(Atividade.titulo) == titulo_normalizado)
-        resultado = query.scalar()
-        return float(resultado) if resultado is not None else None
+            sql += " AND LOWER(titulo) = :titulo"
+            parametros["titulo"] = titulo_normalizado
+        return converter_agregado(consultar_um(sql, parametros), floats=("maior_carga",))
 
     @staticmethod
     def listar_do_usuario_por_titulo(id_usuario, titulo_normalizado):
-        return (
-            Atividade.query.filter(
-                Atividade.id_usuario == id_usuario,
-                Atividade.tipo == "musculacao",
-                func.lower(Atividade.titulo) == titulo_normalizado,
-            )
-            .order_by(Atividade.data_registro.asc())
-            .all()
+        linhas = consultar(
+            "SELECT * FROM atividade "
+            "WHERE id_usuario = :id_usuario AND tipo = 'musculacao' AND LOWER(titulo) = :titulo "
+            "ORDER BY data_registro ASC",
+            {"id_usuario": id_usuario, "titulo": titulo_normalizado},
         )
+        return linhas_de(linhas, Atividade)
 
     @staticmethod
     def pontuacao_total_desde(id_usuario, desde_utc):
-        total = (
-            db.session.query(func.coalesce(func.sum(Atividade.pontuacao), 0))
-            .filter(Atividade.id_usuario == id_usuario, Atividade.data_registro >= desde_utc)
-            .scalar()
+        linha = consultar_um(
+            "SELECT COALESCE(SUM(pontuacao), 0) AS total FROM atividade "
+            "WHERE id_usuario = :id_usuario AND data_registro >= :desde",
+            {"id_usuario": id_usuario, "desde": desde_utc},
         )
-        return int(total)
+        return converter_agregado(linha, inteiros=("total",))
 
     @staticmethod
     def pontuacoes_desde(id_usuario, desde_utc):
-        return (
-            db.session.query(Atividade.data_registro, Atividade.pontuacao)
-            .filter(Atividade.id_usuario == id_usuario, Atividade.data_registro >= desde_utc)
-            .all()
+        linhas = consultar(
+            "SELECT data_registro, pontuacao FROM atividade "
+            "WHERE id_usuario = :id_usuario AND data_registro >= :desde",
+            {"id_usuario": id_usuario, "desde": desde_utc},
         )
+        return linhas_de(linhas, Atividade)
 
     @staticmethod
     def distribuicao_por_tipo(id_usuario):
-        linhas = (
-            db.session.query(Atividade.tipo, func.count(Atividade.id_atividade))
-            .filter(Atividade.id_usuario == id_usuario)
-            .group_by(Atividade.tipo)
-            .all()
+        linhas = consultar(
+            "SELECT tipo, COUNT(id_atividade) AS total FROM atividade "
+            "WHERE id_usuario = :id_usuario GROUP BY tipo",
+            {"id_usuario": id_usuario},
         )
-        return dict(linhas)
+        return {linha["tipo"]: int(linha["total"]) for linha in linhas}
 
     @staticmethod
     def datas_registro(id_usuario):
-        linhas = (
-            db.session.query(Atividade.data_registro)
-            .filter(Atividade.id_usuario == id_usuario)
-            .all()
+        linhas = consultar(
+            "SELECT data_registro FROM atividade WHERE id_usuario = :id_usuario",
+            {"id_usuario": id_usuario},
         )
-        return [linha[0] for linha in linhas]
+        return linhas_de(linhas, Atividade)
 
     @staticmethod
     def totais(id_usuario):
-        total_treinos, total_tempo = (
-            db.session.query(
-                func.count(Atividade.id_atividade),
-                func.coalesce(func.sum(Atividade.tempo_min), 0),
-            )
-            .filter(Atividade.id_usuario == id_usuario)
-            .first()
+        linha = consultar_um(
+            "SELECT COUNT(id_atividade) AS treinos, COALESCE(SUM(tempo_min), 0) AS tempo_min "
+            "FROM atividade WHERE id_usuario = :id_usuario",
+            {"id_usuario": id_usuario},
         )
-        return total_treinos, total_tempo
+        return converter_agregado(linha, inteiros=("treinos", "tempo_min"))
 
     @staticmethod
     def titulos_distintos(id_usuario):
-        linhas = (
-            db.session.query(Atividade.titulo)
-            .filter(
-                Atividade.id_usuario == id_usuario,
-                Atividade.tipo == "musculacao",
-                Atividade.carga_kg.isnot(None),
-            )
-            .distinct()
-            .order_by(Atividade.titulo)
-            .all()
+        linhas = consultar(
+            "SELECT DISTINCT titulo FROM atividade "
+            "WHERE id_usuario = :id_usuario AND tipo = 'musculacao' AND carga_kg IS NOT NULL",
+            {"id_usuario": id_usuario},
         )
-        return [linha[0] for linha in linhas if linha[0]]
+        titulos = [linha["titulo"] for linha in linhas if linha["titulo"]]
+        return [{"titulo": titulo} for titulo in sorted(titulos)]
