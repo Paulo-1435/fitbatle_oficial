@@ -8,16 +8,16 @@ class ListarMembrosGrupoService:
     def executar(id_grupo, id_usuario):
         exigir_membro(id_grupo, id_usuario)
         pares = GrupoRepository.listar_membros(id_grupo)
-        handles = montar_handles([usuario.campos() for usuario, _ in pares])
+        handles = montar_handles(pares)
         return [
             {
-                "id": usuario.id_usuario,
-                "nome": usuario.nome,
-                "handle": handles[usuario.id_usuario],
-                "cidade": usuario.cidade,
-                "estado": usuario.estado,
-                "foto": usuario.foto,
-                "papel": papel,
+                "id": usuario["id_usuario"],
+                "nome": usuario["nome"],
+                "handle": handles[usuario["id_usuario"]],
+                "cidade": usuario["cidade"],
+                "estado": usuario["estado"],
+                "foto": usuario["foto"],
+                "papel": usuario["papel"],
             }
-            for usuario, papel in pares
+            for usuario in pares
         ]

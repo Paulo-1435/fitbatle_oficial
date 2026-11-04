@@ -1,49 +1,55 @@
-from database import db
 from models.grupo import Grupo
-from models.grupo_membro import GrupoMembro
 from models.usuario import Usuario
+from repositories.apoio import consultar, consultar_um, converter_agregado, linha_de, linhas_de
 
 
 class GrupoRepository:
 
     @staticmethod
     def buscar_por_codigo(codigo):
-        return Grupo.query.filter_by(codigo_convite=codigo).first()
+        return linha_de(
+            consultar_um("SELECT * FROM grupo WHERE codigo_convite = :codigo", {"codigo": codigo}),
+            Grupo,
+        )
 
     @staticmethod
     def listar_do_usuario(id_usuario):
-        return (
-            db.session.query(Grupo, GrupoMembro.papel)
-            .join(GrupoMembro, GrupoMembro.id_grupo == Grupo.id_grupo)
-            .filter(GrupoMembro.id_usuario == id_usuario)
-            .order_by(Grupo.nome)
-            .all()
+        linhas = consultar(
+            "SELECT g.*, gm.papel AS papel FROM grupo g "
+            "JOIN grupo_membro gm ON gm.id_grupo = g.id_grupo "
+            "WHERE gm.id_usuario = :id_usuario",
+            {"id_usuario": id_usuario},
         )
+        return sorted(linhas_de(linhas, Grupo), key=lambda linha: linha["nome"])
 
     @staticmethod
     def contar_membros(id_grupo):
-        return GrupoMembro.query.filter_by(id_grupo=id_grupo).count()
+        linha = consultar_um(
+            "SELECT COUNT(*) AS total FROM grupo_membro WHERE id_grupo = :id_grupo",
+            {"id_grupo": id_grupo},
+        )
+        return converter_agregado(linha, inteiros=("total",))
 
     @staticmethod
     def papel_do_membro(id_grupo, id_usuario):
-        membro = GrupoMembro.query.filter_by(id_grupo=id_grupo, id_usuario=id_usuario).first()
-        return membro.papel if membro else None
+        return consultar_um(
+            "SELECT papel FROM grupo_membro WHERE id_grupo = :id_grupo AND id_usuario = :id_usuario",
+            {"id_grupo": id_grupo, "id_usuario": id_usuario},
+        )
 
     @staticmethod
     def listar_membros(id_grupo):
-        return (
-            db.session.query(Usuario, GrupoMembro.papel)
-            .join(GrupoMembro, GrupoMembro.id_usuario == Usuario.id_usuario)
-            .filter(GrupoMembro.id_grupo == id_grupo)
-            .order_by(GrupoMembro.papel, Usuario.nome)
-            .all()
+        linhas = consultar(
+            "SELECT u.*, gm.papel AS papel FROM usuario u "
+            "JOIN grupo_membro gm ON gm.id_usuario = u.id_usuario "
+            "WHERE gm.id_grupo = :id_grupo",
+            {"id_grupo": id_grupo},
         )
+        return sorted(linhas_de(linhas, Usuario), key=lambda linha: (linha["papel"], linha["nome"]))
 
     @staticmethod
     def ids_membros(id_grupo):
-        linhas = (
-            db.session.query(GrupoMembro.id_usuario)
-            .filter(GrupoMembro.id_grupo == id_grupo)
-            .all()
+        return consultar(
+            "SELECT id_usuario FROM grupo_membro WHERE id_grupo = :id_grupo",
+            {"id_grupo": id_grupo},
         )
-        return {id_usuario for (id_usuario,) in linhas}

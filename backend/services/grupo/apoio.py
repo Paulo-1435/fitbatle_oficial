@@ -17,7 +17,8 @@ def buscar_grupo(id_grupo):
 
 def exigir_membro(id_grupo, id_usuario):
     grupo = buscar_grupo(id_grupo)
-    papel = GrupoRepository.papel_do_membro(id_grupo, id_usuario)
+    membro = GrupoRepository.papel_do_membro(id_grupo, id_usuario)
+    papel = membro["papel"] if membro else None
     if papel is None:
         raise ErroValidacao("Você não participa deste grupo.", status=403)
     return grupo, papel

@@ -9,7 +9,7 @@ class BuscarUsuariosParaConvidarService:
     def executar(id_grupo, id_usuario, termo):
         exigir_membro(id_grupo, id_usuario)
         encontrados = buscar_adultos(termo, id_usuario)
-        ids_membros = GrupoRepository.ids_membros(id_grupo)
+        ids_membros = {linha["id_usuario"] for linha in GrupoRepository.ids_membros(id_grupo)}
         candidatos = [u for u in encontrados if u["id_usuario"] not in ids_membros]
         handles = montar_handles(candidatos)
 

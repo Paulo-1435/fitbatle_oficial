@@ -9,5 +9,5 @@ class ConsultarGrupoService:
         grupo, papel = exigir_membro(id_grupo, id_usuario)
         dado = grupo.to_dict()
         dado["meu_papel"] = papel
-        dado["membros"] = GrupoRepository.contar_membros(id_grupo)
+        dado["membros"] = GrupoRepository.contar_membros(id_grupo)["total"]
         return dado

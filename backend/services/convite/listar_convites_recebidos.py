@@ -14,7 +14,7 @@ class ListarConvitesRecebidosService:
                     "id": grupo.id_grupo,
                     "nome": grupo.nome,
                     "descricao": grupo.descricao,
-                    "membros": GrupoRepository.contar_membros(grupo.id_grupo),
+                    "membros": GrupoRepository.contar_membros(grupo.id_grupo)["total"],
                 },
                 "remetente": {"id": remetente.id_usuario, "nome": remetente.nome},
                 "data_envio": iso_utc(convite.data_envio),
