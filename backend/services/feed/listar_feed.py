@@ -1,4 +1,5 @@
 from models.atividade import Atividade
+from models.postagem import Postagem
 from models.usuario import Usuario
 from repositories.repository import (
     AtividadeRepository,
@@ -28,8 +29,8 @@ class ListarFeedService:
             })
         for p in postagens:
             itens.append({
-                "tipo": "postagem", "id": p.id_postagem, "id_usuario": p.id_usuario,
-                "data_registro": p.data_registro, "objeto": p,
+                "tipo": "postagem", "id": p["id_postagem"], "id_usuario": p["id_usuario"],
+                "data_registro": p["data_registro"], "objeto": p,
             })
 
         itens.sort(key=lambda i: i["data_registro"], reverse=True)
@@ -65,7 +66,7 @@ class ListarFeedService:
             if i["tipo"] == "atividade":
                 base = Atividade.formatar(i["objeto"])
             else:
-                base = i["objeto"].to_dict()
+                base = Postagem.formatar(i["objeto"])
             base["tipo_conteudo"] = i["tipo"]
             base["usuario"] = {
                 "id": dono.id_usuario if dono else None,

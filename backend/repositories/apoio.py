@@ -4,7 +4,6 @@ from sqlalchemy import text
 
 from database import db
 from models.base import efetivar, sincronizar
-from models.usuario import Usuario
 from utils import IDADE_MAIORIDADE, limite_nascimento_maioridade
 
 
@@ -16,20 +15,6 @@ CLAUSULA_MAIOR_DE_IDADE = (
 ESCAPE_LIKE = "!"
 
 COLUNAS_RANKING = "id_usuario, nome, cidade, estado, pontuacao_total, posicao"
-
-
-def clausula_maior_de_idade_ou_proprio(id_solicitante):
-    limite = limite_nascimento_maioridade(date.today())
-    maior = db.or_(
-        Usuario.data_nascimento <= limite,
-        db.and_(
-            Usuario.data_nascimento.is_(None),
-            db.or_(Usuario.idade.is_(None), Usuario.idade >= IDADE_MAIORIDADE),
-        ),
-    )
-    if id_solicitante is None:
-        return maior
-    return db.or_(Usuario.id_usuario == id_solicitante, maior)
 
 
 def filtro_maior_de_idade(id_solicitante=None):
