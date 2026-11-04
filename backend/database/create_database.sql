@@ -19,12 +19,12 @@ CREATE TABLE usuario (
     descricao      VARCHAR(300),
     responsavel_nome          VARCHAR(120),
     responsavel_email         VARCHAR(150),
-    responsavel_autorizado_em DATETIME,
+    responsavel_autorizado_em DATETIME(6),
     nivel          ENUM('iniciante','intermediario','avancado','profissional','elite')
                        NOT NULL DEFAULT 'iniciante',
     xp             INT NOT NULL DEFAULT 0,
     perfil_publico TINYINT(1) NOT NULL DEFAULT 1,
-    criado_em      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    criado_em      DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     INDEX idx_usuario_cidade (cidade),
     INDEX idx_usuario_estado (estado),
     INDEX idx_usuario_xp (xp)
@@ -41,7 +41,7 @@ CREATE TABLE atividade (
     carga_kg       DECIMAL(6,2),
     repeticoes     INT UNSIGNED,
     pontuacao      INT NOT NULL DEFAULT 0,
-    data_registro  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_registro  DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     CONSTRAINT fk_atividade_usuario
         FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
         ON DELETE CASCADE,
@@ -53,7 +53,7 @@ CREATE TABLE postagem (
     id_usuario     INT NOT NULL,
     texto          VARCHAR(1000) NOT NULL,
     foto           VARCHAR(255),
-    data_registro  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_registro  DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     CONSTRAINT fk_postagem_usuario
         FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
         ON DELETE CASCADE,
@@ -65,7 +65,7 @@ CREATE TABLE curtida (
     id_usuario     INT NOT NULL,
     tipo_alvo      ENUM('atividade','postagem') NOT NULL,
     id_alvo        INT NOT NULL,
-    data_registro  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_registro  DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     CONSTRAINT fk_curtida_usuario
         FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE CASCADE,
     UNIQUE KEY uq_curtida_usuario_alvo (id_usuario, tipo_alvo, id_alvo),
@@ -78,7 +78,7 @@ CREATE TABLE comentario (
     tipo_alvo      ENUM('atividade','postagem') NOT NULL,
     id_alvo        INT NOT NULL,
     texto          VARCHAR(500) NOT NULL,
-    data_registro  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_registro  DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     CONSTRAINT fk_comentario_usuario
         FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE CASCADE,
     INDEX idx_comentario_alvo (tipo_alvo, id_alvo)
@@ -91,8 +91,8 @@ CREATE TABLE consentimento (
     descricao        VARCHAR(200) NOT NULL,
     obrigatorio      TINYINT(1)   NOT NULL DEFAULT 0,
     aceito           TINYINT(1)   NOT NULL DEFAULT 1,
-    data_registro    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    data_atualizacao DATETIME     NULL,
+    data_registro    DATETIME(6)     NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    data_atualizacao DATETIME(6)     NULL,
     CONSTRAINT fk_consent_usuario
         FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE CASCADE,
     UNIQUE KEY uq_consent_usuario_chave (id_usuario, chave)
@@ -105,7 +105,7 @@ CREATE TABLE grupo (
     privacidade    ENUM('publico','privado') NOT NULL DEFAULT 'privado',
     codigo_convite CHAR(10) UNIQUE,
     id_criador     INT NOT NULL,
-    data_criacao   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_criacao   DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     CONSTRAINT fk_grupo_criador
         FOREIGN KEY (id_criador) REFERENCES usuario(id_usuario)
         ON DELETE CASCADE
@@ -115,7 +115,7 @@ CREATE TABLE grupo_membro (
     id_grupo       INT NOT NULL,
     id_usuario     INT NOT NULL,
     papel          ENUM('admin','membro') NOT NULL DEFAULT 'membro',
-    entrou_em      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    entrou_em      DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     PRIMARY KEY (id_grupo, id_usuario),
     CONSTRAINT fk_membro_grupo
         FOREIGN KEY (id_grupo) REFERENCES grupo(id_grupo) ON DELETE CASCADE,
@@ -129,8 +129,8 @@ CREATE TABLE convite (
     id_remetente   INT NOT NULL,
     id_destinatario INT NOT NULL,
     status         ENUM('pendente','aceito','recusado') NOT NULL DEFAULT 'pendente',
-    data_envio     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    data_resposta  DATETIME NULL,
+    data_envio     DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    data_resposta  DATETIME(6) NULL,
     CONSTRAINT fk_convite_grupo
         FOREIGN KEY (id_grupo) REFERENCES grupo(id_grupo) ON DELETE CASCADE,
     CONSTRAINT fk_convite_remetente
@@ -152,7 +152,7 @@ CREATE TABLE meta (
     data_inicio    DATE NOT NULL,
     data_final     DATE,
     status         ENUM('em_andamento','concluida','expirada') NOT NULL DEFAULT 'em_andamento',
-    concluida_em   DATETIME,
+    concluida_em   DATETIME(6),
     CONSTRAINT fk_meta_usuario
         FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE CASCADE
 ) ENGINE=InnoDB;
@@ -173,7 +173,7 @@ CREATE TABLE desafio_usuario (
     id_desafio     INT NOT NULL,
     id_usuario     INT NOT NULL,
     status         ENUM('inscrito','concluido','desistiu') NOT NULL DEFAULT 'inscrito',
-    concluido_em   DATETIME NULL,
+    concluido_em   DATETIME(6) NULL,
     PRIMARY KEY (id_desafio, id_usuario),
     CONSTRAINT fk_du_desafio
         FOREIGN KEY (id_desafio) REFERENCES desafio(id_desafio) ON DELETE CASCADE,
@@ -189,7 +189,7 @@ CREATE TABLE notificacao (
     lida           TINYINT(1) NOT NULL DEFAULT 0,
     tipo_alvo      VARCHAR(20) NULL,
     id_alvo        INT NULL,
-    data_envio     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_envio     DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     CONSTRAINT fk_notif_usuario
         FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE CASCADE,
     INDEX idx_notif_usuario_lida (id_usuario, lida)
@@ -203,7 +203,7 @@ CREATE TABLE compartilhamento (
     id_meta        INT NULL,
     chave_medalha  VARCHAR(40) NULL,
     rede_social    VARCHAR(40),
-    data_comp      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_comp      DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     CONSTRAINT fk_comp_usuario
         FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE CASCADE,
     CONSTRAINT fk_comp_atividade
