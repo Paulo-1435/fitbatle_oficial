@@ -14,9 +14,6 @@ CLAUSULA_MAIOR_DE_IDADE = (
 
 ESCAPE_LIKE = "!"
 
-COLUNAS_RANKING = "id_usuario, nome, cidade, estado, pontuacao_total, posicao"
-
-
 def filtro_maior_de_idade(id_solicitante=None):
     limite = limite_nascimento_maioridade(date.today())
     parametros = {"limite_maioridade": limite, "idade_maioridade": IDADE_MAIORIDADE}
