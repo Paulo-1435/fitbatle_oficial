@@ -1,8 +1,8 @@
 from datetime import timedelta
 
-from repositories.repository import AtividadeRepository, MetaRepository
+from repositories.repository import AtividadeRepository
 from services.atividade.apoio import FAIXAS_NIVEL
-from services.meta.apoio import valor_atual_meta
+from services.meta.apoio import carregar_metas, valor_atual_meta
 from utils import data_local
 
 DIAS_SEMANA_PERFEITA = 7
@@ -121,7 +121,7 @@ def _categoria(usuario, chave_nivel, minimo, ordenadas):
 
 def medalhas_do_usuario(usuario):
     atividades = AtividadeRepository.listar_do_usuario(usuario.id_usuario)
-    metas = MetaRepository.listar_do_usuario(usuario.id_usuario)
+    metas = carregar_metas(usuario.id_usuario)
     return calcular_medalhas(usuario, atividades, metas_com_progresso(metas))
 
 

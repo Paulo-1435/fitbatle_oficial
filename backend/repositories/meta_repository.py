@@ -1,12 +1,13 @@
 from models.meta import Meta
+from repositories.apoio import consultar, linhas_de
 
 
 class MetaRepository:
 
     @staticmethod
     def listar_do_usuario(id_usuario):
-        return (
-            Meta.query.filter_by(id_usuario=id_usuario)
-            .order_by(Meta.data_inicio.desc())
-            .all()
+        linhas = consultar(
+            "SELECT * FROM meta WHERE id_usuario = :id_usuario ORDER BY data_inicio DESC",
+            {"id_usuario": id_usuario},
         )
+        return linhas_de(linhas, Meta)

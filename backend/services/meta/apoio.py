@@ -1,10 +1,14 @@
 from models.meta import Meta
 from datetime import date, datetime
 
-from repositories.repository import AtividadeRepository
+from repositories.repository import AtividadeRepository, MetaRepository
 from services.comum import VALOR_OBJETIVO_MAXIMO, ErroValidacao, numero_decimal
 from services.notificacao.apoio import gerar_notificacao
 from utils import agora
+
+
+def carregar_metas(id_usuario):
+    return [Meta.buscar_por_id(linha["id_meta"]) for linha in MetaRepository.listar_do_usuario(id_usuario)]
 
 
 def buscar_meta(id_meta):
