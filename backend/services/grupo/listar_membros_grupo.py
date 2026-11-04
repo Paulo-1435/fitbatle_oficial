@@ -8,7 +8,7 @@ class ListarMembrosGrupoService:
     def executar(id_grupo, id_usuario):
         exigir_membro(id_grupo, id_usuario)
         pares = GrupoRepository.listar_membros(id_grupo)
-        handles = montar_handles([usuario for usuario, _ in pares])
+        handles = montar_handles([usuario.campos() for usuario, _ in pares])
         return [
             {
                 "id": usuario.id_usuario,

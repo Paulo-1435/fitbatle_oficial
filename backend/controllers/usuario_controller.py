@@ -58,7 +58,7 @@ class UsuarioController:
             usuarios = BuscarPerfisService.executar(
                 request.args.get("nome"), id_logado()
             )
-            return jsonify([u.to_publico() for u in usuarios])
+            return jsonify(usuarios)
         except ErroValidacao as erro:
             return jsonify({"erro": erro.mensagem}), erro.status
 

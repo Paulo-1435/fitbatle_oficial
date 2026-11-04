@@ -71,7 +71,7 @@ class AtualizarPerfilService:
 
         if email is not None:
             existente = UsuarioRepository.buscar_por_email(email)
-            if existente and existente.id_usuario != usuario.id_usuario:
+            if existente and existente["id_usuario"] != usuario.id_usuario:
                 raise ErroValidacao("E-mail já cadastrado.", status=409)
             dados["email"] = email
 

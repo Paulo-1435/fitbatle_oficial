@@ -19,13 +19,17 @@ class Notificacao(ModeloBase):
     id_alvo = db.Column(db.Integer)
     data_envio = db.Column(db.DateTime, nullable=False, default=agora)
 
-    def to_dict(self):
+    @staticmethod
+    def formatar(c):
         return {
-            "id": self.id_notif,
-            "tipo": self.tipo,
-            "mensagem": self.mensagem,
-            "lida": self.lida,
-            "tipo_alvo": self.tipo_alvo,
-            "id_alvo": self.id_alvo,
-            "data_envio": iso_utc(self.data_envio),
+            "id": c["id_notif"],
+            "tipo": c["tipo"],
+            "mensagem": c["mensagem"],
+            "lida": c["lida"],
+            "tipo_alvo": c["tipo_alvo"],
+            "id_alvo": c["id_alvo"],
+            "data_envio": iso_utc(c["data_envio"]),
         }
+
+    def to_dict(self):
+        return self.formatar(self.campos())

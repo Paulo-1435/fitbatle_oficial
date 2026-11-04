@@ -6,6 +6,10 @@ from database import db
 from utils import ConflitoDeDados
 
 
+def sincronizar():
+    db.session.flush()
+
+
 def efetivar():
     if db.session.info.get("transacao"):
         db.session.flush()
@@ -30,6 +34,9 @@ class ModeloBase(db.Model):
 
     def deletar(self):
         return self._confirmar(lambda: db.session.delete(self))
+
+    def campos(self):
+        return {atributo.key: getattr(self, atributo.key) for atributo in self.__mapper__.column_attrs}
 
     @classmethod
     def listar_todos(cls):

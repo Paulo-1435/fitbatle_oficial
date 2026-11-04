@@ -18,11 +18,15 @@ class Grupo(ModeloBase):
     )
     data_criacao = db.Column(db.DateTime, nullable=False, default=agora)
 
-    def to_dict(self):
+    @staticmethod
+    def formatar(c):
         return {
-            "id": self.id_grupo,
-            "nome": self.nome,
-            "descricao": self.descricao,
-            "id_criador": self.id_criador,
-            "data_criacao": iso_utc(self.data_criacao),
+            "id": c["id_grupo"],
+            "nome": c["nome"],
+            "descricao": c["descricao"],
+            "id_criador": c["id_criador"],
+            "data_criacao": iso_utc(c["data_criacao"]),
         }
+
+    def to_dict(self):
+        return self.formatar(self.campos())

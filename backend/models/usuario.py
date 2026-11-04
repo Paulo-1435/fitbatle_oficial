@@ -40,34 +40,42 @@ class Usuario(ModeloBase):
         lazy="dynamic",
     )
 
-    def to_dict(self):
+    @staticmethod
+    def formatar(c):
         return {
-            "id": self.id_usuario,
-            "nome": self.nome,
-            "email": self.email,
-            "idade": calcular_idade(self.data_nascimento, self.idade),
-            "data_nascimento": self.data_nascimento.isoformat() if self.data_nascimento else None,
-            "peso": float(self.peso) if self.peso is not None else None,
-            "altura": float(self.altura) if self.altura is not None else None,
-            "cidade": self.cidade,
-            "estado": self.estado,
-            "foto": self.foto,
-            "descricao": self.descricao,
-            "nivel": self.nivel,
-            "xp": self.xp,
-            "perfil_publico": self.perfil_publico,
-            "criado_em": iso_utc(self.criado_em),
+            "id": c["id_usuario"],
+            "nome": c["nome"],
+            "email": c["email"],
+            "idade": calcular_idade(c["data_nascimento"], c["idade"]),
+            "data_nascimento": c["data_nascimento"].isoformat() if c["data_nascimento"] else None,
+            "peso": float(c["peso"]) if c["peso"] is not None else None,
+            "altura": float(c["altura"]) if c["altura"] is not None else None,
+            "cidade": c["cidade"],
+            "estado": c["estado"],
+            "foto": c["foto"],
+            "descricao": c["descricao"],
+            "nivel": c["nivel"],
+            "xp": c["xp"],
+            "perfil_publico": c["perfil_publico"],
+            "criado_em": iso_utc(c["criado_em"]),
+        }
+
+    def to_dict(self):
+        return self.formatar(self.campos())
+
+    @staticmethod
+    def formatar_publico(c):
+        return {
+            "id": c["id_usuario"],
+            "nome": c["nome"],
+            "cidade": c["cidade"],
+            "estado": c["estado"],
+            "foto": c["foto"],
+            "descricao": c["descricao"],
+            "nivel": c["nivel"],
+            "xp": c["xp"],
+            "criado_em": iso_utc(c["criado_em"]),
         }
 
     def to_publico(self):
-        return {
-            "id": self.id_usuario,
-            "nome": self.nome,
-            "cidade": self.cidade,
-            "estado": self.estado,
-            "foto": self.foto,
-            "descricao": self.descricao,
-            "nivel": self.nivel,
-            "xp": self.xp,
-            "criado_em": iso_utc(self.criado_em),
-        }
+        return self.formatar_publico(self.campos())

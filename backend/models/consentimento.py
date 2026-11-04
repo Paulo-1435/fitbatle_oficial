@@ -22,12 +22,16 @@ class Consentimento(ModeloBase):
     data_registro = db.Column(db.DateTime, nullable=False, default=agora)
     data_atualizacao = db.Column(db.DateTime)
 
-    def to_dict(self):
+    @staticmethod
+    def formatar(c):
         return {
-            "chave": self.chave,
-            "descricao": self.descricao,
-            "obrigatorio": self.obrigatorio,
-            "aceito": self.aceito,
-            "data_registro": iso_utc(self.data_registro),
-            "data_atualizacao": iso_utc(self.data_atualizacao),
+            "chave": c["chave"],
+            "descricao": c["descricao"],
+            "obrigatorio": c["obrigatorio"],
+            "aceito": c["aceito"],
+            "data_registro": iso_utc(c["data_registro"]),
+            "data_atualizacao": iso_utc(c["data_atualizacao"]),
         }
+
+    def to_dict(self):
+        return self.formatar(self.campos())

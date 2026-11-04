@@ -18,9 +18,13 @@ def buscar_usuario(id_usuario):
     return usuario
 
 
-def e_maior_de_idade(usuario):
-    idade = calcular_idade(usuario.data_nascimento, usuario.idade)
+def maior_de_idade_pelos_campos(data_nascimento, idade_legada):
+    idade = calcular_idade(data_nascimento, idade_legada)
     return idade is None or idade >= IDADE_MAIORIDADE
+
+
+def e_maior_de_idade(usuario):
+    return maior_de_idade_pelos_campos(usuario.data_nascimento, usuario.idade)
 
 
 def usuario_visivel_para(usuario, id_solicitante):

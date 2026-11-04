@@ -42,15 +42,15 @@ def montar_handles(usuarios):
     raizes = {}
     contagem = {}
     for usuario in usuarios:
-        raiz = (usuario.email.split("@")[0] or "atleta").lower()
-        raizes[usuario.id_usuario] = raiz
+        raiz = (usuario["email"].split("@")[0] or "atleta").lower()
+        raizes[usuario["id_usuario"]] = raiz
         contagem[raiz] = contagem.get(raiz, 0) + 1
 
     handles = {}
     for usuario in usuarios:
-        raiz = raizes[usuario.id_usuario]
+        raiz = raizes[usuario["id_usuario"]]
         if contagem[raiz] > 1:
-            handles[usuario.id_usuario] = f"{raiz}{usuario.id_usuario % 100:02d}"
+            handles[usuario["id_usuario"]] = f"{raiz}{usuario['id_usuario'] % 100:02d}"
         else:
-            handles[usuario.id_usuario] = raiz
+            handles[usuario["id_usuario"]] = raiz
     return handles

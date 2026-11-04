@@ -22,17 +22,21 @@ class Atividade(ModeloBase):
     pontuacao = db.Column(db.Integer, nullable=False, default=0)
     data_registro = db.Column(db.DateTime, nullable=False, default=agora)
 
-    def to_dict(self):
+    @staticmethod
+    def formatar(c):
         return {
-            "id": self.id_atividade,
-            "id_usuario": self.id_usuario,
-            "tipo": self.tipo,
-            "titulo": self.titulo,
-            "descricao": self.descricao,
-            "tempo_min": self.tempo_min,
-            "distancia_km": float(self.distancia_km) if self.distancia_km is not None else None,
-            "carga_kg": float(self.carga_kg) if self.carga_kg is not None else None,
-            "repeticoes": self.repeticoes,
-            "pontuacao": self.pontuacao,
-            "data_registro": iso_utc(self.data_registro),
+            "id": c["id_atividade"],
+            "id_usuario": c["id_usuario"],
+            "tipo": c["tipo"],
+            "titulo": c["titulo"],
+            "descricao": c["descricao"],
+            "tempo_min": c["tempo_min"],
+            "distancia_km": float(c["distancia_km"]) if c["distancia_km"] is not None else None,
+            "carga_kg": float(c["carga_kg"]) if c["carga_kg"] is not None else None,
+            "repeticoes": c["repeticoes"],
+            "pontuacao": c["pontuacao"],
+            "data_registro": iso_utc(c["data_registro"]),
         }
+
+    def to_dict(self):
+        return self.formatar(self.campos())

@@ -16,11 +16,15 @@ class Postagem(ModeloBase):
     foto = db.Column(db.String(255))
     data_registro = db.Column(db.DateTime, nullable=False, default=agora)
 
-    def to_dict(self):
+    @staticmethod
+    def formatar(c):
         return {
-            "id": self.id_postagem,
-            "id_usuario": self.id_usuario,
-            "texto": self.texto,
-            "foto": self.foto,
-            "data_registro": iso_utc(self.data_registro),
+            "id": c["id_postagem"],
+            "id_usuario": c["id_usuario"],
+            "texto": c["texto"],
+            "foto": c["foto"],
+            "data_registro": iso_utc(c["data_registro"]),
         }
+
+    def to_dict(self):
+        return self.formatar(self.campos())
