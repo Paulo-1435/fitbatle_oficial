@@ -1,4 +1,3 @@
-from sqlalchemy.exc import IntegrityError
 from database import db
 from models.convite import Convite
 from models.grupo import Grupo
@@ -6,21 +5,6 @@ from models.usuario import Usuario
 
 
 class ConviteRepository:
-
-    @staticmethod
-    def criar(id_grupo, id_remetente, id_destinatario):
-        convite = Convite(id_grupo=id_grupo, id_remetente=id_remetente, id_destinatario=id_destinatario)
-        db.session.add(convite)
-        try:
-            db.session.commit()
-        except IntegrityError:
-            db.session.rollback()
-            return None
-        return convite
-
-    @staticmethod
-    def buscar_por_id(id_convite):
-        return db.session.get(Convite, id_convite)
 
     @staticmethod
     def buscar_pendente(id_grupo, id_destinatario):
@@ -42,9 +26,3 @@ class ConviteRepository:
     @staticmethod
     def contar_enviados_pendentes(id_usuario):
         return Convite.query.filter_by(id_remetente=id_usuario, status="pendente").count()
-
-    @staticmethod
-    def salvar(convite):
-        db.session.add(convite)
-        db.session.commit()
-        return convite

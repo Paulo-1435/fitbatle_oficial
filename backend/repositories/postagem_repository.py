@@ -1,26 +1,9 @@
-from database import db
 from models.postagem import Postagem
 from models.usuario import Usuario
 from repositories.apoio import clausula_maior_de_idade_ou_proprio
 
 
 class PostagemRepository:
-
-    @staticmethod
-    def buscar_por_id(id_postagem):
-        return db.session.get(Postagem, id_postagem)
-
-    @staticmethod
-    def criar(id_usuario, texto, foto):
-        postagem = Postagem(id_usuario=id_usuario, texto=texto, foto=foto)
-        db.session.add(postagem)
-        db.session.commit()
-        return postagem
-
-    @staticmethod
-    def excluir(postagem):
-        db.session.delete(postagem)
-        db.session.commit()
 
     @staticmethod
     def listar_publicas(limite, id_solicitante=None):

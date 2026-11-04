@@ -7,27 +7,8 @@ from models.usuario import Usuario
 class GrupoRepository:
 
     @staticmethod
-    def criar(nome, descricao, id_criador, codigo_convite):
-        grupo = Grupo(
-            nome=nome, descricao=descricao, id_criador=id_criador, codigo_convite=codigo_convite,
-        )
-        db.session.add(grupo)
-        db.session.commit()
-        return grupo
-
-    @staticmethod
-    def buscar_por_id(id_grupo):
-        return db.session.get(Grupo, id_grupo)
-
-    @staticmethod
     def buscar_por_codigo(codigo):
         return Grupo.query.filter_by(codigo_convite=codigo).first()
-
-    @staticmethod
-    def salvar(grupo):
-        db.session.add(grupo)
-        db.session.commit()
-        return grupo
 
     @staticmethod
     def listar_do_usuario(id_usuario):
@@ -47,13 +28,6 @@ class GrupoRepository:
     def papel_do_membro(id_grupo, id_usuario):
         membro = GrupoMembro.query.filter_by(id_grupo=id_grupo, id_usuario=id_usuario).first()
         return membro.papel if membro else None
-
-    @staticmethod
-    def adicionar_membro(id_grupo, id_usuario, papel="membro"):
-        membro = GrupoMembro(id_grupo=id_grupo, id_usuario=id_usuario, papel=papel)
-        db.session.add(membro)
-        db.session.commit()
-        return membro
 
     @staticmethod
     def listar_membros(id_grupo):

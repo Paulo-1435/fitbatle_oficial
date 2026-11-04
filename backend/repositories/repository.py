@@ -10,5 +10,4 @@ from repositories.convite_repository import ConviteRepository
 from repositories.meta_repository import MetaRepository
 from repositories.desafio_repository import DesafioRepository
 from repositories.desafio_usuario_repository import DesafioUsuarioRepository
-from repositories.compartilhamento_repository import CompartilhamentoRepository
 from repositories.notificacao_repository import NotificacaoRepository

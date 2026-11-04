@@ -1,13 +1,14 @@
+from models.meta import Meta
 from datetime import date, datetime
 
-from repositories.repository import AtividadeRepository, MetaRepository
+from repositories.repository import AtividadeRepository
 from services.comum import VALOR_OBJETIVO_MAXIMO, ErroValidacao, numero_decimal
 from services.notificacao.apoio import gerar_notificacao
 from utils import agora
 
 
 def buscar_meta(id_meta):
-    meta = MetaRepository.buscar_por_id(id_meta)
+    meta = Meta.buscar_por_id(id_meta)
     if not meta:
         raise ErroValidacao("Meta não encontrada.", status=404)
     return meta
@@ -57,7 +58,7 @@ def meta_com_progresso(meta):
     if meta.status == "em_andamento" and objetivo > 0 and atual >= objetivo:
         meta.status = "concluida"
         meta.concluida_em = agora()
-        MetaRepository.salvar(meta)
+        meta.salvar()
         gerar_notificacao(
             meta.id_usuario,
             "meta_concluida",

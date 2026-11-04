@@ -10,8 +10,7 @@ os.environ.setdefault("DB_URI", "sqlite:///" + CAMINHO_BANCO)
 
 from app import criar_app
 from database import db
-from models.model import Usuario
-from repositories.repository import AtividadeRepository, DesafioRepository, DesafioUsuarioRepository, UsuarioRepository
+from models.model import Atividade, Desafio, DesafioUsuario, Usuario
 from services import (
     AlternarCurtidaService,
     CadastrarUsuarioService,
@@ -119,15 +118,15 @@ def registrar_treinos_historicos(ids, hoje):
             dias_atras = treino.pop("dias_atras")
             dados = dict(treino)
             dados["pontuacao"] = calcular_pontuacao(dados)
-            atividade = AtividadeRepository.criar(uid, dados)
+            atividade = Atividade(id_usuario=uid, **dados).salvar()
             atividade.data_registro = inicio_utc_do_dia_local(hoje - timedelta(days=dias_atras)) + timedelta(hours=18)
             db.session.commit()
             xp += atividade.pontuacao
             primeira = primeira or atividade.id_atividade
-        usuario = UsuarioRepository.buscar_por_id(uid)
+        usuario = Usuario.buscar_por_id(uid)
         usuario.xp = xp
         usuario.nivel = nivel_por_xp(xp)
-        UsuarioRepository.salvar(usuario)
+        usuario.salvar()
     return primeira
 
 
@@ -172,7 +171,7 @@ def popular():
         "exercicio": "supino reto", "valor_objetivo": 120, "data_final": "2030-12-31",
     })
 
-    desafio = DesafioRepository.criar({
+    desafio = Desafio(**{
         "nome": "Desafio: 5 treinos nesta semana",
         "descricao": "Registre 5 treinos no período para ganhar 100 XP de bônus.",
         "exercicio": "livre",
@@ -181,8 +180,8 @@ def popular():
         "data_inicio": hoje - timedelta(days=3),
         "data_fim": hoje + timedelta(days=11),
         "recompensa_xp": 100,
-    })
-    DesafioUsuarioRepository.inscrever(desafio.id_desafio, ids[PRINCIPAL])
+    }).salvar()
+    DesafioUsuario(id_desafio=desafio.id_desafio, id_usuario=ids[PRINCIPAL], status="inscrito").salvar()
 
 
 def preparar():

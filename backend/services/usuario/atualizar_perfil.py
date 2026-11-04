@@ -11,7 +11,12 @@ from services.usuario.apoio import (
     e_maior_de_idade,
     validar_data_nascimento,
 )
-from utils import IDADE_MAIORIDADE
+from utils import IDADE_MAIORIDADE, ConflitoDeDados
+
+CAMPOS_EDITAVEIS = (
+    "nome", "email", "data_nascimento", "peso", "altura",
+    "cidade", "estado", "descricao",
+)
 
 CAMPOS_DO_RESPONSAVEL = (
     "responsavel",
@@ -100,7 +105,10 @@ class AtualizarPerfilService:
         if dados.get("altura") not in (None, ""):
             dados["altura"] = _validar_numero(dados["altura"], "altura", 0.5, 2.7)
 
-        atualizado = UsuarioRepository.atualizar(usuario, dados)
-        if atualizado is None:
+        campos = {campo: dados[campo] for campo in CAMPOS_EDITAVEIS if dados.get(campo) is not None}
+        if dados.get("senha"):
+            campos["senha"] = dados["senha"]
+        try:
+            return usuario.atualizar(campos)
+        except ConflitoDeDados:
             raise ErroValidacao("E-mail já cadastrado.", status=409)
-        return atualizado

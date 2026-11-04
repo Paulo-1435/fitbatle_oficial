@@ -25,12 +25,6 @@ def escapar_like(termo):
     return termo.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
 
 
-CAMPOS_EDITAVEIS = (
-    "nome", "email", "data_nascimento", "peso", "altura",
-    "cidade", "estado", "descricao",
-)
-
-
 def linha_ranking(linha):
     if linha is None:
         return None

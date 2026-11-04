@@ -1,6 +1,9 @@
 from datetime import datetime, timedelta
 
-from repositories.repository import AtividadeRepository, DesafioRepository, DesafioUsuarioRepository, UsuarioRepository
+from models.desafio import Desafio
+from models.desafio_usuario import DesafioUsuario
+from models.usuario import Usuario
+from repositories.repository import AtividadeRepository
 from services.comum import VALOR_OBJETIVO_MAXIMO, ErroValidacao, numero_decimal, texto_do_cliente
 from services.notificacao.apoio import gerar_notificacao
 from services.usuario.apoio import buscar_usuario
@@ -13,7 +16,7 @@ RECOMPENSA_XP_MAXIMA = 100000
 
 
 def buscar_desafio(id_desafio):
-    desafio = DesafioRepository.buscar_por_id(id_desafio)
+    desafio = Desafio.buscar_por_id(id_desafio)
     if not desafio:
         raise ErroValidacao("Desafio não encontrado.", status=404)
     return desafio
@@ -42,29 +45,30 @@ def avaliar_conclusao(desafio, inscricao):
     if objetivo <= 0 or atual < objetivo:
         return
 
-    inscricao.status = "concluido"
-    inscricao.concluido_em = agora()
-    DesafioUsuarioRepository.salvar(inscricao)
+    with Usuario.transacao():
+        inscricao.status = "concluido"
+        inscricao.concluido_em = agora()
+        inscricao.salvar()
 
-    if desafio.recompensa_xp:
-        from services.atividade.apoio import nivel_por_xp
+        if desafio.recompensa_xp:
+            from services.atividade.apoio import nivel_por_xp
 
-        usuario = buscar_usuario(inscricao.id_usuario)
-        usuario.xp += desafio.recompensa_xp
-        usuario.nivel = nivel_por_xp(usuario.xp)
-        UsuarioRepository.salvar(usuario)
+            usuario = buscar_usuario(inscricao.id_usuario)
+            usuario.xp += desafio.recompensa_xp
+            usuario.nivel = nivel_por_xp(usuario.xp)
+            usuario.salvar()
 
-    gerar_notificacao(
-        inscricao.id_usuario,
-        "desafio_concluido",
-        f"Você concluiu o desafio \"{desafio.nome}\"!",
-        tipo_alvo="desafio",
-        id_alvo=desafio.id_desafio,
-    )
+        gerar_notificacao(
+            inscricao.id_usuario,
+            "desafio_concluido",
+            f"Você concluiu o desafio \"{desafio.nome}\"!",
+            tipo_alvo="desafio",
+            id_alvo=desafio.id_desafio,
+        )
 
 
 def desafio_com_progresso(desafio, id_usuario):
-    inscricao = DesafioUsuarioRepository.buscar(desafio.id_desafio, id_usuario)
+    inscricao = DesafioUsuario.buscar_por_id((desafio.id_desafio, id_usuario))
     if inscricao:
         avaliar_conclusao(desafio, inscricao)
 

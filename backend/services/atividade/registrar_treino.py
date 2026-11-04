@@ -1,4 +1,6 @@
-from repositories.repository import AtividadeRepository, RankingRepository, UsuarioRepository
+from models.atividade import Atividade
+from models.usuario import Usuario
+from repositories.repository import RankingRepository
 from services.atividade.apoio import (
     calcular_pontuacao,
     eh_recorde_pessoal,
@@ -42,14 +44,16 @@ class RegistrarTreinoService:
         recorde = eh_recorde_pessoal(id_usuario, limpos, maior_carga_do_exercicio(id_usuario, limpos))
         if recorde:
             marcar_recorde(limpos)
-        atividade = AtividadeRepository.criar(id_usuario, limpos)
 
-        usuario.xp += atividade.pontuacao
-        usuario.nivel = nivel_por_xp(usuario.xp)
-        UsuarioRepository.salvar(usuario)
+        with Usuario.transacao():
+            atividade = Atividade(id_usuario=id_usuario, **limpos).salvar()
 
-        _notificar_subida_no_ranking(id_usuario, posicao_antes)
-        AvaliarDesafiosDoUsuarioService.executar(id_usuario)
-        AvisarMedalhasNovasService.executar(id_usuario, medalhas_antes)
+            usuario.xp += atividade.pontuacao
+            usuario.nivel = nivel_por_xp(usuario.xp)
+            usuario.salvar()
+
+            _notificar_subida_no_ranking(id_usuario, posicao_antes)
+            AvaliarDesafiosDoUsuarioService.executar(id_usuario)
+            AvisarMedalhasNovasService.executar(id_usuario, medalhas_antes)
 
         return atividade, usuario, recorde

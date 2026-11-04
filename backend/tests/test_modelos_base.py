@@ -1,8 +1,6 @@
 import unittest
 from datetime import date
 
-from sqlalchemy.exc import IntegrityError
-
 from database import db
 from models.model import (
     Atividade,
@@ -21,6 +19,7 @@ from models.model import (
     Usuario,
 )
 from tests.test_seguranca import BaseTeste
+from utils import ConflitoDeDados
 
 FABRICAS = {
     Usuario: (
@@ -175,7 +174,7 @@ class TestModeloBase(BaseTeste):
 
     def test_erro_de_banco_faz_rollback_e_relanca(self):
         postagem_sem_texto = Postagem(id_usuario=self.uid)
-        with self.assertRaises(IntegrityError):
+        with self.assertRaises(ConflitoDeDados):
             postagem_sem_texto.salvar()
         self.assertIsNotNone(Usuario.buscar_por_id(self.uid))
         self.assertEqual(Postagem.listar_todos(), [])

@@ -1,4 +1,3 @@
-from repositories.repository import UsuarioRepository
 from services.comum import ErroValidacao, salvar_imagem
 from services.usuario.apoio import buscar_usuario
 
@@ -15,4 +14,4 @@ class AtualizarFotoPerfilService:
         usuario.foto = salvar_imagem(
             arquivo, pasta_destino, f"usuario_{id_usuario}", apagar_existentes=True
         )
-        return UsuarioRepository.salvar(usuario)
+        return usuario.salvar()

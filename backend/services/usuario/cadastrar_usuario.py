@@ -2,10 +2,12 @@ import re
 
 from werkzeug.security import generate_password_hash
 
+from models.usuario import Usuario
 from repositories.repository import UsuarioRepository
 from services.comum import ErroValidacao, senha_do_cliente, texto_do_cliente
 from services.privacidade.apoio import registrar_consentimentos_iniciais
 from services.usuario.apoio import EMAIL_REGEX, validar_data_nascimento, validar_faixa_etaria
+from utils import ConflitoDeDados
 
 
 def _validar(dados):
@@ -57,8 +59,10 @@ class CadastrarUsuarioService:
         limpos["perfil_publico"] = bool(consentimentos.get("ranking_publico", True))
 
         limpos["senha"] = generate_password_hash(limpos["senha"])
-        usuario = UsuarioRepository.criar(limpos)
-        if usuario is None:
-            raise ErroValidacao("E-mail já cadastrado.", status=409)
-        registrar_consentimentos_iniciais(usuario.id_usuario, consentimentos)
+        with Usuario.transacao():
+            try:
+                usuario = Usuario(**limpos).salvar()
+            except ConflitoDeDados:
+                raise ErroValidacao("E-mail já cadastrado.", status=409)
+            registrar_consentimentos_iniciais(usuario.id_usuario, consentimentos)
         return usuario

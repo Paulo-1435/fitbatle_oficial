@@ -1,4 +1,6 @@
-from repositories.repository import ConsentimentoRepository, UsuarioRepository
+from models.consentimento import Consentimento
+from models.usuario import Usuario
+from repositories.repository import ConsentimentoRepository
 from services.comum import ErroValidacao
 from services.privacidade.apoio import CONSENTIMENTOS_OBRIGATORIOS, CONSENTIMENTOS_OPCIONAIS
 from services.usuario.apoio import buscar_usuario
@@ -25,13 +27,14 @@ class AtualizarConsentimentoService:
         if not registro:
             raise ErroValidacao("Consentimento não encontrado.", status=404)
 
-        registro.aceito = bool(aceito)
-        registro.data_atualizacao = agora()
-        ConsentimentoRepository.salvar(registro)
+        with Consentimento.transacao():
+            registro.aceito = bool(aceito)
+            registro.data_atualizacao = agora()
+            registro.salvar()
 
-        if chave == "ranking_publico":
-            usuario = UsuarioRepository.buscar_por_id(id_usuario)
-            usuario.perfil_publico = registro.aceito
-            UsuarioRepository.salvar(usuario)
+            if chave == "ranking_publico":
+                usuario = Usuario.buscar_por_id(id_usuario)
+                usuario.perfil_publico = registro.aceito
+                usuario.salvar()
 
         return registro

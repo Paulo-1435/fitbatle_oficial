@@ -2,7 +2,7 @@ import os
 import smtplib
 from email.message import EmailMessage
 
-from repositories.repository import UsuarioRepository
+from models.usuario import Usuario
 
 
 class EnviarEmailService:
@@ -12,7 +12,7 @@ class EnviarEmailService:
         host = os.environ.get("SMTP_HOST")
         if not host:
             return False
-        usuario = UsuarioRepository.buscar_por_id(id_usuario)
+        usuario = Usuario.buscar_por_id(id_usuario)
         if not usuario or not usuario.email:
             return False
         try:

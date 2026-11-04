@@ -1,4 +1,3 @@
-from repositories.repository import DesafioRepository
 from services.comum import ErroValidacao, texto_do_cliente
 from services.desafio.apoio import (
     DESCRICAO_MAX,
@@ -45,5 +44,5 @@ class AtualizarDesafioService:
         if desafio.data_fim < desafio.data_inicio:
             raise ErroValidacao("A data de fim não pode ser antes da data de início.")
 
-        DesafioRepository.salvar(desafio)
+        desafio.salvar()
         return dict_admin_desafio(desafio)

@@ -1,8 +1,10 @@
+from models.curtida import Curtida
 from repositories.repository import CurtidaRepository
 from services.comum import ErroValidacao
 from services.feed.apoio import buscar_alvo
 from services.notificacao.apoio import gerar_notificacao
 from services.usuario.apoio import buscar_usuario
+from utils import ConflitoDeDados
 
 
 class AlternarCurtidaService:
@@ -16,10 +18,13 @@ class AlternarCurtidaService:
 
         existente = CurtidaRepository.buscar(id_usuario, tipo_alvo, id_alvo)
         if existente:
-            CurtidaRepository.descurtir(existente)
+            existente.deletar()
             curti = False
         else:
-            CurtidaRepository.curtir(id_usuario, tipo_alvo, id_alvo)
+            try:
+                Curtida(id_usuario=id_usuario, tipo_alvo=tipo_alvo, id_alvo=id_alvo).salvar()
+            except ConflitoDeDados:
+                pass
             curti = True
             if alvo.id_usuario != id_usuario:
                 rotulo = "treino" if tipo_alvo == "atividade" else "postagem"

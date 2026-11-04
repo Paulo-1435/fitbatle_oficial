@@ -2,7 +2,7 @@ import os
 import re
 from datetime import date, datetime
 
-from repositories.repository import UsuarioRepository
+from models.usuario import Usuario
 from services.comum import ErroValidacao, texto_do_cliente
 from utils import IDADE_MAIORIDADE, agora, calcular_idade
 
@@ -12,7 +12,7 @@ IDADE_MAXIMA_PLAUSIVEL = 120
 
 
 def buscar_usuario(id_usuario):
-    usuario = UsuarioRepository.buscar_por_id(id_usuario)
+    usuario = Usuario.buscar_por_id(id_usuario)
     if not usuario:
         raise ErroValidacao("Usuário não encontrado.", status=404)
     return usuario

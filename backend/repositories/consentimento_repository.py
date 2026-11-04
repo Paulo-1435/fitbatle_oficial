@@ -1,4 +1,3 @@
-from database import db
 from models.consentimento import Consentimento
 
 
@@ -15,16 +14,3 @@ class ConsentimentoRepository:
     @staticmethod
     def buscar(id_usuario, chave):
         return Consentimento.query.filter_by(id_usuario=id_usuario, chave=chave).first()
-
-    @staticmethod
-    def criar_varios(id_usuario, registros):
-        objetos = [Consentimento(id_usuario=id_usuario, **r) for r in registros]
-        db.session.add_all(objetos)
-        db.session.commit()
-        return objetos
-
-    @staticmethod
-    def salvar(consentimento):
-        db.session.add(consentimento)
-        db.session.commit()
-        return consentimento

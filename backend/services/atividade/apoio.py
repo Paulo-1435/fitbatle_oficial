@@ -1,3 +1,4 @@
+from models.atividade import Atividade
 from repositories.repository import AtividadeRepository
 from services.comum import ErroValidacao, numero_decimal, texto_do_cliente
 from utils import agora, data_local, inicio_utc_do_dia_local
@@ -137,7 +138,7 @@ def marcar_recorde(limpos):
 
 
 def buscar_atividade(id_atividade):
-    atividade = AtividadeRepository.buscar_por_id(id_atividade)
+    atividade = Atividade.buscar_por_id(id_atividade)
     if not atividade:
         raise ErroValidacao("Atividade não encontrada.", status=404)
     return atividade

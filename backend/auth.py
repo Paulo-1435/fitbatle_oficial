@@ -72,11 +72,11 @@ def _nao_autenticado():
 def protegido(view, dono=False):
     @wraps(view)
     def envolvida(*args, **kwargs):
-        from repositories.repository import UsuarioRepository
+        from models.usuario import Usuario
 
         token = _token_do_cabecalho()
         dados = ler_token(token) if token else None
-        usuario = UsuarioRepository.buscar_por_id(dados["id"]) if dados else None
+        usuario = Usuario.buscar_por_id(dados["id"]) if dados else None
         if usuario is None or dados.get("s") != fragmento_da_senha(usuario.senha):
             return _nao_autenticado()
 

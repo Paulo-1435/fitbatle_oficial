@@ -1,9 +1,9 @@
+from models.usuario import Usuario
 from repositories.repository import (
     AtividadeRepository,
     ComentarioRepository,
     CurtidaRepository,
     PostagemRepository,
-    UsuarioRepository,
 )
 
 
@@ -54,7 +54,7 @@ class ListarFeedService:
 
         ids_donos = {i["id_usuario"] for i in itens}
         donos = {
-            uid: UsuarioRepository.buscar_por_id(uid)
+            uid: Usuario.buscar_por_id(uid)
             for uid in ids_donos
         }
 

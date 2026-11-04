@@ -1,4 +1,4 @@
-from repositories.repository import ComentarioRepository
+from models.comentario import Comentario
 from services.comum import ErroValidacao, texto_do_cliente
 from services.feed.apoio import buscar_alvo
 from services.notificacao.apoio import gerar_notificacao
@@ -24,7 +24,9 @@ class CriarComentarioService:
                 f"O comentário pode ter no máximo {CriarComentarioService.TEXTO_MAX} caracteres."
             )
 
-        comentario = ComentarioRepository.criar(id_usuario, tipo_alvo, id_alvo, texto)
+        comentario = Comentario(
+            id_usuario=id_usuario, tipo_alvo=tipo_alvo, id_alvo=id_alvo, texto=texto,
+        ).salvar()
 
         if alvo.id_usuario != id_usuario:
             rotulo = "treino" if tipo_alvo == "atividade" else "postagem"

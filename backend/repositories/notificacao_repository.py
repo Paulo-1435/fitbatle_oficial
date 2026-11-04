@@ -1,21 +1,8 @@
-from database import db
+from models.base import efetivar
 from models.notificacao import Notificacao
 
 
 class NotificacaoRepository:
-
-    @staticmethod
-    def criar(id_usuario, tipo, mensagem, tipo_alvo, id_alvo):
-        notificacao = Notificacao(
-            id_usuario=id_usuario,
-            tipo=tipo,
-            mensagem=mensagem,
-            tipo_alvo=tipo_alvo,
-            id_alvo=id_alvo,
-        )
-        db.session.add(notificacao)
-        db.session.commit()
-        return notificacao
 
     @staticmethod
     def existe(id_usuario, tipo, mensagem):
@@ -35,15 +22,6 @@ class NotificacaoRepository:
         return Notificacao.query.filter_by(id_usuario=id_usuario, lida=False).count()
 
     @staticmethod
-    def buscar_por_id(id_notificacao):
-        return db.session.get(Notificacao, id_notificacao)
-
-    @staticmethod
-    def marcar_lida(notificacao):
-        notificacao.lida = True
-        db.session.commit()
-
-    @staticmethod
     def marcar_todas_lidas(id_usuario):
         Notificacao.query.filter_by(id_usuario=id_usuario, lida=False).update({"lida": True})
-        db.session.commit()
+        efetivar()

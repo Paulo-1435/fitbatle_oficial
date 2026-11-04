@@ -1,4 +1,5 @@
-from repositories.repository import NotificacaoRepository, UsuarioRepository
+from models.usuario import Usuario
+from repositories.repository import NotificacaoRepository
 from services.medalha.apoio import medalhas_do_usuario
 from services.notificacao.apoio import gerar_notificacao
 
@@ -7,7 +8,7 @@ class AvisarMedalhasNovasService:
 
     @staticmethod
     def executar(id_usuario, chaves_antes):
-        usuario = UsuarioRepository.buscar_por_id(id_usuario)
+        usuario = Usuario.buscar_por_id(id_usuario)
         for medalha in medalhas_do_usuario(usuario):
             if not medalha["conquistada"] or medalha["chave"] in chaves_antes:
                 continue

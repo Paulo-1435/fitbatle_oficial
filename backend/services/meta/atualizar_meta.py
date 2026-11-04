@@ -1,4 +1,3 @@
-from repositories.repository import MetaRepository
 from services.comum import ErroValidacao, texto_do_cliente
 from services.meta.apoio import exigir_dono_meta, meta_com_progresso, validar_data_meta, validar_numero_meta
 
@@ -20,5 +19,5 @@ class AtualizarMetaService:
         if "data_final" in dados:
             meta.data_final = validar_data_meta(dados["data_final"]) if dados["data_final"] else None
 
-        MetaRepository.salvar(meta)
+        meta.salvar()
         return meta_com_progresso(meta)

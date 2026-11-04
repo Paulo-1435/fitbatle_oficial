@@ -1,6 +1,7 @@
 from datetime import date
 
-from repositories.repository import AtividadeRepository, MetaRepository
+from models.meta import Meta
+from repositories.repository import AtividadeRepository
 from services.comum import ErroValidacao, texto_do_cliente
 from services.meta.apoio import meta_com_progresso, validar_data_meta, validar_numero_meta
 
@@ -49,7 +50,7 @@ class CriarMetaService:
             if data_final_convertida < date.today():
                 raise ErroValidacao("O prazo da meta não pode ser uma data no passado.")
 
-        meta = MetaRepository.criar({
+        meta = Meta(**{
             "id_usuario": id_usuario,
             "descricao": titulo,
             "tipo": tipo,
@@ -60,5 +61,5 @@ class CriarMetaService:
             "data_inicio": date.today(),
             "data_final": data_final_convertida,
             "status": "em_andamento",
-        })
+        }).salvar()
         return meta_com_progresso(meta)

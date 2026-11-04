@@ -1,3 +1,4 @@
+from models.grupo import Grupo
 import secrets
 import string
 
@@ -8,7 +9,7 @@ CODIGO_CONVITE_ALFABETO = string.ascii_uppercase + string.digits
 
 
 def buscar_grupo(id_grupo):
-    grupo = GrupoRepository.buscar_por_id(id_grupo)
+    grupo = Grupo.buscar_por_id(id_grupo)
     if not grupo:
         raise ErroValidacao("Grupo não encontrado.", status=404)
     return grupo

@@ -4,6 +4,10 @@ FUSO_LOCAL = timezone(timedelta(hours=-3))
 IDADE_MAIORIDADE = 18
 
 
+class ConflitoDeDados(Exception):
+    pass
+
+
 def agora():
     return datetime.now(timezone.utc)
 

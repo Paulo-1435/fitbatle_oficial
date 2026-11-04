@@ -7,7 +7,8 @@ os.environ["DB_URI"] = "sqlite:///:memory:"
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from database import db
-from repositories.repository import AtividadeRepository, UsuarioRepository
+from models.atividade import Atividade
+from models.usuario import Usuario
 from tests.test_seguranca import BaseTeste
 from utils import inicio_utc_do_dia_local
 
@@ -37,18 +38,18 @@ class BaseMedalhas(BaseTeste):
 
     def registrar_em(self, usuario, dia, distancia=None, hora=18.0):
         with self.app.app_context():
-            atividade = AtividadeRepository.criar(usuario["id"], {
+            atividade = Atividade(id_usuario=usuario["id"], **{
                 "tipo": "cardio", "titulo": "Corrida teste", "descricao": None,
                 "tempo_min": 20, "distancia_km": distancia, "carga_kg": None,
                 "repeticoes": None, "pontuacao": 20,
-            })
+            }).salvar()
             atividade.data_registro = inicio_utc_do_dia_local(dia) + timedelta(hours=hora)
             db.session.commit()
             return atividade.id_atividade
 
     def definir_xp(self, usuario, xp):
         with self.app.app_context():
-            registro = UsuarioRepository.buscar_por_id(usuario["id"])
+            registro = Usuario.buscar_por_id(usuario["id"])
             registro.xp = xp
             db.session.commit()
 
@@ -150,13 +151,13 @@ class TestCalculoDasMedalhas(BaseMedalhas):
         dia = self.hoje() - timedelta(days=4)
         with self.app.app_context():
             for i in range(60):
-                atividade = AtividadeRepository.criar(self.ana["id"], {
+                atividade = Atividade(id_usuario=self.ana["id"], **{
                     "tipo": "cardio", "titulo": "Corrida", "descricao": None, "tempo_min": 20,
                     "distancia_km": None, "carga_kg": None, "repeticoes": None, "pontuacao": 20,
-                })
+                }).salvar()
                 atividade.data_registro = inicio_utc_do_dia_local(dia + timedelta(days=i // 30)) + timedelta(hours=18)
             db.session.commit()
-            UsuarioRepository.buscar_por_id(self.ana["id"]).xp = 1200
+            Usuario.buscar_por_id(self.ana["id"]).xp = 1200
             db.session.commit()
         medalha = self.minhas(self.ana)["categoria_intermediario"]
         self.assertTrue(medalha["conquistada"])

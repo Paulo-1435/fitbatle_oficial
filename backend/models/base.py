@@ -1,4 +1,17 @@
+from contextlib import contextmanager
+
+from sqlalchemy.exc import IntegrityError
+
 from database import db
+from utils import ConflitoDeDados
+
+
+def efetivar():
+    if db.session.info.get("transacao"):
+        db.session.flush()
+        db.session.expire_all()
+    else:
+        db.session.commit()
 
 
 class ModeloBase(db.Model):
@@ -26,10 +39,29 @@ class ModeloBase(db.Model):
     def buscar_por_id(cls, chave):
         return db.session.get(cls, chave)
 
+    @staticmethod
+    @contextmanager
+    def transacao():
+        if db.session.info.get("transacao"):
+            yield
+            return
+        db.session.info["transacao"] = True
+        try:
+            yield
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            raise
+        finally:
+            db.session.info["transacao"] = False
+
     def _confirmar(self, operacao):
         try:
             operacao()
-            db.session.commit()
+            efetivar()
+        except IntegrityError as erro:
+            db.session.rollback()
+            raise ConflitoDeDados() from erro
         except Exception:
             db.session.rollback()
             raise

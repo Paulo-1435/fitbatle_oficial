@@ -1,4 +1,4 @@
-from repositories.repository import DesafioRepository
+from models.desafio import Desafio
 from services.comum import ErroValidacao, texto_do_cliente
 from services.desafio.apoio import (
     DESCRICAO_MAX,
@@ -19,7 +19,7 @@ class CriarDesafioService:
     def executar(id_usuario, dados):
         exigir_admin(id_usuario)
         limpos = CriarDesafioService._validar(dados or {})
-        desafio = DesafioRepository.criar(limpos)
+        desafio = Desafio(**limpos).salvar()
         return dict_admin_desafio(desafio)
 
     @staticmethod

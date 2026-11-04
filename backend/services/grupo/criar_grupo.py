@@ -1,4 +1,5 @@
-from repositories.repository import GrupoRepository
+from models.grupo import Grupo
+from models.grupo_membro import GrupoMembro
 from services.comum import ErroValidacao, texto_do_cliente
 from services.grupo.apoio import gerar_codigo_convite
 
@@ -22,6 +23,9 @@ class CriarGrupoService:
             raise ErroValidacao(f"A descrição pode ter no máximo {CriarGrupoService.DESCRICAO_MAX} caracteres.")
 
         codigo = gerar_codigo_convite()
-        grupo = GrupoRepository.criar(nome, descricao, id_usuario, codigo)
-        GrupoRepository.adicionar_membro(grupo.id_grupo, id_usuario, "admin")
+        with Grupo.transacao():
+            grupo = Grupo(
+                nome=nome, descricao=descricao, id_criador=id_usuario, codigo_convite=codigo,
+            ).salvar()
+            GrupoMembro(id_grupo=grupo.id_grupo, id_usuario=id_usuario, papel="admin").salvar()
         return grupo

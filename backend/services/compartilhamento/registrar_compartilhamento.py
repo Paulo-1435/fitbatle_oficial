@@ -1,9 +1,9 @@
-from repositories.repository import (
-    AtividadeRepository,
-    CompartilhamentoRepository,
-    ConsentimentoRepository,
-    MetaRepository,
-)
+from models.atividade import Atividade
+from models.meta import Meta
+from models.atividade import Atividade
+from models.compartilhamento import Compartilhamento
+from models.meta import Meta
+from repositories.repository import ConsentimentoRepository
 from services.comum import ErroValidacao, inteiro_do_cliente, texto_do_cliente
 from services.medalha.listar_medalhas import ListarMedalhasService
 
@@ -39,7 +39,7 @@ class RegistrarCompartilhamentoService:
             if not id_atividade:
                 raise ErroValidacao("Informe a atividade a compartilhar.")
             id_atividade = inteiro_do_cliente(id_atividade, "id_atividade")
-            atividade = AtividadeRepository.buscar_por_id(id_atividade)
+            atividade = Atividade.buscar_por_id(id_atividade)
             if not atividade:
                 raise ErroValidacao("Atividade não encontrada.", status=404)
             if atividade.id_usuario != id_usuario:
@@ -54,20 +54,22 @@ class RegistrarCompartilhamentoService:
                 raise ErroValidacao("Medalha não encontrada.", status=404)
             if not encontrada["conquistada"]:
                 raise ErroValidacao("Esta medalha ainda não foi conquistada.")
-            return CompartilhamentoRepository.criar(
-                id_usuario, tipo_conteudo, None, None, rede_social, chave_medalha
-            )
+            return Compartilhamento(
+                id_usuario=id_usuario, tipo_conteudo=tipo_conteudo, rede_social=rede_social,
+                chave_medalha=chave_medalha,
+            ).salvar()
         else:
             id_meta = dados.get("id_meta")
             if not id_meta:
                 raise ErroValidacao("Informe a meta a compartilhar.")
             id_meta = inteiro_do_cliente(id_meta, "id_meta")
-            meta = MetaRepository.buscar_por_id(id_meta)
+            meta = Meta.buscar_por_id(id_meta)
             if not meta:
                 raise ErroValidacao("Meta não encontrada.", status=404)
             if meta.id_usuario != id_usuario:
                 raise ErroValidacao("Você só pode compartilhar as suas próprias metas.", status=403)
 
-        return CompartilhamentoRepository.criar(
-            id_usuario, tipo_conteudo, id_atividade, id_meta, rede_social
-        )
+        return Compartilhamento(
+            id_usuario=id_usuario, tipo_conteudo=tipo_conteudo, id_atividade=id_atividade,
+            id_meta=id_meta, rede_social=rede_social,
+        ).salvar()

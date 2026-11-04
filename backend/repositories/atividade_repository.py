@@ -16,32 +16,6 @@ class AtividadeRepository:
         )
 
     @staticmethod
-    def buscar_por_id(id_atividade):
-        return db.session.get(Atividade, id_atividade)
-
-    @staticmethod
-    def criar(id_usuario, dados):
-        atividade = Atividade(
-            id_usuario=id_usuario,
-            tipo=dados["tipo"],
-            titulo=dados.get("titulo"),
-            descricao=dados.get("descricao"),
-            tempo_min=dados.get("tempo_min"),
-            distancia_km=dados.get("distancia_km"),
-            carga_kg=dados.get("carga_kg"),
-            repeticoes=dados.get("repeticoes"),
-            pontuacao=dados["pontuacao"],
-        )
-        db.session.add(atividade)
-        db.session.commit()
-        return atividade
-
-    @staticmethod
-    def excluir(atividade):
-        db.session.delete(atividade)
-        db.session.commit()
-
-    @staticmethod
     def listar_publicas(limite, id_solicitante=None):
         return (
             Atividade.query.join(Usuario, Atividade.id_usuario == Usuario.id_usuario)

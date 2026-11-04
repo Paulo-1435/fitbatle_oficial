@@ -23,6 +23,30 @@ def _nomes_importados(caminho):
     return nomes
 
 
+def _arquivos_py_do_backend():
+    arquivos = []
+    for raiz, pastas, nomes in os.walk(RAIZ):
+        pastas[:] = [p for p in pastas if p != "__pycache__"]
+        for nome in nomes:
+            if nome.endswith(".py"):
+                arquivos.append(os.path.join(raiz, nome))
+    return sorted(arquivos)
+
+
+def _usa_db_session(caminho):
+    with open(caminho, "r", encoding="utf-8") as arquivo:
+        arvore = ast.parse(arquivo.read(), filename=caminho)
+    for nodo in ast.walk(arvore):
+        if (
+            isinstance(nodo, ast.Attribute)
+            and nodo.attr == "session"
+            and isinstance(nodo.value, ast.Name)
+            and nodo.value.id == "db"
+        ):
+            return True
+    return False
+
+
 def _arquivos_py(pasta):
     caminho_pasta = os.path.join(RAIZ, pasta)
     arquivos = []
@@ -112,13 +136,30 @@ def _classe_e_metodo_do_caso_de_uso(caminho):
 
 class TestArquiteturaEmCamadas(unittest.TestCase):
 
-    def test_services_nao_importam_database_models_ou_sqlalchemy(self):
-        proibidos = ("database", "models", "sqlalchemy")
+    def test_services_nao_importam_database_ou_sqlalchemy(self):
+        proibidos = ("database", "sqlalchemy")
         for caminho in _arquivos_py("services"):
             for nome in _nomes_importados(caminho):
                 self.assertFalse(
                     _comeca_com(nome, proibidos),
                     f"{caminho} importa '{nome}', proibido para a camada de services",
+                )
+
+    def test_fora_de_models_e_repositories_ninguem_importa_sqlalchemy_nem_usa_db_session(self):
+        pastas_permitidas = {"models", "repositories", "tests"}
+        for caminho in _arquivos_py_do_backend():
+            relativo = os.path.relpath(caminho, RAIZ).split(os.sep)
+            if relativo[0] in pastas_permitidas:
+                continue
+            with self.subTest(arquivo=caminho):
+                for nome in _nomes_importados(caminho):
+                    self.assertFalse(
+                        _comeca_com(nome, ("sqlalchemy",)),
+                        f"{caminho} importa '{nome}', só models/ e repositories/ acessam SQLAlchemy",
+                    )
+                self.assertFalse(
+                    _usa_db_session(caminho),
+                    f"{caminho} usa db.session, só models/ e repositories/ acessam a sessão",
                 )
 
     def test_controllers_nao_importam_repositories_ou_models(self):
@@ -293,6 +334,51 @@ class TestUmaClassePorArquivoEmRepositories(unittest.TestCase):
     def test_repository_py_e_apoio_nao_definem_repository(self):
         self.assertEqual(_classes_do_modulo(os.path.join(RAIZ, "repositories", "repository.py")), [])
         self.assertEqual(_classes_do_modulo(os.path.join(RAIZ, "repositories", "apoio.py")), [])
+
+
+METODOS_DE_CRUD_SIMPLES = {
+    "criar", "criar_varios", "buscar_por_id", "salvar", "atualizar", "excluir",
+    "inscrever", "adicionar_membro", "curtir", "descurtir", "marcar_lida", "listar_todos",
+}
+
+OPERACOES_DIRETAS_NA_SESSAO = {"add", "add_all", "delete", "commit", "rollback", "flush"}
+
+
+class TestRepositoriesSemCrudSimples(unittest.TestCase):
+
+    def test_repositories_nao_definem_crud_simples(self):
+        for caminho in _arquivos_py("repositories"):
+            nome = os.path.basename(caminho)
+            if nome in ARQUIVOS_DE_APOIO_EM_REPOSITORIES:
+                continue
+            for classe in _classes_do_modulo(caminho):
+                metodos = {
+                    nodo.name for nodo in classe.body
+                    if isinstance(nodo, (ast.FunctionDef, ast.AsyncFunctionDef))
+                }
+                with self.subTest(arquivo=nome):
+                    self.assertFalse(
+                        metodos & METODOS_DE_CRUD_SIMPLES,
+                        f"{nome} define CRUD simples: {sorted(metodos & METODOS_DE_CRUD_SIMPLES)}; "
+                        "use os métodos de ModeloBase",
+                    )
+
+    def test_repositories_nao_gravam_direto_na_sessao(self):
+        for caminho in _arquivos_py("repositories"):
+            nome = os.path.basename(caminho)
+            with open(caminho, "r", encoding="utf-8") as arquivo:
+                arvore = ast.parse(arquivo.read(), filename=caminho)
+            for nodo in ast.walk(arvore):
+                if (
+                    isinstance(nodo, ast.Attribute)
+                    and nodo.attr in OPERACOES_DIRETAS_NA_SESSAO
+                    and isinstance(nodo.value, ast.Attribute)
+                    and nodo.value.attr == "session"
+                ):
+                    self.fail(
+                        f"{nome} chama db.session.{nodo.attr}; grave pelos métodos de ModeloBase "
+                        "ou use efetivar() de models.base"
+                    )
 
 
 if __name__ == "__main__":

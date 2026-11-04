@@ -1,6 +1,6 @@
 from sqlalchemy import func
-from sqlalchemy.exc import IntegrityError
 from database import db
+from models.base import efetivar
 from models.curtida import Curtida
 
 
@@ -11,22 +11,6 @@ class CurtidaRepository:
         return Curtida.query.filter_by(
             id_usuario=id_usuario, tipo_alvo=tipo_alvo, id_alvo=id_alvo
         ).first()
-
-    @staticmethod
-    def curtir(id_usuario, tipo_alvo, id_alvo):
-        curtida = Curtida(id_usuario=id_usuario, tipo_alvo=tipo_alvo, id_alvo=id_alvo)
-        db.session.add(curtida)
-        try:
-            db.session.commit()
-        except IntegrityError:
-            db.session.rollback()
-            return None
-        return curtida
-
-    @staticmethod
-    def descurtir(curtida):
-        db.session.delete(curtida)
-        db.session.commit()
 
     @staticmethod
     def contar(tipo_alvo, id_alvo):
@@ -62,9 +46,9 @@ class CurtidaRepository:
     @staticmethod
     def excluir_do_alvo(tipo_alvo, id_alvo):
         Curtida.query.filter_by(tipo_alvo=tipo_alvo, id_alvo=id_alvo).delete()
-        db.session.commit()
+        efetivar()
 
     @staticmethod
     def excluir_do_usuario(id_usuario):
         Curtida.query.filter_by(id_usuario=id_usuario).delete()
-        db.session.commit()
+        efetivar()

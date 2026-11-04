@@ -1,4 +1,4 @@
-from repositories.repository import ConsentimentoRepository
+from models.consentimento import Consentimento
 
 CONSENTIMENTOS_OBRIGATORIOS = {
     "conta_autenticacao": "Criar, autenticar e manter a minha conta",
@@ -35,4 +35,5 @@ def registrar_consentimentos_iniciais(id_usuario, escolhas):
             "aceito": bool(escolhas.get(chave, True)),
         })
 
-    return ConsentimentoRepository.criar_varios(id_usuario, registros)
+    with Consentimento.transacao():
+        return [Consentimento(id_usuario=id_usuario, **registro).salvar() for registro in registros]

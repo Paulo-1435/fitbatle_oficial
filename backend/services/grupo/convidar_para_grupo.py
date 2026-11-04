@@ -1,8 +1,10 @@
-from repositories.repository import ConviteRepository, GrupoRepository
+from models.convite import Convite
+from repositories.repository import GrupoRepository
 from services.comum import ErroValidacao, inteiro_do_cliente
 from services.grupo.apoio import buscar_grupo, exigir_membro
 from services.notificacao.apoio import gerar_notificacao
 from services.usuario.apoio import buscar_usuario
+from utils import ConflitoDeDados
 
 
 class ConvidarParaGrupoService:
@@ -15,8 +17,11 @@ class ConvidarParaGrupoService:
         )
         if GrupoRepository.papel_do_membro(id_grupo, destinatario.id_usuario) is not None:
             raise ErroValidacao("Esse usuário já é membro do grupo.", status=409)
-        convite = ConviteRepository.criar(id_grupo, id_remetente, destinatario.id_usuario)
-        if convite is None:
+        try:
+            convite = Convite(
+                id_grupo=id_grupo, id_remetente=id_remetente, id_destinatario=destinatario.id_usuario,
+            ).salvar()
+        except ConflitoDeDados:
             raise ErroValidacao("Já existe um convite pendente para esse usuário.", status=409)
 
         grupo = buscar_grupo(id_grupo)
