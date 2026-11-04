@@ -1,3 +1,4 @@
+from models.comentario import Comentario
 from models.usuario import Usuario
 from repositories.repository import ComentarioRepository
 from services.feed.apoio import buscar_alvo
@@ -12,8 +13,8 @@ class ListarComentariosService:
 
         resultado = []
         for c in comentarios:
-            dado = c.to_dict()
-            autor = Usuario.buscar_por_id(c.id_usuario)
+            dado = Comentario.formatar(c)
+            autor = Usuario.buscar_por_id(c["id_usuario"])
             dado["usuario"] = {
                 "id": autor.id_usuario if autor else None,
                 "nome": autor.nome if autor else "Usuário removido",
