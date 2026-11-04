@@ -13,6 +13,6 @@ class AvisarMedalhasNovasService:
             if not medalha["conquistada"] or medalha["chave"] in chaves_antes:
                 continue
             mensagem = f'Você conquistou a medalha "{medalha["nome"]}".'
-            if NotificacaoRepository.existe(id_usuario, "medalha", mensagem):
+            if NotificacaoRepository.existe(id_usuario, "medalha", mensagem) is not None:
                 continue
             gerar_notificacao(id_usuario, "medalha", mensagem)

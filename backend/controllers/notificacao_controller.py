@@ -15,7 +15,7 @@ class NotificacaoController:
 
     @staticmethod
     def listar():
-        return jsonify([n.to_dict() for n in ListarNotificacoesService.executar(id_logado())])
+        return jsonify(ListarNotificacoesService.executar(id_logado()))
 
     @staticmethod
     def contagem():
