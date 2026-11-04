@@ -16,9 +16,9 @@ class AlternarCurtidaService:
         quem_curtiu = buscar_usuario(id_usuario)
         alvo = buscar_alvo(tipo_alvo, id_alvo, id_usuario)
 
-        existente = CurtidaRepository.buscar(id_usuario, tipo_alvo, id_alvo)
-        if existente:
-            existente.deletar()
+        linha = CurtidaRepository.buscar(id_usuario, tipo_alvo, id_alvo)
+        if linha:
+            Curtida.buscar_por_id(linha["id_curtida"]).deletar()
             curti = False
         else:
             try:
@@ -36,4 +36,4 @@ class AlternarCurtidaService:
                     id_alvo=id_alvo,
                 )
 
-        return {"curti": curti, "curtidas": CurtidaRepository.contar(tipo_alvo, id_alvo)}
+        return {"curti": curti, "curtidas": CurtidaRepository.contar(tipo_alvo, id_alvo)["total"]}

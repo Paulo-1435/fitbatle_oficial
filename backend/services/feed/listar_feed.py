@@ -47,12 +47,16 @@ class ListarFeedService:
         curti_atividade = set()
         curti_postagem = set()
         if id_usuario_atual:
-            curti_atividade = CurtidaRepository.curtidos_pelo_usuario(
-                id_usuario_atual, "atividade", ids_atividade
-            )
-            curti_postagem = CurtidaRepository.curtidos_pelo_usuario(
-                id_usuario_atual, "postagem", ids_postagem
-            )
+            curti_atividade = {
+                linha["id_alvo"] for linha in CurtidaRepository.curtidos_pelo_usuario(
+                    id_usuario_atual, "atividade", ids_atividade
+                )
+            }
+            curti_postagem = {
+                linha["id_alvo"] for linha in CurtidaRepository.curtidos_pelo_usuario(
+                    id_usuario_atual, "postagem", ids_postagem
+                )
+            }
 
         ids_donos = {i["id_usuario"] for i in itens}
         donos = {

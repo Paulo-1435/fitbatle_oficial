@@ -1,6 +1,6 @@
 from datetime import date, datetime, timezone
 
-from sqlalchemy import text
+from sqlalchemy import bindparam, text
 
 from database import db
 from models.base import efetivar, sincronizar
@@ -30,9 +30,16 @@ def escapar_like(termo):
     return termo.replace(ESCAPE_LIKE, ESCAPE_LIKE * 2).replace("%", ESCAPE_LIKE + "%").replace("_", ESCAPE_LIKE + "_")
 
 
-def consultar(sql, parametros=None):
+def _comando(sql, listas):
+    comando = text(sql)
+    if listas:
+        comando = comando.bindparams(*(bindparam(nome, expanding=True) for nome in listas))
+    return comando
+
+
+def consultar(sql, parametros=None, listas=()):
     sincronizar()
-    return db.session.execute(text(sql), parametros or {}).mappings().all()
+    return db.session.execute(_comando(sql, listas), parametros or {}).mappings().all()
 
 
 def consultar_um(sql, parametros=None):
@@ -40,9 +47,9 @@ def consultar_um(sql, parametros=None):
     return db.session.execute(text(sql), parametros or {}).mappings().first()
 
 
-def executar_comando(sql, parametros=None):
+def executar_comando(sql, parametros=None, listas=()):
     sincronizar()
-    db.session.execute(text(sql), parametros or {})
+    db.session.execute(_comando(sql, listas), parametros or {})
     efetivar()
 
 
