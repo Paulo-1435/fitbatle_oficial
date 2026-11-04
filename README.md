@@ -36,55 +36,55 @@ schema não significa que a funcionalidade esteja implementada.
 Cada item indica a tela, a rota da API, o Controller e o método, o Service e o Repository ou Model usados. Exceto cadastro, login e estatísticas gerais, as rotas exigem token.
 
 1. Cadastrar usuário
-   Tela: `index.html`; rota: `POST /api/usuarios`; Controller: `UsuarioController.cadastrar`; Service: `CadastrarUsuarioService`; Repository/Model: `UsuarioRepository.criar`, `Usuario`.
+   Tela: `index.html`; rota: `POST /api/usuarios`; Controller: `UsuarioController.cadastrar`; Service: `CadastrarUsuarioService`; Repository/Model: `Usuario.salvar`, `Usuario`.
 2. Entrar no sistema
    Tela: `login.html`; rota: `POST /api/login`; Controller: `UsuarioController.login`; Service: `AutenticarUsuarioService`; Repository/Model: `UsuarioRepository.buscar_por_email`, `Usuario`.
 3. Editar perfil
-   Tela: `perfil.html`; rota: `PUT /api/usuarios/<id>`; Controller: `UsuarioController.atualizar`; Service: `AtualizarPerfilService`; Repository/Model: `UsuarioRepository.atualizar`, `Usuario`.
+   Tela: `perfil.html`; rota: `PUT /api/usuarios/<id>`; Controller: `UsuarioController.atualizar`; Service: `AtualizarPerfilService`; Repository/Model: `Usuario.atualizar`, `Usuario`.
 4. Enviar foto de perfil
-   Tela: `perfil.html`; rota: `POST /api/usuarios/<id>/foto`; Controller: `UsuarioController.upload_foto`; Service: `AtualizarFotoPerfilService`; Repository/Model: `UsuarioRepository.salvar`, `Usuario`.
+   Tela: `perfil.html`; rota: `POST /api/usuarios/<id>/foto`; Controller: `UsuarioController.upload_foto`; Service: `AtualizarFotoPerfilService`; Repository/Model: `Usuario.salvar`, `Usuario`.
 5. Buscar perfis
    Tela: `busca.html`; rota: `GET /api/usuarios/busca`; Controller: `UsuarioController.busca`; Service: `BuscarPerfisService`; Repository/Model: `UsuarioRepository.buscar_publicos`, `Usuario`.
 6. Registrar treino
-   Tela: `registrar-treino.html`; rota: `POST /api/usuarios/<id>/atividades`; Controller: `AtividadeController.registrar`; Service: `RegistrarTreinoService`; Repository/Model: `AtividadeRepository.criar`, `Atividade`.
+   Tela: `registrar-treino.html`; rota: `POST /api/usuarios/<id>/atividades`; Controller: `AtividadeController.registrar`; Service: `RegistrarTreinoService`; Repository/Model: `Atividade.salvar`, `Atividade`.
 7. Ver histórico de treinos
    Tela: `perfil.html`; rota: `GET /api/usuarios/<id>/atividades`; Controller: `AtividadeController.historico`; Service: `ConsultarHistoricoTreinosService`; Repository/Model: `AtividadeRepository.listar_do_usuario`, `Atividade`.
 8. Excluir treino
-   Tela: `perfil.html`; rota: `DELETE /api/atividades/<id>`; Controller: `AtividadeController.excluir`; Service: `ExcluirAtividadeService`; Repository/Model: `AtividadeRepository.buscar_por_id` e `excluir`, `Atividade`.
+   Tela: `perfil.html`; rota: `DELETE /api/atividades/<id>`; Controller: `AtividadeController.excluir`; Service: `ExcluirAtividadeService`; Repository/Model: `Atividade.buscar_por_id` e `Atividade.deletar`, `Atividade`.
 9. Ver painel de desempenho
    Tela: `dashboard.html`; rota: `GET /api/dashboard`; Controller: `DashboardController.resumo`; Service: `ConsultarDashboardService`; Repository/Model: `AtividadeRepository` (totais, distribuição por tipo, pontuações), `Atividade`.
 10. Curtir publicação do feed
-    Tela: `feed.html`; rota: `POST /api/feed/<tipo>/<id>/curtir`; Controller: `CurtidaController.alternar`; Service: `AlternarCurtidaService`; Repository/Model: `CurtidaRepository.curtir` e `descurtir`, `Curtida`.
+    Tela: `feed.html`; rota: `POST /api/feed/<tipo>/<id>/curtir`; Controller: `CurtidaController.alternar`; Service: `AlternarCurtidaService`; Repository/Model: `CurtidaRepository.buscar`, `Curtida.salvar` e `Curtida.deletar`, `Curtida`.
 11. Comentar no feed
-    Tela: `feed.html`; rota: `POST /api/feed/<tipo>/<id>/comentarios`; Controller: `ComentarioController.criar`; Service: `CriarComentarioService`; Repository/Model: `ComentarioRepository.criar`, `Comentario`.
+    Tela: `feed.html`; rota: `POST /api/feed/<tipo>/<id>/comentarios`; Controller: `ComentarioController.criar`; Service: `CriarComentarioService`; Repository/Model: `Comentario.salvar`, `Comentario`.
 12. Ver ranking global
     Tela: `ranking.html`; rota: `GET /api/ranking/global`; Controller: `RankingController.ranking_global`; Service: `ConsultarRankingGlobalService`; Repository/Model: `RankingRepository.global_` (view `vw_ranking_global`).
 13. Ver ranking da cidade
     Tela: `ranking.html`; rota: `GET /api/ranking/regional`; Controller: `RankingController.ranking_regional`; Service: `ConsultarRankingRegionalService`; Repository/Model: `RankingRepository.regional_todos` (view `vw_ranking_regional`).
 14. Criar grupo
-    Tela: `grupo-criar.html`; rota: `POST /api/grupos`; Controller: `GrupoController.criar`; Service: `CriarGrupoService`; Repository/Model: `GrupoRepository.criar` e `adicionar_membro`, `Grupo`, `GrupoMembro`.
+    Tela: `grupo-criar.html`; rota: `POST /api/grupos`; Controller: `GrupoController.criar`; Service: `CriarGrupoService`; Repository/Model: `Grupo.salvar` e `GrupoMembro.salvar`, `Grupo`, `GrupoMembro`.
 15. Convidar membro para grupo
-    Tela: `grupo-convidar.html`; rota: `POST /api/grupos/<id>/convites`; Controller: `GrupoController.convidar`; Service: `ConvidarParaGrupoService`; Repository/Model: `ConviteRepository.criar`, `Convite`.
+    Tela: `grupo-convidar.html`; rota: `POST /api/grupos/<id>/convites`; Controller: `GrupoController.convidar`; Service: `ConvidarParaGrupoService`; Repository/Model: `Convite.salvar`, `Convite`.
 16. Responder convite de grupo
-    Tela: `grupo.html`; rota: `PUT /api/convites/<id>`; Controller: `ConviteController.responder`; Service: `ResponderConviteService`; Repository/Model: `ConviteRepository.buscar_por_id` e `salvar`, `GrupoRepository.adicionar_membro`, `Convite`.
+    Tela: `grupo.html`; rota: `PUT /api/convites/<id>`; Controller: `ConviteController.responder`; Service: `ResponderConviteService`; Repository/Model: `Convite.buscar_por_id` e `Convite.salvar`, `GrupoMembro.salvar`, `Convite`.
 17. Ver ranking do grupo
     Tela: `grupo-detalhes.html`; rota: `GET /api/grupos/<id>/ranking`; Controller: `GrupoController.ranking`; Service: `ConsultarRankingGrupoService`; Repository/Model: `RankingRepository.grupo` (view `vw_ranking_grupo`).
 18. Criar meta
-    Tela: `metas-criar.html`; rota: `POST /api/metas`; Controller: `MetaController.criar`; Service: `CriarMetaService`; Repository/Model: `MetaRepository.criar`, `Meta`.
+    Tela: `metas-criar.html`; rota: `POST /api/metas`; Controller: `MetaController.criar`; Service: `CriarMetaService`; Repository/Model: `Meta.salvar`, `Meta`.
 19. Atualizar meta
-    Tela: `metas-detalhes.html`; rota: `PUT /api/metas/<id>`; Controller: `MetaController.atualizar`; Service: `AtualizarMetaService`; Repository/Model: `MetaRepository.salvar`, `Meta`.
+    Tela: `metas-detalhes.html`; rota: `PUT /api/metas/<id>`; Controller: `MetaController.atualizar`; Service: `AtualizarMetaService`; Repository/Model: `Meta.salvar`, `Meta`.
 20. Excluir meta
-    Tela: `metas-detalhes.html`; rota: `DELETE /api/metas/<id>`; Controller: `MetaController.excluir`; Service: `ExcluirMetaService`; Repository/Model: `MetaRepository.excluir`, `Meta`.
+    Tela: `metas-detalhes.html`; rota: `DELETE /api/metas/<id>`; Controller: `MetaController.excluir`; Service: `ExcluirMetaService`; Repository/Model: `Meta.deletar`, `Meta`.
 21. Criar desafio (somente administradores)
-    Tela: `metas.html`; rota: `POST /api/desafios`; Controller: `DesafioController.criar`; Service: `CriarDesafioService`; Repository/Model: `DesafioRepository.criar`, `Desafio`.
+    Tela: `metas.html`; rota: `POST /api/desafios`; Controller: `DesafioController.criar`; Service: `CriarDesafioService`; Repository/Model: `Desafio.salvar`, `Desafio`.
 22. Participar de desafio
-    Tela: `metas.html`; rota: `POST /api/desafios/<id>/participar`; Controller: `DesafioController.participar`; Service: `ParticiparDesafioService`; Repository/Model: `DesafioUsuarioRepository.buscar` e `inscrever`, `salvar`, `DesafioUsuario`.
+    Tela: `metas.html`; rota: `POST /api/desafios/<id>/participar`; Controller: `DesafioController.participar`; Service: `ParticiparDesafioService`; Repository/Model: `DesafioUsuario.buscar_por_id` e `DesafioUsuario.salvar`, `DesafioUsuario`.
 23. Ver notificações
     Tela: `notificacoes.html`; rota: `GET /api/notificacoes`; Controller: `NotificacaoController.listar`; Service: `ListarNotificacoesService`; Repository/Model: `NotificacaoRepository.listar_do_usuario`, `Notificacao`.
 24. Marcar todas as notificações como lidas
     Tela: `notificacoes.html`; rota: `PUT /api/notificacoes/lidas`; Controller: `NotificacaoController.marcar_todas_lidas`; Service: `MarcarTodasNotificacoesLidasService`; Repository/Model: `NotificacaoRepository.marcar_todas_lidas`, `Notificacao`.
 25. Compartilhar treino, recorde, meta ou medalha
-   Tela: `feed.html`, `perfil.html`, `registrar-treino.html` e `metas-detalhes.html` (componente `compartilhar.js`); rota: `POST /api/compartilhamentos`; Controller: `CompartilhamentoController.registrar`; Service: `RegistrarCompartilhamentoService`; Repository/Model: `ConsentimentoRepository.buscar` (consentimento "compartilhamento"), `AtividadeRepository.buscar_por_id`, `MetaRepository.buscar_por_id`, `CompartilhamentoRepository.criar`, `Compartilhamento`.
+   Tela: `feed.html`, `perfil.html`, `registrar-treino.html` e `metas-detalhes.html` (componente `compartilhar.js`); rota: `POST /api/compartilhamentos`; Controller: `CompartilhamentoController.registrar`; Service: `RegistrarCompartilhamentoService`; Repository/Model: `Consentimento.buscar_por_id` (consentimento "compartilhamento"), `Atividade.buscar_por_id`, `Meta.buscar_por_id`, `Compartilhamento.salvar`, `Compartilhamento`.
 26. Ver medalhas
    Tela: `perfil.html` (componente `medalhas.js`); rota: `GET /api/usuarios/<id>/medalhas`; Controller: `MedalhaController.listar`; Service: `ListarMedalhasService`; Repository/Model: `AtividadeRepository.listar_do_usuario`, `MetaRepository.listar_do_usuario`, `Atividade`, `Meta`.
 27. Ver ranking do estado
@@ -92,17 +92,17 @@ Cada item indica a tela, a rota da API, o Controller e o método, o Service e o 
 28. Buscar meus grupos
    Tela: `busca.html` (aba "Grupos", filtro pelo nome); rota: `GET /api/grupos`; Controller: `GrupoController.listar_meus`; Service: `ListarMeusGruposService`; Repository/Model: `GrupoRepository.listar_do_usuario`, `GrupoRepository.contar_membros`, `Grupo`, `GrupoMembro`.
 29. Alterar senha
-   Tela: `perfil.html` (campos de senha atual e nova senha); rota: `PUT /api/usuarios/<id>`; Controller: `UsuarioController.atualizar`; Service: `AtualizarPerfilService`; Repository/Model: `UsuarioRepository.buscar_por_email`, `UsuarioRepository.atualizar`, `Usuario`.
+   Tela: `perfil.html` (campos de senha atual e nova senha); rota: `PUT /api/usuarios/<id>`; Controller: `UsuarioController.atualizar`; Service: `AtualizarPerfilService`; Repository/Model: `UsuarioRepository.buscar_por_email`, `Usuario.atualizar`, `Usuario`.
 30. Listar metas
    Tela: `metas.html`; rota: `GET /api/metas`; Controller: `MetaController.listar`; Service: `ListarMetasService`; Repository/Model: `MetaRepository.listar_do_usuario`, `Meta`.
 31. Ver metas e desafios em andamento
    Tela: `dashboard.html` (bloco "Em andamento"); rotas: `GET /api/metas` e `GET /api/desafios`; Controller: `MetaController.listar` e `DesafioController.listar`; Service: `ListarMetasService` e `ListarDesafiosAtivosService`; Repository/Model: `MetaRepository.listar_do_usuario`, `DesafioRepository.listar_ativos`, `Meta`, `Desafio`.
 32. Desistir de desafio
-   Tela: `metas.html` (aba "Desafios"); rota: `DELETE /api/desafios/<id>/participar`; Controller: `DesafioController.desistir`; Service: `DesistirDesafioService`; Repository/Model: `DesafioUsuarioRepository.buscar` e `salvar`, `DesafioUsuario`.
+   Tela: `metas.html` (aba "Desafios"); rota: `DELETE /api/desafios/<id>/participar`; Controller: `DesafioController.desistir`; Service: `DesistirDesafioService`; Repository/Model: `DesafioUsuario.buscar_por_id` e `DesafioUsuario.salvar`, `DesafioUsuario`.
 33. Prever pontos de um treino antes de salvar
    Tela: `registrar-treino.html` (painel de prévia e recompensa estimada); rota: `POST /api/usuarios/<id>/atividades/previa`; Controller: `AtividadeController.previa`; Service: `PreverTreinoService`; Repository/Model: `AtividadeRepository.maior_carga` e `pontuacao_total_desde`, `Atividade`. Não grava nada.
 34. Registrar recorde pessoal
-   Tela: `registrar-treino.html` (aviso de recorde após salvar e linha "Seu recorde atual"); rota: `POST /api/usuarios/<id>/atividades` (campo `recorde_pessoal` na resposta); Controller: `AtividadeController.registrar`; Service: `RegistrarTreinoService`; Repository/Model: `AtividadeRepository.maior_carga` e `criar`, `Atividade`.
+   Tela: `registrar-treino.html` (aviso de recorde após salvar e linha "Seu recorde atual"); rota: `POST /api/usuarios/<id>/atividades` (campo `recorde_pessoal` na resposta); Controller: `AtividadeController.registrar`; Service: `RegistrarTreinoService`; Repository/Model: `AtividadeRepository.maior_carga` e `Atividade.salvar`, `Atividade`.
 35. Ver nível e progresso até o próximo nível
    Tela: `perfil.html` (barra de nível); rota: `GET /api/eu` (campo `progresso_nivel`); Controller: `UsuarioController.eu`; Service: `ConsultarProgressoNivelService`; Model: `Usuario` (campo `xp`).
 
@@ -112,8 +112,9 @@ Diagrama de classes das entidades: `docs/diagrama_de_classes_dominio.svg` (vers�
 
 Fluxo de uma requisição: **routers → controller → service → repository → model → MySQL**.
 Cada seta só anda num sentido: `controllers/` importa só `services/` (e utilitários
-como `auth.py`); `services/` nunca importa `database` nem `models` diretamente, só
-`repositories/` e `utils.py`; só `repositories/` toca `database`/`models`. Essa regra
+como `auth.py`); `services/` pode importar `models/` e `repositories/`, mas nunca
+`database` nem `sqlalchemy`; fora de `models/` e `repositories/` ninguém importa
+`sqlalchemy` nem usa `db.session`. Essa regra
 é verificada por `backend/tests/test_arquitetura.py`, que analisa os imports de cada
 arquivo (não só roda os testes — lê o código-fonte) e falha se alguma camada importar
 o que não devia.
@@ -128,36 +129,60 @@ arquivo de `services/` importa o pacote de outra área direto (sempre o módulo
 completo, ex.: `services.usuario.apoio`) e que a raiz de `services/` só tem
 `__init__.py` e `comum.py` soltos.
 
+### CRUD nos Models, consultas em SQL nos Repositories
+
+Operações simples de cadastro e manutenção ficam nos Models, herdeiros de `ModeloBase`
+(`models/base.py`): `salvar()`, `atualizar(campos)`, `deletar()`, `buscar_por_id(chave)` e
+`listar_todos()`. Os Services chamam esses métodos diretamente. Quando uma operação grava
+mais de uma linha, o Service a envolve em `Modelo.transacao()`, que faz um único commit ao
+final ou desfaz tudo se algo falhar (ex.: registrar treino com XP, medalhas e notificações;
+excluir conta; participar e concluir desafio). Conflito de chave única ou erro de integridade
+vira `ConflitoDeDados` (definido em `utils.py`), que o Service converte em resposta HTTP 409.
+
+As consultas que não são CRUD simples (listagens filtradas, junções, agregações, rankings,
+busca por texto e exclusões em lote) ficam em `repositories/`, escritas em SQL com parâmetros
+nomeados (`text(...)`, nunca texto montado com valores). Elas devolvem dicionários (ou lista
+de dicionários). Quando um Service precisa alterar a entidade, ele recebe o Model pelo
+`buscar_por_id`. Os helpers de `repositories/apoio.py` são o único ponto que normaliza tipos
+entre SQLite e MySQL: datas (texto ou `datetime`, sempre em UTC sem fuso), booleanos e
+números (float). A formatação do JSON de cada entidade fica em `formatar(...)` no próprio
+Model, usada tanto pelo `to_dict()` quanto pelas listas.
+
+Diferenças conhecidas entre SQLite e MySQL: a busca por texto (`LIKE`) segue a collation de
+cada banco. No SQLite, a comparação é sensível a maiúsculas e a acentos fora do ASCII; no
+MySQL com `utf8mb4_unicode_ci`, não é. Comparações de texto na ordenação dos resultados são
+feitas em Python, para que a ordem seja a mesma nos dois bancos.
+
 Hoje (conferido direto na árvore de arquivos): 58 rotas registradas em
 `routers.py`, 16 classes `Controller` em `controllers/` (uma por arquivo),
-63 classes `Service` de caso de uso em `services/` (uma por arquivo), 14
+63 classes `Service` de caso de uso em `services/` (uma por arquivo), 13
 classes `Repository` em `repositories/` (uma por arquivo), 14 classes `Model`
 em `models/` (uma por arquivo, todas herdando de `ModeloBase`), 10 arquivos
 `apoio.py` em `services/` (um por área que precisa de lógica compartilhada),
-mais um `apoio.py` em `controllers/` e um em `repositories/`, e 381 testes.
+mais um `apoio.py` em `controllers/` e um em `repositories/`, e 453 testes.
 
 | Caso de uso | Controller | Service | Repository |
 |---|---|---|---|
-| Cadastro | `UsuarioController.cadastrar` | `CadastrarUsuarioService.executar` | `UsuarioRepository.criar` |
+| Cadastro | `UsuarioController.cadastrar` | `CadastrarUsuarioService.executar` | `Usuario.salvar` |
 | Login | `UsuarioController.login` | `AutenticarUsuarioService.executar` | `UsuarioRepository.buscar_por_email` |
 | Perfil (ver) | `UsuarioController.buscar` | `ConsultarPerfilService.executar` | — (via `usuario/apoio.py`) |
-| Perfil (editar) | `UsuarioController.atualizar` | `AtualizarPerfilService.executar` | `UsuarioRepository.atualizar` |
+| Perfil (editar) | `UsuarioController.atualizar` | `AtualizarPerfilService.executar` | `Usuario.atualizar` |
 | Busca de perfis | `UsuarioController.busca` | `BuscarPerfisService.executar` | `UsuarioRepository.buscar_publicos` |
-| Registrar treino | `AtividadeController.registrar` | `RegistrarTreinoService.executar` | `AtividadeRepository.criar` |
+| Registrar treino | `AtividadeController.registrar` | `RegistrarTreinoService.executar` | `Atividade.salvar` |
 | Histórico de atividades | `AtividadeController.historico` | `ConsultarHistoricoTreinosService.executar` | `AtividadeRepository.listar_do_usuario` |
 | Ranking global | `RankingController.ranking_global` | `ConsultarRankingGlobalService.executar` | `RankingRepository.global_` |
-| Ranking regional | `RankingController.ranking_regional` | `ConsultarRankingRegionalService.executar` | `RankingRepository.regional` |
+| Ranking regional | `RankingController.ranking_regional` | `ConsultarRankingRegionalService.executar` | `RankingRepository.regional_todos` |
 | Ranking por exercício | `RankingController.ranking_por_exercicio` | `ConsultarRankingPorExercicioService.executar` | `RankingRepository.por_exercicio` |
 | Ranking interno do grupo | `GrupoController.ranking` | `ConsultarRankingGrupoService.executar` | `RankingRepository.grupo` |
-| Grupos | `GrupoController.criar` | `CriarGrupoService.executar` | `GrupoRepository.criar` |
-| Convidar para grupo | `GrupoController.convidar` | `ConvidarParaGrupoService.executar` | `ConviteRepository.criar` |
-| Convites (responder) | `ConviteController.responder` | `ResponderConviteService.executar` | `ConviteRepository.buscar_por_id` |
-| Metas | `MetaController.criar` | `CriarMetaService.executar` | `MetaRepository.criar` |
+| Grupos | `GrupoController.criar` | `CriarGrupoService.executar` | `Grupo.salvar` |
+| Convidar para grupo | `GrupoController.convidar` | `ConvidarParaGrupoService.executar` | `Convite.salvar` |
+| Convites (responder) | `ConviteController.responder` | `ResponderConviteService.executar` | `Convite.buscar_por_id` |
+| Metas | `MetaController.criar` | `CriarMetaService.executar` | `Meta.salvar` |
 | Feed (listagem) | `FeedController.listar` | `ListarFeedService.executar` | `AtividadeRepository`/`PostagemRepository`/`CurtidaRepository`/`ComentarioRepository` |
-| Postagem | `PostagemController.criar` | `CriarPostagemService.executar` | `PostagemRepository.criar` |
-| Curtida | `CurtidaController.alternar` | `AlternarCurtidaService.executar` | `CurtidaRepository.buscar`/`curtir`/`descurtir` |
-| Comentário | `ComentarioController.criar` | `CriarComentarioService.executar` | `ComentarioRepository.criar` |
-| Consentimentos | `ConsentimentoController.atualizar` | `AtualizarConsentimentoService.executar` | `ConsentimentoRepository.buscar`/`salvar` |
+| Postagem | `PostagemController.criar` | `CriarPostagemService.executar` | `Postagem.salvar` |
+| Curtida | `CurtidaController.alternar` | `AlternarCurtidaService.executar` | `CurtidaRepository.buscar`, `Curtida.salvar`/`deletar` |
+| Comentário | `ComentarioController.criar` | `CriarComentarioService.executar` | `Comentario.salvar` |
+| Consentimentos | `ConsentimentoController.atualizar` | `AtualizarConsentimentoService.executar` | `Consentimento.buscar_por_id`/`salvar` |
 | Compartilhamento | `CompartilhamentoController.registrar` | `RegistrarCompartilhamentoService.executar` | `CompartilhamentoRepository`/`AtividadeRepository`/`ConsentimentoRepository` |
 | Dashboard | `DashboardController.resumo` | `ConsultarDashboardService.executar` | `AtividadeRepository.pontuacoes_desde` (+ demais agregações) |
 | Notificações | `NotificacaoController.listar` | `ListarNotificacoesService.executar` | `NotificacaoRepository.listar_do_usuario` |
@@ -194,7 +219,8 @@ Controller, Service ou Repository novo.
 │   │   ├── migracao_notificacao_alvo.sql # idem, para as colunas tipo_alvo/id_alvo de notificacao
 │   │   ├── migracao_desafio_metrica.sql  # idem, para as colunas tipo_metrica/valor_objetivo de desafio
 │   │   ├── migracao_medalha.sql          # idem, para o tipo 'medalha' e a coluna chave_medalha de compartilhamento
-│   │   └── migracao_xp_ranking.sql       # recria as views de ranking para ler usuario.xp (pode ser rodada quantas vezes precisar)
+│   │   ├── migracao_xp_ranking.sql       # recria as views de ranking para ler usuario.xp (pode ser rodada quantas vezes precisar)
+│   │   └── migracao_datetime_microsegundos.sql  # colunas de data passam a guardar microssegundos (DATETIME(6))
 │   ├── routers/
 │   │   └── routers.py          # mapeia as URLs para os Controllers
 │   ├── controllers/             # uma classe Controller por arquivo
@@ -414,7 +440,7 @@ cd backend
 python -m unittest discover -s tests -t .
 ```
 
-381 testes atualmente, cobrindo autenticação/LGPD (incluindo as fronteiras de
+453 testes atualmente, cobrindo autenticação/LGPD (incluindo as fronteiras de
 13 e 18 anos), robustez (uploads, limite de login, concorrência),
 grupos/convites, metas, compartilhamento, busca restrita (nome, cidade,
 menores de idade, perfil revogado), rankings, dashboard (estado vazio,
@@ -504,6 +530,14 @@ de desafios. Também pode ser rodada quantas vezes precisar:
 
 ```bash
 mysql -u root -p fitbattle < backend/database/migracao_xp_ranking.sql
+```
+
+`migracao_datetime_microsegundos.sql` troca as colunas `DATETIME` por `DATETIME(6)`, para que o
+MySQL guarde microssegundos como a aplicação grava. Sem ela, registros criados no mesmo segundo
+podem aparecer em ordem diferente do SQLite. Pode ser rodada em um banco já existente:
+
+```bash
+mysql -u root -p fitbattle < backend/database/migracao_datetime_microsegundos.sql
 ```
 
 Cada uma faz só um `ALTER TABLE` (a de metas adiciona as colunas novas e
