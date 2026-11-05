@@ -3,6 +3,10 @@ import re
 
 from sqlalchemy import text
 
+from services.privacidade.apoio import CONSENTIMENTOS_OPCIONAIS
+
+CONSENTIMENTOS_OPCIONAIS_ACEITOS = {chave: True for chave in CONSENTIMENTOS_OPCIONAIS}
+
 CAMINHO_SQL = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
     "database",

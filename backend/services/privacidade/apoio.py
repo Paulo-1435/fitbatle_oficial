@@ -32,7 +32,7 @@ def registrar_consentimentos_iniciais(id_usuario, escolhas):
         registros.append({
             "chave": chave, "descricao": descricao,
             "obrigatorio": False,
-            "aceito": bool(escolhas.get(chave, True)),
+            "aceito": bool(escolhas.get(chave, False)),
         })
 
     with Consentimento.transacao():

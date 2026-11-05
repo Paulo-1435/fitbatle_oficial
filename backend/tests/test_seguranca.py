@@ -15,7 +15,7 @@ from auth import gerar_token
 from database import db
 from models.model import Usuario
 from services import resetar_limitador_login
-from tests.apoio import criar_views_de_ranking
+from tests.apoio import CONSENTIMENTOS_OPCIONAIS_ACEITOS, criar_views_de_ranking
 
 SENHA = "senhaforte123"
 CAMPOS_PRIVADOS = {"email", "idade", "data_nascimento", "peso", "altura", "responsavel"}
@@ -48,7 +48,7 @@ class BaseTeste(unittest.TestCase):
             "data_nascimento": data_nascimento_para_idade(idade),
             "senha": SENHA,
             "aceite_termos": True,
-            "consentimentos": consentimentos or {},
+            "consentimentos": consentimentos if consentimentos is not None else CONSENTIMENTOS_OPCIONAIS_ACEITOS,
         }
         if responsavel:
             corpo["responsavel"] = responsavel

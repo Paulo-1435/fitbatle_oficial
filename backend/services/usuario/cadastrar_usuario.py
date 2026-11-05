@@ -56,7 +56,7 @@ class CadastrarUsuarioService:
         consentimentos = dados.get("consentimentos") or {}
         if not isinstance(consentimentos, dict):
             raise ErroValidacao("Os consentimentos devem ser enviados em formato de objeto.")
-        limpos["perfil_publico"] = bool(consentimentos.get("ranking_publico", True))
+        limpos["perfil_publico"] = bool(consentimentos.get("ranking_publico", False))
 
         limpos["senha"] = generate_password_hash(limpos["senha"])
         with Usuario.transacao():

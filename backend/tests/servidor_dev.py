@@ -20,7 +20,7 @@ from services import (
     EntrarGrupoPorCodigoService,
 )
 from services.atividade.apoio import calcular_pontuacao, nivel_por_xp
-from tests.apoio import criar_views_de_ranking
+from tests.apoio import CONSENTIMENTOS_OPCIONAIS_ACEITOS, criar_views_de_ranking
 from utils import inicio_utc_do_dia_local
 
 SENHA = "senhaforte123"
@@ -147,7 +147,7 @@ def popular():
         usuario = CadastrarUsuarioService.executar({
             "nome": nome, "email": email,
             "data_nascimento": data_nascimento_para_idade(idade), "senha": SENHA,
-            "aceite_termos": True, "consentimentos": {},
+            "aceite_termos": True, "consentimentos": CONSENTIMENTOS_OPCIONAIS_ACEITOS,
         })
         usuario.cidade = cidade
         usuario.estado = estado
