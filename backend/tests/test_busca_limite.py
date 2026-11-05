@@ -2,7 +2,7 @@ import unittest
 
 from tests.test_seguranca import BaseTeste
 
-CONSENTIMENTOS_BUSCA = {"busca_perfil": True}
+CONSENTIMENTOS_BUSCA = {"busca_perfil": True, "ranking_publico": True}
 RESPONSAVEL = {"nome": "Responsavel Busca", "email": "responsavel.busca@teste.com"}
 
 
