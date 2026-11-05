@@ -257,10 +257,16 @@
 
 .grupo-cabecalho-detalhe__icone {
   flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 64px;
   height: 64px;
   border-radius: var(--raio-md);
   background: var(--gradiente-destaque);
+  color: var(--cor-sobre-destaque);
+  font-weight: var(--peso-extra);
+  font-size: var(--texto-md);
 }
 
 .grupo-cabecalho-detalhe__texto {

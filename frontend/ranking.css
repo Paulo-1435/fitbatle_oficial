@@ -87,7 +87,6 @@
 }
 
 .podio-vaga--1 {
-  order: 2;
   padding-top: var(--esp-6);
   border-color: rgba(245, 192, 74, 0.45);
   background:
@@ -96,12 +95,16 @@
   box-shadow: 0 10px 30px rgba(245, 192, 74, 0.12);
 }
 
-.podio-vaga--2 {
-  order: 1;
+.podio--1 {
+  grid-template-columns: minmax(0, 260px);
+  justify-content: center;
 }
 
-.podio-vaga--3 {
-  order: 3;
+.podio--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 620px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .podio-vaga--eu {
@@ -264,7 +267,6 @@
 
 @media (max-width: 720px) {
   .podio {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--esp-2);
   }
 

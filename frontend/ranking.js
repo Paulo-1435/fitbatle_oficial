@@ -191,7 +191,9 @@ function renderizarPodio(dados, modo) {
     podio.innerHTML = '<p class="estado-vazio">' + (modo === 'exercicio' ? 'Ninguém registrou este exercício ainda.' : 'Ninguém no ranking ainda.') + '</p>';
     return;
   }
-  podio.innerHTML = dados.slice(0, 3).map(function (item) { return htmlVagaPodio(item, modo); }).join('');
+  const vagas = ordenarVagasPodio(dados.slice(0, 3));
+  podio.className = 'podio podio--' + vagas.length;
+  podio.innerHTML = vagas.map(function (item) { return htmlVagaPodio(item, modo); }).join('');
 }
 
 function htmlVagaPodio(item, modo) {

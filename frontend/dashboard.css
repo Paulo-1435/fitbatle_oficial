@@ -24,6 +24,10 @@
   margin-top: var(--esp-5);
 }
 
+.dashboard-cartao-compacto {
+  align-self: start;
+}
+
 @media (max-width: 720px) {
   .dashboard-grade {
     grid-template-columns: 1fr;

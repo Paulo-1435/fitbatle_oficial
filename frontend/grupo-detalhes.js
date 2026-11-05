@@ -100,7 +100,9 @@ async function carregarRanking() {
       return;
     }
 
-    podio.innerHTML = dados.slice(0, 3).map(htmlVagaPodio).join('');
+    const vagas = ordenarVagasPodio(dados.slice(0, 3));
+    podio.className = 'podio podio--' + vagas.length;
+    podio.innerHTML = vagas.map(htmlVagaPodio).join('');
     corpo.innerHTML = dados.map(htmlLinhaTabela).join('');
   } catch (e) {
     mostrarFalhaDeCarregamento(carregarGrupo);
