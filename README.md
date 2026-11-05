@@ -464,6 +464,8 @@ PowerShell). No Linux ou macOS:
 ./iniciar-demo.sh
 ```
 
+Se o arquivo não estiver marcado como executável, use `bash iniciar-demo.sh`.
+
 Os dois scripts criam a pasta `.venv` (na primeira vez), instalam as dependências,
 sobem a API na porta 5000 com dados de demonstração e o frontend na porta 5500.
 Abra `http://localhost:5500/login.html` e entre com `helena@fitbattle.dev` e
@@ -479,7 +481,8 @@ Windows (PowerShell):
 ```powershell
 py -3 -m venv .venv
 .venv\Scripts\Activate.ps1
-python -m pip install -r backendequirements.txt
+python -m pip install -r backend
+equirements.txt
 cd backend
 $env:HOST = "0.0.0.0"
 $env:ADMIN_EMAILS = "helena@fitbattle.dev"
