@@ -1,5 +1,7 @@
 # Fit-Battle
 
+[![testes](https://github.com/Paulo-1435/fitbatle_oficial/actions/workflows/testes.yml/badge.svg)](https://github.com/Paulo-1435/fitbatle_oficial/actions/workflows/testes.yml)
+
 Bernardo Nardelli, Cauã Gomes, João Paulo Costa, João Pedro Braga, Miguel Assunção, Henrique Vale.
 
 Plataforma gamificada de treinos. Este repositório contém a API (Flask) e o
@@ -159,7 +161,7 @@ Hoje (conferido direto na árvore de arquivos): 58 rotas registradas em
 classes `Repository` em `repositories/` (uma por arquivo), 14 classes `Model`
 em `models/` (uma por arquivo, todas herdando de `ModeloBase`), 10 arquivos
 `apoio.py` em `services/` (um por área que precisa de lógica compartilhada),
-mais um `apoio.py` em `controllers/` e um em `repositories/`, e 453 testes.
+mais um `apoio.py` em `controllers/` e um em `repositories/`, e 457 testes.
 
 | Caso de uso | Controller | Service | Repository |
 |---|---|---|---|
@@ -440,13 +442,83 @@ cd backend
 python -m unittest discover -s tests -t .
 ```
 
-453 testes atualmente, cobrindo autenticação/LGPD (incluindo as fronteiras de
+457 testes atualmente, cobrindo autenticação/LGPD (incluindo as fronteiras de
 13 e 18 anos), robustez (uploads, limite de login, concorrência),
 grupos/convites, metas, compartilhamento, busca restrita (nome, cidade,
 menores de idade, perfil revogado), rankings, dashboard (estado vazio,
 totais, sequências, evolução de carga, isolamento entre usuários) e a
 análise estática das camadas (incluindo a regra de uma classe `Service` por
 caso de uso, um método `executar` e os imports entre áreas de `services/`).
+
+## Rodar em outro computador
+
+Requisitos: Python 3.11 ou 3.12. Para a demonstração não é preciso MySQL: a API roda
+com um banco SQLite com dados de exemplo. Testado com Python 3.12.10 no Windows 11.
+
+### Demonstração em um comando
+
+No Windows, dê duplo clique em `iniciar-demo.bat` (ou rode `.\iniciar-demo.bat` no
+PowerShell). No Linux ou macOS:
+
+```bash
+./iniciar-demo.sh
+```
+
+Os dois scripts criam a pasta `.venv` (na primeira vez), instalam as dependências,
+sobem a API na porta 5000 com dados de demonstração e o frontend na porta 5500.
+Abra `http://localhost:5500/login.html` e entre com `helena@fitbattle.dev` e
+`senhaforte123`.
+
+Para abrir de outro aparelho da mesma rede, use `http://IP_DESTE_COMPUTADOR:5500/login.html`.
+Libere as portas 5000 e 5500 no firewall na primeira vez.
+
+### Passo a passo manual
+
+Windows (PowerShell):
+
+```powershell
+py -3 -m venv .venv
+.venv\Scripts\Activate.ps1
+python -m pip install -r backendequirements.txt
+cd backend
+$env:HOST = "0.0.0.0"
+$env:ADMIN_EMAILS = "helena@fitbattle.dev"
+python tests\servidor_dev.py
+```
+
+Em outra janela, na pasta do projeto:
+
+```powershell
+cd frontend
+python -m http.server 5500 --bind 0.0.0.0
+```
+
+Linux e macOS:
+
+```bash
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install -r backend/requirements.txt
+cd backend
+HOST=0.0.0.0 ADMIN_EMAILS=helena@fitbattle.dev python tests/servidor_dev.py
+```
+
+Em outro terminal, na pasta do projeto:
+
+```bash
+cd frontend
+python -m http.server 5500 --bind 0.0.0.0
+```
+
+### Testes
+
+```bash
+cd backend
+python -m unittest discover -s tests -t .
+```
+
+O workflow `.github/workflows/testes.yml` roda essa suíte em Ubuntu, Windows e macOS,
+com Python 3.11 e 3.12, a cada push.
 
 ## Como rodar em 2 servidores
 
