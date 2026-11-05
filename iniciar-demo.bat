@@ -9,8 +9,11 @@ if not exist ".venv\Scripts\python.exe" (
 )
 ".venv\Scripts\python.exe" -m pip install -q -r backend\requirements.txt || goto erro
 
-start "FitBattle API" cmd /k "cd /d "%~dp0backend" && set HOST=0.0.0.0&& set PORT=5000&& set ADMIN_EMAILS=helena@fitbattle.dev&& "%~dp0.venv\Scripts\python.exe" tests\servidor_dev.py"
-start "FitBattle frontend" cmd /k "cd /d "%~dp0frontend" && "%~dp0.venv\Scripts\python.exe" -m http.server 5500 --bind 0.0.0.0"
+set "HOST=0.0.0.0"
+set "PORT=5000"
+set "ADMIN_EMAILS=helena@fitbattle.dev"
+start "FitBattle API" /D "%~dp0backend" "%~dp0.venv\Scripts\python.exe" tests\servidor_dev.py
+start "FitBattle frontend" /D "%~dp0frontend" "%~dp0.venv\Scripts\python.exe" -m http.server 5500 --bind 0.0.0.0
 
 echo.
 echo FitBattle demo no ar.
