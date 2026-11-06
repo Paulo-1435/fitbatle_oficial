@@ -159,11 +159,6 @@ button {
 .btn--primario {
   background: var(--gradiente-destaque);
   color: var(--cor-sobre-destaque);
-  box-shadow: var(--brilho-destaque);
-}
-
-.btn--primario:hover {
-  box-shadow: 0 10px 34px rgba(0, 170, 255, 0.5);
 }
 
 .btn--secundario {

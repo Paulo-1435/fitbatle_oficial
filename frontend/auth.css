@@ -22,6 +22,7 @@ body.auth-pagina {
   flex: 1 0 auto;
   display: flex;
   justify-content: center;
+  align-items: flex-start;
   width: 100%;
   padding: var(--esp-10) var(--gutter) var(--esp-10);
 }
