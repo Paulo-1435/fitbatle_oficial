@@ -87,15 +87,48 @@ CATALOGO_OUTROS = [
 ]
 
 POSICOES_SEMANA = {1: [2], 2: [1, 4], 3: [0, 2, 4], 4: [0, 2, 4, 6]}
+HORAS_DO_DIA = [18, 7, 12, 21]
+
+VOLUME_OUTROS = {
+    1: (20, 0.96),
+    2: (18, 0.96),
+    3: (17, 0.87),
+    4: (15, 0.82),
+    5: (13, 0.8),
+    6: (11, 0.78),
+    7: (10, 0.65),
+    8: (9, 0.52),
+    9: (8, 0.45),
+    10: (8, 0.32),
+    11: (8, 0.24),
+}
 
 
-def dias_atras_da_semana(hoje, semanas_atras, quantidade):
+def contagens_semanais(total, indice):
+    contagens = [1] * 8
+    posicao = indice
+    extras = total - 8
+    while extras > 0:
+        if contagens[posicao % 8] < 4:
+            contagens[posicao % 8] += 1
+            extras -= 1
+        posicao += 3
+    return contagens
+
+
+def momentos_da_semana(hoje, semanas_atras, quantidade):
     if semanas_atras == 0:
-        posicoes = list(range(min(quantidade, hoje.weekday() + 1)))
+        dias = [hoje.weekday() - min(indice, hoje.weekday()) for indice in range(quantidade)]
     else:
-        posicoes = POSICOES_SEMANA[quantidade]
-    base = hoje.weekday() + 7 * semanas_atras
-    return [base - posicao for posicao in posicoes]
+        base = hoje.weekday() + 7 * semanas_atras
+        dias = [base - posicao for posicao in POSICOES_SEMANA[quantidade]]
+    vezes_no_dia = {}
+    momentos = []
+    for dia in dias:
+        ordem = vezes_no_dia.get(dia, 0)
+        vezes_no_dia[dia] = ordem + 1
+        momentos.append((dia, HORAS_DO_DIA[ordem % len(HORAS_DO_DIA)]))
+    return momentos
 
 
 def treino_helena(exercicio, indice_carga, dias_atras):
@@ -117,52 +150,59 @@ def treino_helena(exercicio, indice_carga, dias_atras):
     }
 
 
-def treino_de_outro(i, g, dias_atras):
+def treino_de_outro(i, g, dias_atras, fator):
     tipo, titulo = CATALOGO_OUTROS[(i * 4 + g) % len(CATALOGO_OUTROS)]
     descricao = TEXTOS_TREINO[titulo]
     if tipo == "musculacao":
         return {
             "tipo": tipo, "titulo": titulo, "descricao": descricao,
-            "tempo_min": 40 + (g % 3) * 5, "carga_kg": 30 + ((i + g) % 6) * 5 + (g // 4) * 2.5,
+            "tempo_min": max(5, round((40 + (g % 3) * 5) * fator)),
+            "carga_kg": round((30 + ((i + g) % 6) * 5 + (g // 4) * 2.5) * fator, 1),
             "repeticoes": 8 + g % 3, "dias_atras": dias_atras,
         }
     if tipo == "cardio":
         return {
             "tipo": tipo, "titulo": titulo, "descricao": descricao,
-            "tempo_min": 25 + (g % 3) * 5, "distancia_km": round(2.5 + (g % 4) * 0.5, 1),
+            "tempo_min": max(5, round((25 + (g % 3) * 5) * fator)),
+            "distancia_km": round((2.5 + (g % 4) * 0.5) * fator, 1),
             "dias_atras": dias_atras,
         }
     return {
         "tipo": tipo, "titulo": titulo, "descricao": descricao,
-        "tempo_min": 35 + (g % 2) * 10, "dias_atras": dias_atras,
+        "tempo_min": max(5, round((35 + (g % 2) * 10) * fator)), "dias_atras": dias_atras,
     }
 
 
 def planos_de_treino(hoje):
     planos = {}
 
-    dias_helena = []
-    for semanas_atras in range(len(HELENA_TREINOS_POR_SEMANA) - 1, -1, -1):
-        quantidade = HELENA_TREINOS_POR_SEMANA[len(HELENA_TREINOS_POR_SEMANA) - 1 - semanas_atras]
-        dias_helena.extend(dias_atras_da_semana(hoje, semanas_atras, quantidade))
-    dias_helena.sort(reverse=True)
-    assert len(dias_helena) == len(HELENA_SESSOES)
+    momentos = []
+    for semanas_atras in range(7, -1, -1):
+        quantidade = HELENA_TREINOS_POR_SEMANA[7 - semanas_atras]
+        momentos.extend(momentos_da_semana(hoje, semanas_atras, quantidade))
+    momentos.sort(key=lambda momento: (-momento[0], momento[1]))
+    assert len(momentos) == len(HELENA_SESSOES)
 
     contagem_carga = {}
     treinos_helena = []
-    for exercicio, dias in zip(HELENA_SESSOES, dias_helena):
+    for exercicio, (dias, hora) in zip(HELENA_SESSOES, momentos):
         indice = contagem_carga.get(exercicio, 0)
         contagem_carga[exercicio] = indice + 1
-        treinos_helena.append(treino_helena(exercicio, indice, dias))
+        treino = treino_helena(exercicio, indice, dias)
+        treino["hora"] = hora
+        treinos_helena.append(treino)
     planos[PRINCIPAL] = treinos_helena
 
     for i, (_, email, _, _, _) in enumerate(USUARIOS[1:], start=1):
+        total, fator = VOLUME_OUTROS[i]
+        contagens = contagens_semanais(total, i)
         treinos = []
         g = 0
         for semanas_atras in range(7, -1, -1):
-            quantidade = 1 + (i * 5 + semanas_atras * 3) % 4
-            for dias in dias_atras_da_semana(hoje, semanas_atras, quantidade):
-                treinos.append(treino_de_outro(i, g, dias))
+            for dias, hora in momentos_da_semana(hoje, semanas_atras, contagens[7 - semanas_atras]):
+                treino = treino_de_outro(i, g, dias, fator)
+                treino["hora"] = hora
+                treinos.append(treino)
                 g += 1
         planos[email] = treinos
     return planos
@@ -175,10 +215,11 @@ def registrar_treinos_historicos(ids, hoje):
         xp = 0
         for treino in treinos:
             dias_atras = treino.pop("dias_atras")
+            hora = treino.pop("hora")
             dados = dict(treino)
             dados["pontuacao"] = calcular_pontuacao(dados)
             atividade = Atividade(id_usuario=uid, **dados).salvar()
-            atividade.data_registro = inicio_utc_do_dia_local(hoje - timedelta(days=dias_atras)) + timedelta(hours=18)
+            atividade.data_registro = inicio_utc_do_dia_local(hoje - timedelta(days=dias_atras)) + timedelta(hours=hora)
             db.session.commit()
             xp += atividade.pontuacao
             primeira = primeira or atividade.id_atividade
@@ -206,9 +247,10 @@ def data_nascimento_para_idade(idade):
     return nascimento.isoformat()
 
 
-def popular():
+def popular(hoje=None):
     if Usuario.query.count() > 0:
         return
+    hoje = hoje or date.today()
     ids = {}
     for nome, email, idade, cidade, estado in USUARIOS:
         usuario = CadastrarUsuarioService.executar({
@@ -221,7 +263,6 @@ def popular():
         db.session.commit()
         ids[email] = usuario.id_usuario
 
-    hoje = date.today()
     primeira = registrar_treinos_historicos(ids, hoje)
 
     CriarComentarioService.executar(ids["carolina@fitbattle.dev"], "atividade", primeira, "Mandou bem demais!")
@@ -238,14 +279,15 @@ def popular():
         "exercicio": "supino reto", "valor_objetivo": 120, "data_final": "2030-12-31",
     })
 
+    inicio_semana = hoje - timedelta(days=hoje.weekday())
     desafio = Desafio(**{
         "nome": "Desafio: 5 treinos em 7 dias",
         "descricao": "Registre 5 treinos em um período de 7 dias para ganhar 100 XP de bônus.",
         "exercicio": "livre",
         "tipo_metrica": "treinos",
         "valor_objetivo": 5,
-        "data_inicio": hoje - timedelta(days=3),
-        "data_fim": hoje + timedelta(days=3),
+        "data_inicio": inicio_semana,
+        "data_fim": inicio_semana + timedelta(days=6),
         "recompensa_xp": 100,
     }).salvar()
     DesafioUsuario(id_desafio=desafio.id_desafio, id_usuario=ids[PRINCIPAL], status="inscrito").salvar()
