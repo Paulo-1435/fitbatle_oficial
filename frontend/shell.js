@@ -130,7 +130,7 @@ function montarBusca() {
     classe: 'busca__campo',
     type: 'search',
     id: 'busca-global',
-    placeholder: 'Buscar pessoas por nome ou cidade',
+    placeholder: 'Buscar pessoas',
     autocomplete: 'off',
     'aria-label': 'Buscar pessoas por nome ou cidade'
   });
