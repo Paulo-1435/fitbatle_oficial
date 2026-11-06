@@ -32,35 +32,6 @@
   font-size: var(--texto-sm);
 }
 
-.abas {
-  display: flex;
-  gap: var(--esp-2);
-  flex-wrap: wrap;
-}
-
-.aba {
-  padding: 8px var(--esp-4);
-  border: 1px solid var(--cor-borda-suave);
-  border-radius: var(--raio-pill);
-  background: var(--cor-superficie);
-  color: var(--cor-texto-3);
-  font-size: var(--texto-sm);
-  font-weight: var(--peso-medio);
-  white-space: nowrap;
-}
-
-.aba:hover {
-  color: var(--cor-texto);
-  border-color: var(--cor-borda);
-}
-
-.aba--ativa {
-  border-color: var(--cor-destaque-borda);
-  background: var(--cor-destaque-suave);
-  color: var(--cor-destaque);
-  font-weight: var(--peso-forte);
-}
-
 .abas--periodo .aba:not(.aba--ativa),
 .abas--exercicio .aba:not(.aba--ativa) {
   border-style: dashed;

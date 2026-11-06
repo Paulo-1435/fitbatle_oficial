@@ -38,26 +38,6 @@
   margin-bottom: var(--esp-5);
 }
 
-.contador-aba {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 20px;
-  height: 20px;
-  margin-left: var(--esp-1);
-  padding: 0 6px;
-  border-radius: var(--raio-pill);
-  background: var(--cor-superficie-3);
-  color: var(--cor-texto);
-  font-size: var(--texto-xs);
-  font-weight: var(--peso-forte);
-}
-
-.contador-aba--aviso {
-  background: var(--cor-aviso);
-  color: #241a02;
-}
-
 .grupos-grade {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
