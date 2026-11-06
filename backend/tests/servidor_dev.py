@@ -10,7 +10,7 @@ os.environ.setdefault("DB_URI", "sqlite:///" + CAMINHO_BANCO)
 
 from app import criar_app
 from database import db
-from models.model import Atividade, Desafio, DesafioUsuario, Usuario
+from models.model import Atividade, Desafio, DesafioUsuario, Notificacao, Usuario
 from services import (
     AlternarCurtidaService,
     CadastrarUsuarioService,
@@ -21,7 +21,7 @@ from services import (
 )
 from services.atividade.apoio import calcular_pontuacao, nivel_por_xp
 from tests.apoio import CONSENTIMENTOS_OPCIONAIS_ACEITOS, criar_views_de_ranking
-from utils import inicio_utc_do_dia_local
+from utils import agora, inicio_utc_do_dia_local
 
 SENHA = "senhaforte123"
 PRINCIPAL = "helena@fitbattle.dev"
@@ -41,77 +41,136 @@ USUARIOS = [
     ("Gustavo Melo", "gustavo@fitbattle.dev", 40, "Betim", "MG"),
 ]
 
-DESCRICOES = [
-    "Supino reto com pausa de um segundo no peito. Última série até a falha técnica.",
-    "Treino de costas focado em remada e puxada. Descanso de 90 segundos entre as séries.",
-    "Agachamento livre e leg press. Subi a carga em relação à semana passada.",
-    "Corrida leve no parque, ritmo constante e respiração controlada.",
-    "Intervalado na bike: um minuto forte e um minuto leve, repetidos.",
-    "Ombro e abdômen com execução lenta, sem balanço.",
-    "Yoga de recuperação depois do treino pesado. Alongamento de quadril e costas.",
-    "Full body com carga moderada. Boa energia do começo ao fim.",
-    "Esteira em ritmo de tempo: aquecimento de 10 minutos e bloco forte no meio.",
-    "Peito e tríceps mantendo a amplitude completa em todas as repetições.",
-    "Remada curvada com halteres. Boa tensão nas costas.",
-    "Treino leve para manter a rotina depois da viagem.",
-    "Subida de rampa na esteira, inclinação 8 por 25 minutos.",
-    "Pernas: afundo e cadeira extensora. Reduzi a carga no último bloco.",
-    "Caminhada rápida na hora do almoço, 40 minutos.",
+TEXTOS_TREINO = {
+    "Supino reto": "Supino reto com pausa de um segundo no peito. Última série até a falha técnica.",
+    "Agachamento livre": "Agachamento livre com coluna neutra e descida até a linha do joelho.",
+    "Levantamento terra": "Levantamento terra em séries pesadas, com foco em postura e pegada firme.",
+    "Costas e bíceps": "Remada e puxada com foco em costas e bíceps. Descanso de 90 segundos entre as séries.",
+    "Peito e tríceps": "Peito e tríceps mantendo a amplitude completa em todas as repetições.",
+    "Pernas": "Agachamento, leg press e cadeira extensora. Reduzi a carga no último bloco.",
+    "Ombros e abdômen": "Ombro e abdômen com execução lenta, sem balanço.",
+    "Full body": "Corpo inteiro com carga moderada, todos os grupos musculares na mesma sessão.",
+    "Corrida no parque": "Corrida leve no parque, ritmo constante e respiração controlada.",
+    "Bike ergométrica": "Intervalado na bike: um minuto forte e um minuto leve, repetidos.",
+    "Esteira intervalada": "Esteira em ritmo de tempo: aquecimento de 10 minutos e bloco forte no meio.",
+    "Caminhada rápida": "Caminhada rápida na hora do almoço, 40 minutos.",
+    "Yoga de recuperação": "Yoga de recuperação depois do treino pesado. Alongamento de quadril e costas.",
+}
+
+HELENA_SESSOES = [
+    "Supino reto", "Corrida no parque", "Agachamento livre", "Costas e bíceps", "Supino reto",
+    "Yoga de recuperação", "Levantamento terra", "Supino reto", "Bike ergométrica", "Agachamento livre",
+    "Peito e tríceps", "Supino reto", "Caminhada rápida", "Costas e bíceps", "Agachamento livre",
+    "Supino reto", "Esteira intervalada", "Levantamento terra", "Supino reto",
+]
+HELENA_TREINOS_POR_SEMANA = [2, 3, 1, 4, 2, 3, 1, 3]
+HELENA_CARGA_INICIAL = {
+    "Supino reto": (70, 2.5),
+    "Agachamento livre": (60, 5),
+    "Levantamento terra": (80, 2.5),
+    "Costas e bíceps": (40, 2.5),
+    "Peito e tríceps": (30, 2.5),
+}
+CARDIO_HELENA = ("Corrida no parque", "Bike ergométrica", "Esteira intervalada", "Caminhada rápida")
+
+CATALOGO_OUTROS = [
+    ("musculacao", "Pernas"),
+    ("cardio", "Corrida no parque"),
+    ("musculacao", "Ombros e abdômen"),
+    ("yoga", "Yoga de recuperação"),
+    ("musculacao", "Full body"),
+    ("cardio", "Caminhada rápida"),
+    ("musculacao", "Peito e tríceps"),
+    ("cardio", "Esteira intervalada"),
+    ("musculacao", "Costas e bíceps"),
+    ("cardio", "Bike ergométrica"),
 ]
 
-MUSCULACAO = ["Costas e bíceps", "Pernas", "Ombros e abdômen", "Full body", "Peito e tríceps"]
-CARDIO = ["Corrida no parque", "Bike ergométrica", "Esteira intervalada", "Caminhada rápida"]
-
-HELENA_DIAS_ATRAS = [56, 54, 52, 49, 47, 45, 42, 40, 38, 35, 33, 31, 28, 26, 24, 21, 19, 17, 14, 12, 10, 7, 5, 3, 1, 0]
+POSICOES_SEMANA = {1: [2], 2: [1, 4], 3: [0, 2, 4], 4: [0, 2, 4, 6]}
 
 
-def treino_principal(i, dias_atras):
-    descricao = DESCRICOES[i % len(DESCRICOES)]
-    if i % 3 == 1:
+def dias_atras_da_semana(hoje, semanas_atras, quantidade):
+    if semanas_atras == 0:
+        posicoes = list(range(min(quantidade, hoje.weekday() + 1)))
+    else:
+        posicoes = POSICOES_SEMANA[quantidade]
+    base = hoje.weekday() + 7 * semanas_atras
+    return [base - posicao for posicao in posicoes]
+
+
+def treino_helena(exercicio, indice_carga, dias_atras):
+    if exercicio in HELENA_CARGA_INICIAL:
+        inicial, passo = HELENA_CARGA_INICIAL[exercicio]
         return {
-            "tipo": "cardio", "titulo": CARDIO[i % len(CARDIO)], "descricao": descricao,
-            "tempo_min": 30 + (i % 4) * 5, "distancia_km": round(3 + (i % 5) * 0.8, 1),
+            "tipo": "musculacao", "titulo": exercicio, "descricao": TEXTOS_TREINO[exercicio],
+            "tempo_min": 50, "carga_kg": round(inicial + passo * indice_carga, 1), "repeticoes": 8,
             "dias_atras": dias_atras,
         }
-    if i % 3 == 0:
+    if exercicio in CARDIO_HELENA:
         return {
-            "tipo": "musculacao", "titulo": "Supino reto", "descricao": descricao,
-            "tempo_min": 45 + (i % 4) * 5, "carga_kg": round(60 + i * 1.5, 1), "repeticoes": 8 - (i % 3),
-            "dias_atras": dias_atras,
+            "tipo": "cardio", "titulo": exercicio, "descricao": TEXTOS_TREINO[exercicio],
+            "tempo_min": 35, "distancia_km": 4.0 + (indice_carga % 3) * 0.5, "dias_atras": dias_atras,
         }
     return {
-        "tipo": "musculacao", "titulo": MUSCULACAO[i % len(MUSCULACAO)], "descricao": descricao,
-        "tempo_min": 45 + (i % 4) * 5, "carga_kg": 40 + (i % 5) * 8, "repeticoes": 8 + (i % 3) * 2,
-        "dias_atras": dias_atras,
+        "tipo": "yoga", "titulo": exercicio, "descricao": TEXTOS_TREINO[exercicio],
+        "tempo_min": 40, "dias_atras": dias_atras,
     }
 
 
-def treino_de_outro(i, k):
-    descricao = DESCRICOES[(i * 3 + k) % len(DESCRICOES)]
-    dias_atras = 2 + k * 4 + (i % 3)
-    if k % 2 == 0:
+def treino_de_outro(i, g, dias_atras):
+    tipo, titulo = CATALOGO_OUTROS[(i * 4 + g) % len(CATALOGO_OUTROS)]
+    descricao = TEXTOS_TREINO[titulo]
+    if tipo == "musculacao":
         return {
-            "tipo": "musculacao", "titulo": MUSCULACAO[(i + k) % len(MUSCULACAO)], "descricao": descricao,
-            "tempo_min": 40 + (k % 3) * 10, "carga_kg": 30 + ((i + k) % 6) * 10, "repeticoes": 8 + (k % 3),
+            "tipo": tipo, "titulo": titulo, "descricao": descricao,
+            "tempo_min": 40 + (g % 3) * 5, "carga_kg": 30 + ((i + g) % 6) * 5 + (g // 4) * 2.5,
+            "repeticoes": 8 + g % 3, "dias_atras": dias_atras,
+        }
+    if tipo == "cardio":
+        return {
+            "tipo": tipo, "titulo": titulo, "descricao": descricao,
+            "tempo_min": 25 + (g % 3) * 5, "distancia_km": round(2.5 + (g % 4) * 0.5, 1),
             "dias_atras": dias_atras,
         }
     return {
-        "tipo": "cardio", "titulo": CARDIO[(i + k) % len(CARDIO)], "descricao": descricao,
-        "tempo_min": 25 + (k % 3) * 10, "distancia_km": round(2.5 + (k % 4) * 0.7, 1),
-        "dias_atras": dias_atras,
+        "tipo": tipo, "titulo": titulo, "descricao": descricao,
+        "tempo_min": 35 + (g % 2) * 10, "dias_atras": dias_atras,
     }
 
 
-def planos_de_treino():
-    planos = {PRINCIPAL: [treino_principal(i, dias) for i, dias in enumerate(HELENA_DIAS_ATRAS)]}
+def planos_de_treino(hoje):
+    planos = {}
+
+    dias_helena = []
+    for semanas_atras in range(len(HELENA_TREINOS_POR_SEMANA) - 1, -1, -1):
+        quantidade = HELENA_TREINOS_POR_SEMANA[len(HELENA_TREINOS_POR_SEMANA) - 1 - semanas_atras]
+        dias_helena.extend(dias_atras_da_semana(hoje, semanas_atras, quantidade))
+    dias_helena.sort(reverse=True)
+    assert len(dias_helena) == len(HELENA_SESSOES)
+
+    contagem_carga = {}
+    treinos_helena = []
+    for exercicio, dias in zip(HELENA_SESSOES, dias_helena):
+        indice = contagem_carga.get(exercicio, 0)
+        contagem_carga[exercicio] = indice + 1
+        treinos_helena.append(treino_helena(exercicio, indice, dias))
+    planos[PRINCIPAL] = treinos_helena
+
     for i, (_, email, _, _, _) in enumerate(USUARIOS[1:], start=1):
-        planos[email] = [treino_de_outro(i, k) for k in range(3 + i % 3)]
+        treinos = []
+        g = 0
+        for semanas_atras in range(7, -1, -1):
+            quantidade = 1 + (i * 5 + semanas_atras * 3) % 4
+            for dias in dias_atras_da_semana(hoje, semanas_atras, quantidade):
+                treinos.append(treino_de_outro(i, g, dias))
+                g += 1
+        planos[email] = treinos
     return planos
 
 
 def registrar_treinos_historicos(ids, hoje):
     primeira = None
-    for email, treinos in planos_de_treino().items():
+    for email, treinos in planos_de_treino(hoje).items():
         uid = ids[email]
         xp = 0
         for treino in treinos:
@@ -128,6 +187,14 @@ def registrar_treinos_historicos(ids, hoje):
         usuario.nivel = nivel_por_xp(xp)
         usuario.salvar()
     return primeira
+
+
+def espalhar_notificacoes():
+    momento = agora()
+    notificacoes = Notificacao.query.order_by(Notificacao.id_notif).all()
+    for indice, notificacao in enumerate(notificacoes):
+        notificacao.data_envio = momento - timedelta(hours=1 + (indice * 7) % 30 + (indice // 3) * 9)
+    db.session.commit()
 
 
 def data_nascimento_para_idade(idade):
@@ -172,16 +239,17 @@ def popular():
     })
 
     desafio = Desafio(**{
-        "nome": "Desafio: 5 treinos nesta semana",
-        "descricao": "Registre 5 treinos no período para ganhar 100 XP de bônus.",
+        "nome": "Desafio: 5 treinos em 7 dias",
+        "descricao": "Registre 5 treinos em um período de 7 dias para ganhar 100 XP de bônus.",
         "exercicio": "livre",
         "tipo_metrica": "treinos",
         "valor_objetivo": 5,
         "data_inicio": hoje - timedelta(days=3),
-        "data_fim": hoje + timedelta(days=11),
+        "data_fim": hoje + timedelta(days=3),
         "recompensa_xp": 100,
     }).salvar()
     DesafioUsuario(id_desafio=desafio.id_desafio, id_usuario=ids[PRINCIPAL], status="inscrito").salvar()
+    espalhar_notificacoes()
 
 
 def preparar():
