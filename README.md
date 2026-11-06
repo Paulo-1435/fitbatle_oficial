@@ -471,8 +471,7 @@ sobem a API na porta 5000 com dados de demonstração e o frontend na porta 5500
 Abra `http://localhost:5500/login.html` e entre com `helena@fitbattle.dev` e
 `senhaforte123`.
 
-Para abrir de outro aparelho da mesma rede, use `http://IP_DESTE_COMPUTADOR:5500/login.html`.
-Libere as portas 5000 e 5500 no firewall na primeira vez.
+Por padrão a demonstração só fica acessível neste computador (`127.0.0.1`). Para abrir de outro aparelho da mesma rede, defina `FITBATTLE_REDE=1` antes de rodar e use `http://IP_DESTE_COMPUTADOR:5500/login.html`. Use só em rede de confiança, porque a conta de demonstração tem senha pública. Libere as portas 5000 e 5500 no firewall na primeira vez.
 
 ### Passo a passo manual
 
@@ -483,7 +482,7 @@ py -3 -m venv .venv
 .venv\Scripts\Activate.ps1
 python -m pip install -r backend\requirements.txt
 cd backend
-$env:HOST = "0.0.0.0"
+$env:HOST = "127.0.0.1"
 $env:ADMIN_EMAILS = "helena@fitbattle.dev"
 python tests\servidor_dev.py
 ```
@@ -492,7 +491,7 @@ Em outra janela, na pasta do projeto:
 
 ```powershell
 cd frontend
-python -m http.server 5500 --bind 0.0.0.0
+python -m http.server 5500 --bind 127.0.0.1
 ```
 
 Linux e macOS:
@@ -502,14 +501,14 @@ python3 -m venv .venv
 . .venv/bin/activate
 python -m pip install -r backend/requirements.txt
 cd backend
-HOST=0.0.0.0 ADMIN_EMAILS=helena@fitbattle.dev python tests/servidor_dev.py
+HOST=127.0.0.1 ADMIN_EMAILS=helena@fitbattle.dev python tests/servidor_dev.py
 ```
 
 Em outro terminal, na pasta do projeto:
 
 ```bash
 cd frontend
-python -m http.server 5500 --bind 0.0.0.0
+python -m http.server 5500 --bind 127.0.0.1
 ```
 
 ### Testes
