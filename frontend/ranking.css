@@ -18,11 +18,6 @@
 }
 
 .ranking-filtros:last-of-type {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--esp-3);
-  flex-wrap: wrap;
   margin-bottom: var(--esp-6);
 }
 
