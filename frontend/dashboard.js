@@ -199,7 +199,8 @@ function renderizarEvolucaoCarga(pontos, exercicioSelecionado) {
   const amplitude = (maximo - minimo) || 1;
 
   function coordX(indice) {
-    return pontos.length === 1 ? largura / 2 : (indice / (pontos.length - 1)) * largura;
+    const margem = 8;
+    return pontos.length === 1 ? largura / 2 : margem + (indice / (pontos.length - 1)) * (largura - 2 * margem);
   }
   function coordY(valor) {
     return altura - ((valor - minimo) / amplitude) * (altura - 16) - 8;

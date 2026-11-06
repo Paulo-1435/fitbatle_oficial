@@ -428,7 +428,7 @@ function montarFooter() {
   const interno = criarElemento('div', { classe: 'app-footer__interno' }, [
     criarElemento('div', { classe: 'app-footer__marca' }, [
       marca,
-      criarElemento('span', { texto: '© ' + ANO_RODAPE + 'Fitness gamificado e rankings de academia' })
+      criarElemento('span', { texto: '© ' + ANO_RODAPE + ' Fitness gamificado e rankings de academia' })
     ]),
     links
   ]);
