@@ -11,6 +11,9 @@ async function iniciarRanking() {
   if (!exigirLogin()) return;
   usuarioLogado = await usuarioAtualOuFalha(iniciarRanking);
   if (!usuarioLogado) return;
+  if (usuarioLogado.perfil_publico === false) {
+    document.getElementById('avisoPerfilOculto').hidden = false;
+  }
   situacaoRanking = await carregarSituacaoRanking(iniciarRanking);
   if (!situacaoRanking) return;
 
