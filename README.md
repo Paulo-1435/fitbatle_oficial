@@ -161,7 +161,7 @@ Hoje (conferido direto na árvore de arquivos): 58 rotas registradas em
 classes `Repository` em `repositories/` (uma por arquivo), 14 classes `Model`
 em `models/` (uma por arquivo, todas herdando de `ModeloBase`), 10 arquivos
 `apoio.py` em `services/` (um por área que precisa de lógica compartilhada),
-mais um `apoio.py` em `controllers/` e um em `repositories/`, e 457 testes.
+mais um `apoio.py` em `controllers/` e um em `repositories/`, e 459 testes.
 
 | Caso de uso | Controller | Service | Repository |
 |---|---|---|---|
@@ -442,7 +442,7 @@ cd backend
 python -m unittest discover -s tests -t .
 ```
 
-457 testes atualmente, cobrindo autenticação/LGPD (incluindo as fronteiras de
+459 testes atualmente, cobrindo autenticação/LGPD (incluindo as fronteiras de
 13 e 18 anos), robustez (uploads, limite de login, concorrência),
 grupos/convites, metas, compartilhamento, busca restrita (nome, cidade,
 menores de idade, perfil revogado), rankings, dashboard (estado vazio,
@@ -481,8 +481,7 @@ Windows (PowerShell):
 ```powershell
 py -3 -m venv .venv
 .venv\Scripts\Activate.ps1
-python -m pip install -r backend
-equirements.txt
+python -m pip install -r backend\requirements.txt
 cd backend
 $env:HOST = "0.0.0.0"
 $env:ADMIN_EMAILS = "helena@fitbattle.dev"
