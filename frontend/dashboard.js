@@ -108,7 +108,7 @@ function renderizarDashboard(dados) {
 
   renderizarDistribuicao(dados.distribuicao_por_tipo);
   configurarSeletorExercicio(dados);
-  renderizarEvolucaoCarga(dados.evolucao_carga);
+  renderizarEvolucaoCarga(dados.evolucao_carga, dados.exercicio_selecionado);
 }
 
 function renderizarBarras(idContainer, pontos, unidade, mensagemVazia) {
@@ -180,10 +180,13 @@ function configurarSeletorExercicio(dados) {
   seletor.onchange = function () { carregarDashboard(seletor.value); };
 }
 
-function renderizarEvolucaoCarga(pontos) {
+function renderizarEvolucaoCarga(pontos, exercicioSelecionado) {
   const container = document.getElementById('graficoCarga');
   if (pontos.length === 0) {
-    container.innerHTML = '<p class="estado-vazio">Nenhum treino de musculação com carga registrada ainda.</p>';
+    const mensagem = exercicioSelecionado
+      ? 'Sem registros de carga para este exercício.'
+      : 'Nenhum treino de musculação com carga registrada ainda.';
+    container.innerHTML = '<p class="estado-vazio">' + mensagem + '</p>';
     return;
   }
 

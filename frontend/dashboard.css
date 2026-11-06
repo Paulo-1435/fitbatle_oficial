@@ -28,6 +28,15 @@
   align-self: start;
 }
 
+#blocoEmAndamentoDashboard {
+  margin-top: var(--esp-5);
+}
+
+#blocoEmAndamentoDashboard h2,
+.dashboard-grade h2 {
+  margin-bottom: var(--esp-4);
+}
+
 @media (max-width: 720px) {
   .dashboard-grade {
     grid-template-columns: 1fr;

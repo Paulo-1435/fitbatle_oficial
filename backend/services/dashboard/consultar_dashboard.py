@@ -44,7 +44,7 @@ class ConsultarDashboardService:
         exercicios = [linha["titulo"] for linha in AtividadeRepository.titulos_distintos(id_usuario)]
         exercicio_escolhido = None
         if exercicios:
-            exercicio_escolhido = exercicio if exercicio in exercicios else exercicios[0]
+            exercicio_escolhido = exercicio if exercicio in exercicios else ConsultarDashboardService._exercicio_mais_registrado(id_usuario, exercicios)
 
         evolucao_carga = []
         if exercicio_escolhido:
@@ -77,6 +77,14 @@ class ConsultarDashboardService:
             "exercicio_selecionado": exercicio_escolhido,
             "evolucao_carga": evolucao_carga,
         }
+
+    @staticmethod
+    def _exercicio_mais_registrado(id_usuario, exercicios):
+        contagens = {
+            linha["titulo"]: linha["quantidade"]
+            for linha in AtividadeRepository.contagem_de_cargas_por_titulo(id_usuario)
+        }
+        return max(exercicios, key=lambda titulo: (contagens.get(titulo, 0), -exercicios.index(titulo)))
 
     @staticmethod
     def _agrupar_por_dia_local(linhas):

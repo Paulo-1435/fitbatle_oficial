@@ -137,3 +137,13 @@ class AtividadeRepository:
         )
         titulos = [linha["titulo"] for linha in linhas if linha["titulo"]]
         return [{"titulo": titulo} for titulo in sorted(titulos)]
+
+    @staticmethod
+    def contagem_de_cargas_por_titulo(id_usuario):
+        linhas = consultar(
+            "SELECT titulo, COUNT(*) AS quantidade FROM atividade "
+            "WHERE id_usuario = :id_usuario AND tipo = 'musculacao' AND carga_kg IS NOT NULL AND titulo IS NOT NULL "
+            "GROUP BY titulo",
+            {"id_usuario": id_usuario},
+        )
+        return [{"titulo": linha["titulo"], "quantidade": int(linha["quantidade"])} for linha in linhas]

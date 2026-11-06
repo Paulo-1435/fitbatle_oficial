@@ -89,6 +89,16 @@ class TestDashboardComDados(BaseDashboard):
         cargas_maximas = [p["carga_maxima"] for p in corpo["evolucao_carga"]]
         self.assertEqual(cargas_maximas, [100, 100, 120])
 
+    def test_exercicio_padrao_e_o_com_mais_registros_de_carga(self):
+        self.registrar(self.token_ana, titulo="Agachamento Livre", carga=80)
+        self.registrar(self.token_ana, titulo="Supino Reto", carga=100)
+        self.registrar(self.token_ana, titulo="Supino Reto", carga=102)
+        self.registrar(self.token_ana, titulo="Supino Reto", carga=104)
+
+        corpo = self.dashboard(self.token_ana).get_json()
+        self.assertEqual(corpo["exercicio_selecionado"], "Supino Reto")
+        self.assertEqual(len(corpo["evolucao_carga"]), 3)
+
     def test_sequencia_atual_e_melhor_sequencia(self):
         hoje = date.today()
         a1 = self.registrar(self.token_ana)
