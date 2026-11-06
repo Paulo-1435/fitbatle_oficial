@@ -26,6 +26,16 @@
   margin-bottom: var(--esp-6);
 }
 
+.ranking-rotulo {
+  flex-basis: 100%;
+  margin: 0 0 var(--esp-2);
+  color: var(--cor-texto-3);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-forte);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .ranking-filtros__nota {
   margin-top: var(--esp-2);
   color: var(--cor-texto-2);
