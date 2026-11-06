@@ -203,7 +203,7 @@ function htmlVagaPodio(item, modo) {
   const eu = usuarioLogado && item.id_usuario === usuarioLogado.id;
   const rodape = modo === 'exercicio'
     ? ''
-    : `<span class="podio-vaga__nivel">${esc(nomeDivisao(item))}</span>`;
+    : `<span class="podio-vaga__nivel">${esc(nomeNivel(item))}</span>`;
 
   return `<div class="podio-vaga podio-vaga--${item.posicao}${eu ? ' podio-vaga--eu' : ''}">
     <span class="podio-vaga__pos">${item.posicao}º</span>

@@ -13,12 +13,12 @@ const ITENS_NAVEGACAO = [
   { id: 'perfil', rotulo: 'Perfil', href: 'perfil.html' }
 ];
 
-const DIVISOES = {
-  iniciante: 'Bronze',
-  intermediario: 'Silver',
-  avancado: 'Gold',
-  profissional: 'Platinum',
-  elite: 'Diamond'
+const NOMES_NIVEL = {
+  iniciante: 'Iniciante',
+  intermediario: 'Intermediário',
+  avancado: 'Avançado',
+  profissional: 'Profissional',
+  elite: 'Elite'
 };
 
 const ICONES = {
@@ -44,8 +44,8 @@ function criarElemento(tag, atributos, filhos) {
   return elemento;
 }
 
-function nomeDivisao(usuario) {
-  return (DIVISOES[usuario && usuario.nivel] || DIVISOES.iniciante) + ' Division';
+function nomeNivel(usuario) {
+  return NOMES_NIVEL[usuario && usuario.nivel] || NOMES_NIVEL.iniciante;
 }
 
 function iniciais(nome) {
@@ -150,7 +150,7 @@ function montarBusca() {
   function mostrarResultados(usuarios) {
     if (usuarios.length === 0) return mostrarAviso('Nenhum atleta encontrado.');
     const itens = usuarios.map(function (u) {
-      const detalhe = [nomeDivisao(u), u.cidade].filter(Boolean).join(' • ');
+      const detalhe = [nomeNivel(u), u.cidade].filter(Boolean).join(' • ');
       const item = criarElemento('button', { classe: 'busca__item', type: 'button' }, [
         criarAvatar(u, { tamanho: 'pequeno' }),
         criarElemento('span', {}, [
@@ -340,7 +340,7 @@ function montarNotificacoes() {
 }
 
 function montarUsuarioAtual(usuario) {
-  const divisao = nomeDivisao(usuario);
+  const divisao = nomeNivel(usuario);
   const botao = criarElemento('button', {
     classe: 'usuario-atual',
     type: 'button',
@@ -428,7 +428,7 @@ function montarFooter() {
   const interno = criarElemento('div', { classe: 'app-footer__interno' }, [
     criarElemento('div', { classe: 'app-footer__marca' }, [
       marca,
-      criarElemento('span', { texto: '© ' + ANO_RODAPE + ' Gamified Fitness & Gym Rankings' })
+      criarElemento('span', { texto: '© ' + ANO_RODAPE + 'Fitness gamificado e rankings de academia' })
     ]),
     links
   ]);

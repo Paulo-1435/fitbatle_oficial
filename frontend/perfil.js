@@ -166,7 +166,7 @@ function preencherPerfil(u) {
   aplicarFotoOuIniciais('avatarLarge', u);
 
   const progresso = u.progresso_nivel;
-  texto('levelNome', progresso.nivel);
+  texto('levelNome', NOMES_NIVEL[progresso.nivel] || progresso.nivel);
   document.getElementById('levelBar').style.width = progresso.percentual + '%';
   document.getElementById('levelFooter').textContent = progresso.xp_faltante > 0
     ? `Faltam ${progresso.xp_faltante} xp para o próximo nível.`

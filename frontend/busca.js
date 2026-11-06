@@ -48,7 +48,7 @@ function configurarBuscaPerfis() {
   function mostrarResultados(usuarios) {
     if (usuarios.length === 0) return mostrarAviso('Nenhum atleta encontrado.');
     resultados.innerHTML = usuarios.map(function (u) {
-      const detalhe = [u.nivel, u.cidade].filter(Boolean).join(' • ');
+      const detalhe = [nomeNivel(u), u.cidade].filter(Boolean).join(' • ');
       return '<li><button type="button" class="busca__item" data-id="' + u.id + '">' +
         '<span class="avatar avatar--pequeno">' + esc(iniciais(u.nome)) + '</span>' +
         '<span><span class="busca__nome">' + esc(u.nome) + '</span>' +

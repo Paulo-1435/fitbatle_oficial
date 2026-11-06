@@ -41,7 +41,7 @@ function renderizarPerfilPublico(usuario) {
 
   document.getElementById('nomePublico').textContent = usuario.nome;
   document.getElementById('cidadePublica').textContent = [usuario.cidade, usuario.estado].filter(Boolean).join(' - ');
-  document.getElementById('nivelPublico').textContent = DIVISOES[usuario.nivel] || usuario.nivel;
+  document.getElementById('nivelPublico').textContent = NOMES_NIVEL[usuario.nivel] || usuario.nivel;
   document.getElementById('xpPublico').textContent = usuario.xp + ' XP';
   document.getElementById('descricaoPublica').textContent = usuario.descricao || '';
 }
